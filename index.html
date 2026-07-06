@@ -56,6 +56,17 @@
 
   a { color: var(--data); text-underline-offset: 2px; }
 
+  .toc {
+    font-size: 0.85rem;
+    color: var(--ink-2);
+    line-height: 2;
+    margin: -8px 0 40px;
+  }
+  .toc a { white-space: nowrap; }
+  h2 a { color: inherit; text-decoration: none; }
+  h2 a:hover { text-decoration: underline; text-decoration-color: var(--baseline); }
+  section[id], h3[id] { scroll-margin-top: 16px; }
+
   h1, h2, h3 {
     font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
     text-wrap: balance;
@@ -296,6 +307,11 @@
   <p class="sub">Data through <strong>July 3</strong>. Previous edition: <a href="2026-06-12.html">June 12 →</a></p>
 </header>
 
+<nav class="toc">
+  <div class="eyebrow">Jump to</div>
+  <a href="#temperature">Team Temperature</a> · <a href="#glance">League at a Glance</a> · <a href="#draft-board">Draft Board</a> · <a href="#sleepers">Sleeper File</a> · <a href="#outliers">Outliers</a> · <a href="#teams">Teams</a> · <a href="#second-look">Second Look</a> · <a href="#missing-pages">Missing Pages</a> · <a href="#what-changed">What Changed</a> · <a href="#team-sheets">Team Sheets</a> · <a href="#round-rooms">Round Rooms</a> · <a href="#dynasty">Dynasty Ledger</a>
+</nav>
+
 <div class="headlines">
   <div class="eyebrow">The Headlines</div>
   <ul>
@@ -304,13 +320,89 @@
     <li><strong>The Lefty Looseys (Sefton's team) won the draft</strong> (+5.6 total z, best in the league) and it shows: 11 of their 12 players hit .500+.</li>
     <li><strong>The Good Guys (Gideon's team) out-hit everyone</strong> by raw average (.639) — and caused outs (15, most in the league) knock them all the way to 4th.</li>
     <li>The single biggest steal, by expectation, was a <strong>12th-round pick</strong>: Sean Hammon, .609, a full +2.06&nbsp;z over his round.</li>
-    <li><strong>New this edition:</strong> Cuervo Timpson hit .957 over the last three weeks and seized the league lead — the full June&nbsp;12&nbsp;→&nbsp;July&nbsp;3 movers report is in <strong>Section 8</strong>.</li>
+    <li><strong>New this edition:</strong> Cuervo Timpson hit .957 over the last three weeks and seized the league lead — the full June&nbsp;12&nbsp;→&nbsp;July&nbsp;3 movers report is in <a href="#what-changed"><strong>What Changed</strong></a>.</li>
   </ul>
 </div>
 
-<section>
+<section id="temperature">
+  <div class="eyebrow">This Week</div>
+  <h2><a href="#temperature">Team Temperature</a></h2>
+  <p class="lede">Who's catching momentum: change in each team's adjusted average since the previous edition (June 12 → July 3). The full week-over-week report is in <a href="#what-changed">What Changed</a>.</p>
+
+  <div class="rc-card">
+    <div class="rc-row">
+      <div class="rc-team">Slamma Jammas (Boyds Daniel's team)</div>
+      <div class="rc-track" title="Slamma Jammas (Boyds Daniel's team): +.120"><div class="rc-bar pos" style="width:48.1%"></div></div>
+      <div class="rc-val zpos">+.120</div>
+    </div>
+    <div class="rc-row">
+      <div class="rc-team">Stars and Strikes (Seth's team)</div>
+      <div class="rc-track" title="Stars and Strikes (Seth's team): +.053"><div class="rc-bar pos" style="width:21.4%"></div></div>
+      <div class="rc-val zpos">+.053</div>
+    </div>
+    <div class="rc-row">
+      <div class="rc-team">Youre Saying Theres A Chance (Horatio's team)</div>
+      <div class="rc-track" title="Youre Saying Theres A Chance (Horatio's team): +.033"><div class="rc-bar pos" style="width:13.3%"></div></div>
+      <div class="rc-val zpos">+.033</div>
+    </div>
+    <div class="rc-row">
+      <div class="rc-team">Playas (Michael's team)</div>
+      <div class="rc-track" title="Playas (Michael's team): +.025"><div class="rc-bar pos" style="width:9.8%"></div></div>
+      <div class="rc-val zpos">+.025</div>
+    </div>
+    <div class="rc-row">
+      <div class="rc-team">Pure Breads (Caleb's team)</div>
+      <div class="rc-track" title="Pure Breads (Caleb's team): +.016"><div class="rc-bar pos" style="width:6.3%"></div></div>
+      <div class="rc-val zpos">+.016</div>
+    </div>
+    <div class="rc-row">
+      <div class="rc-team">Diamonds and Dirtbags (Jeremy's team)</div>
+      <div class="rc-track" title="Diamonds and Dirtbags (Jeremy's team): +.010"><div class="rc-bar pos" style="width:3.9%"></div></div>
+      <div class="rc-val zpos">+.010</div>
+    </div>
+    <div class="rc-row">
+      <div class="rc-team">Ellites (Elliot's team)</div>
+      <div class="rc-track" title="Ellites (Elliot's team): +.008"><div class="rc-bar pos" style="width:3.2%"></div></div>
+      <div class="rc-val zpos">+.008</div>
+    </div>
+    <div class="rc-row">
+      <div class="rc-team">Good Guys (Gideon's team)</div>
+      <div class="rc-track" title="Good Guys (Gideon's team): +.006"><div class="rc-bar pos" style="width:2.3%"></div></div>
+      <div class="rc-val zpos">+.006</div>
+    </div>
+    <div class="rc-row">
+      <div class="rc-team">Danites (Ephraims Daniel's team)</div>
+      <div class="rc-track" title="Danites (Ephraims Daniel's team): −.002"><div class="rc-bar neg" style="width:0.8%"></div></div>
+      <div class="rc-val zneg">−.002</div>
+    </div>
+    <div class="rc-row">
+      <div class="rc-team">Pliggas (Claude's team)</div>
+      <div class="rc-track" title="Pliggas (Claude's team): −.006"><div class="rc-bar neg" style="width:2.3%"></div></div>
+      <div class="rc-val zneg">−.006</div>
+    </div>
+    <div class="rc-row">
+      <div class="rc-team">Fellowship of the Swing (Stafford's team)</div>
+      <div class="rc-track" title="Fellowship of the Swing (Stafford's team): −.020"><div class="rc-bar neg" style="width:7.9%"></div></div>
+      <div class="rc-val zneg">−.020</div>
+    </div>
+    <div class="rc-row">
+      <div class="rc-team">Lefty Looseys (Sefton's team)</div>
+      <div class="rc-track" title="Lefty Looseys (Sefton's team): −.022"><div class="rc-bar neg" style="width:8.8%"></div></div>
+      <div class="rc-val zneg">−.022</div>
+    </div>
+    <div class="rc-legend">Bars scaled to ±.125 around the center line.<span class="swatch" style="background:var(--data)"></span>warmer than June 12<span class="swatch" style="background:var(--data-neg)"></span>cooler</div>
+  </div>
+
+  <div class="callouts">
+    <p><strong>The Slamma Jammas (Boyds Daniel's team) are the story of the month.</strong> Dead last on June 12 at .412, they hit .624 as a team over the period — Derrick Knudson (.812), Maureen Williams (.769), and Levi Knudson (.769) all caught fire at once — and climbed to 9th at .532.</p>
+    <p><strong>Youre Saying Theres A Chance (Horatio's team) quietly had the best three weeks in the league</strong> (.632 period average), moving from 6th to 3rd.</p>
+    <p><strong>The Lefty Looseys (Sefton's team) cooled the most</strong> (−.022) and surrendered the team-average lead they held on June 12 to the Diamonds and Dirtbags (Jeremy's team). The Fellowship of the Swing (Stafford's team) slid from 2nd to 5th the same way — a .555 period across the roster.</p>
+  </div>
+</section>
+
+<section id="glance">
   <div class="eyebrow">Section 1</div>
-  <h2>League at a Glance</h2>
+  <h2><a href="#glance">League at a Glance</a></h2>
   <p class="lede">A perfectly balanced league: 12 teams, 12 players each, drafted in 12 rounds.</p>
   <div class="tiles">
     <div class="tile"><div class="value">144</div><div class="label">Players</div></div>
@@ -322,9 +414,9 @@
   </div>
 </section>
 
-<section>
+<section id="draft-board">
   <div class="eyebrow">Section 2</div>
-  <h2>The Draft Board — Round-by-Round Averages</h2>
+  <h2><a href="#draft-board">The Draft Board — Round-by-Round Averages</a></h2>
   <p class="lede">Average adjusted average by draft round. Bars run on a 0–1.000 scale (an average is a rate). The decline is nearly monotonic — whoever is scouting this league knows what they're doing.</p>
 
   <div class="table-scroll">
@@ -365,9 +457,9 @@
   </ul>
 </section>
 
-<section>
+<section id="sleepers">
   <div class="eyebrow">Section 3</div>
-  <h2>The Sleeper File</h2>
+  <h2><a href="#sleepers">The Sleeper File</a></h2>
   <p class="lede">Everyone drafted in <strong>round 6 or later</strong> who hit like a top-third player (15+ at-bats to filter out hot streaks). League rank is out of 144 — five of these people finished in the <strong>top 30 overall</strong>.</p>
 
   <h3>Tier 1 — Mid-round larceny (rounds 6–7)</h3>
@@ -417,9 +509,9 @@
   </div>
 </section>
 
-<section>
+<section id="outliers">
   <div class="eyebrow">Section 4</div>
-  <h2>Outliers, Round by Round</h2>
+  <h2><a href="#outliers">Outliers, Round by Round</a></h2>
   <p class="lede">The single biggest over- and underperformer versus round expectation in every round (minimum 10 ABs). Read this as <em>the best and worst pick of each round</em>. Round average shown in parentheses.</p>
 
   <div class="table-scroll">
@@ -457,9 +549,9 @@
   </ul>
 </section>
 
-<section>
+<section id="teams">
   <div class="eyebrow">Section 5</div>
-  <h2>Team-by-Team Breakdown</h2>
+  <h2><a href="#teams">Team-by-Team Breakdown</a></h2>
   <p class="lede">Sorted by team adjusted average. <strong>".500 Club"</strong> = players on the roster hitting .500 or better.</p>
 
   <div class="table-scroll">
@@ -572,9 +664,9 @@
   </div>
 </section>
 
-<section>
+<section id="second-look">
   <div class="eyebrow">Section 6</div>
-  <h2>The Draft Board, Second Look</h2>
+  <h2><a href="#second-look">The Draft Board, Second Look</a></h2>
   <p class="lede">Averages only tell you what a round <em>returns</em>. This table is about what a round <em>risks</em>: how wide the outcomes spread, how often a pick busts, how sloppy the plate discipline gets, and where each round's players would actually go if the league re-drafted on today's numbers.</p>
 
   <div class="table-scroll">
@@ -646,9 +738,9 @@
   </div>
 </section>
 
-<section>
+<section id="missing-pages">
   <div class="eyebrow">Section 7</div>
-  <h2>The Missing Pages</h2>
+  <h2><a href="#missing-pages">The Missing Pages</a></h2>
   <p class="lede">Three things this report has never covered: who's giving averages back at the plate, who's carrying the heaviest workloads, and what the league actually looks like as a distribution.</p>
 
   <h3>The caused-out ledger</h3>
@@ -730,10 +822,10 @@
   </ul>
 </section>
 
-<section>
+<section id="what-changed">
   <div class="eyebrow">Section 8</div>
-  <h2>What Changed: June 12 → July 3</h2>
-  <p class="lede">Everything in this section compares the current numbers against the <a href="2026-06-12.html">June 12 edition</a>, three weeks earlier. "Period" stats count only what happened <em>between</em> the two snapshots: (new hits − new caused outs) ÷ new at-bats.</p>
+  <h2><a href="#what-changed">What Changed: June 12 → July 3</a></h2>
+  <p class="lede">Everything in this section compares the current numbers against the <a href="2026-06-12.html">June 12 edition</a>, three weeks earlier. "Period" stats count only what happened <em>between</em> the two snapshots: (new hits − new caused outs) ÷ new at-bats. The team-by-team temperature board sits at the <a href="#temperature">top of the page</a>.</p>
 
   <div class="tiles">
     <div class="tile"><div class="value">.577</div><div class="label">Period league avg</div></div>
@@ -813,7 +905,7 @@
   </div>
   <ul class="notes">
     <li><strong>Sean Hammon is still the steal of the draft</strong> (+2.06 z, Section 3) — but he's cooled from "top-ten bat in the league" (.769 on June 12) to "very good final-rounder" (.609).</li>
-    <li><strong>The Pliggas (Claude's team) own three of the six biggest fallers</strong> — Avery, Sean, and Brigham Hammon (Lexi Timpson is their consolation riser). That's the whole story of their team slide below.</li>
+    <li><strong>The Pliggas (Claude's team) own three of the six biggest fallers</strong> — Avery, Sean, and Brigham Hammon (Lexi Timpson is their consolation riser). That's the whole story of their team slide — see the temperature board at the top of the page.</li>
     <li><strong>Leroy Dutson climbed out of the basement:</strong> he was round 8's designated bust on June 12 (.182); he's hit .778 since and now sits at a respectable .450.</li>
   </ul>
 
@@ -823,79 +915,6 @@
     <li><strong>Levi Knudson +26 at-bats</strong> (6 → 32). On June 12 he was a benchwarmer at .500; he hit .769 since and is now the Slamma Jammas' engine at .719.</li>
     <li><strong>Five debuts</strong>, led by Scott Naylor: .700 on 10 at-bats, instantly round 9's best pick (Section 4). The others: Daniel Dockstader Marvins (.533), Steven Dockstader (.500), Nathan Hammon (.500), Angeline Williams (.167).</li>
   </ul>
-
-  <h3 style="margin-top:28px">Team temperature</h3>
-  <p class="lede">Change in team adjusted average between editions. Three weeks is enough to reshuffle the middle of the table.</p>
-
-  <div class="rc-card">
-    <div class="rc-row">
-      <div class="rc-team">Slamma Jammas (Boyds Daniel's team)</div>
-      <div class="rc-track" title="Slamma Jammas (Boyds Daniel's team): +.120"><div class="rc-bar pos" style="width:48.1%"></div></div>
-      <div class="rc-val zpos">+.120</div>
-    </div>
-    <div class="rc-row">
-      <div class="rc-team">Stars and Strikes (Seth's team)</div>
-      <div class="rc-track" title="Stars and Strikes (Seth's team): +.053"><div class="rc-bar pos" style="width:21.4%"></div></div>
-      <div class="rc-val zpos">+.053</div>
-    </div>
-    <div class="rc-row">
-      <div class="rc-team">Youre Saying Theres A Chance (Horatio's team)</div>
-      <div class="rc-track" title="Youre Saying Theres A Chance (Horatio's team): +.033"><div class="rc-bar pos" style="width:13.3%"></div></div>
-      <div class="rc-val zpos">+.033</div>
-    </div>
-    <div class="rc-row">
-      <div class="rc-team">Playas (Michael's team)</div>
-      <div class="rc-track" title="Playas (Michael's team): +.025"><div class="rc-bar pos" style="width:9.8%"></div></div>
-      <div class="rc-val zpos">+.025</div>
-    </div>
-    <div class="rc-row">
-      <div class="rc-team">Pure Breads (Caleb's team)</div>
-      <div class="rc-track" title="Pure Breads (Caleb's team): +.016"><div class="rc-bar pos" style="width:6.3%"></div></div>
-      <div class="rc-val zpos">+.016</div>
-    </div>
-    <div class="rc-row">
-      <div class="rc-team">Diamonds and Dirtbags (Jeremy's team)</div>
-      <div class="rc-track" title="Diamonds and Dirtbags (Jeremy's team): +.010"><div class="rc-bar pos" style="width:3.9%"></div></div>
-      <div class="rc-val zpos">+.010</div>
-    </div>
-    <div class="rc-row">
-      <div class="rc-team">Ellites (Elliot's team)</div>
-      <div class="rc-track" title="Ellites (Elliot's team): +.008"><div class="rc-bar pos" style="width:3.2%"></div></div>
-      <div class="rc-val zpos">+.008</div>
-    </div>
-    <div class="rc-row">
-      <div class="rc-team">Good Guys (Gideon's team)</div>
-      <div class="rc-track" title="Good Guys (Gideon's team): +.006"><div class="rc-bar pos" style="width:2.3%"></div></div>
-      <div class="rc-val zpos">+.006</div>
-    </div>
-    <div class="rc-row">
-      <div class="rc-team">Danites (Ephraims Daniel's team)</div>
-      <div class="rc-track" title="Danites (Ephraims Daniel's team): −.002"><div class="rc-bar neg" style="width:0.8%"></div></div>
-      <div class="rc-val zneg">−.002</div>
-    </div>
-    <div class="rc-row">
-      <div class="rc-team">Pliggas (Claude's team)</div>
-      <div class="rc-track" title="Pliggas (Claude's team): −.006"><div class="rc-bar neg" style="width:2.3%"></div></div>
-      <div class="rc-val zneg">−.006</div>
-    </div>
-    <div class="rc-row">
-      <div class="rc-team">Fellowship of the Swing (Stafford's team)</div>
-      <div class="rc-track" title="Fellowship of the Swing (Stafford's team): −.020"><div class="rc-bar neg" style="width:7.9%"></div></div>
-      <div class="rc-val zneg">−.020</div>
-    </div>
-    <div class="rc-row">
-      <div class="rc-team">Lefty Looseys (Sefton's team)</div>
-      <div class="rc-track" title="Lefty Looseys (Sefton's team): −.022"><div class="rc-bar neg" style="width:8.8%"></div></div>
-      <div class="rc-val zneg">−.022</div>
-    </div>
-    <div class="rc-legend">Bars scaled to ±.125 around the center line.<span class="swatch" style="background:var(--data)"></span>warmer than June 12<span class="swatch" style="background:var(--data-neg)"></span>cooler</div>
-  </div>
-
-  <div class="callouts">
-    <p><strong>The Slamma Jammas (Boyds Daniel's team) are the story of the month.</strong> Dead last on June 12 at .412, they hit .624 as a team over the period — Derrick Knudson (.812), Maureen Williams (.769), and Levi Knudson (.769) all caught fire at once — and climbed to 9th at .532.</p>
-    <p><strong>Youre Saying Theres A Chance (Horatio's team) quietly had the best three weeks in the league</strong> (.632 period average), moving from 6th to 3rd.</p>
-    <p><strong>The Lefty Looseys (Sefton's team) cooled the most</strong> (−.022) and surrendered the team-average lead they held on June 12 to the Diamonds and Dirtbags (Jeremy's team). The Fellowship of the Swing (Stafford's team) slid from 2nd to 5th the same way — a .555 period across the roster.</p>
-  </div>
 
   <h3 style="margin-top:28px">Dynasty of the week</h3>
   <p class="lede">The Dynasty Ledger's nine families, measured only on this period's at-bats.</p>
@@ -939,9 +958,9 @@
   </ul>
 </section>
 
-<section>
+<section id="team-sheets">
   <div class="eyebrow">Section 9</div>
-  <h2>Team Sheets</h2>
+  <h2><a href="#team-sheets">Team Sheets</a></h2>
   <p class="lede">By reader request: every team's draft-day coup and regret — the best and worst pick on the roster relative to round expectation — and who ran hottest and coldest since June 12.</p>
 
   <h3>Best and worst pick, per team</h3>
@@ -1003,12 +1022,12 @@
   </ul>
 </section>
 
-<section>
+<section id="round-rooms">
   <div class="eyebrow">Section 10</div>
-  <h2>The Round Rooms</h2>
+  <h2><a href="#round-rooms">The Round Rooms</a></h2>
   <p class="lede">The full class photo for every draft round — all twelve players, not just the valedictorian and the dropout. <strong>z</strong> compares a player to their round-mates over the full season; <strong>This Week</strong> is the adjusted rate on at-bats taken between June 12 and July 3, with period at-bats in parentheses (mind the small samples).</p>
 
-  <h3 style="margin-top:28px">Round 1</h3>
+  <h3 id="round-1" style="margin-top:28px">Round 1</h3>
   <div class="table-scroll">
     <table>
       <thead>
@@ -1031,7 +1050,7 @@
       <caption>Round 1: season average .726 · hit .756 as a group this period.</caption>
     </table>
   </div>
-  <h3 style="margin-top:28px">Round 2</h3>
+  <h3 id="round-2" style="margin-top:28px">Round 2</h3>
   <div class="table-scroll">
     <table>
       <thead>
@@ -1054,7 +1073,7 @@
       <caption>Round 2: season average .634 · hit .675 as a group this period.</caption>
     </table>
   </div>
-  <h3 style="margin-top:28px">Round 3</h3>
+  <h3 id="round-3" style="margin-top:28px">Round 3</h3>
   <div class="table-scroll">
     <table>
       <thead>
@@ -1077,7 +1096,7 @@
       <caption>Round 3: season average .605 · hit .604 as a group this period.</caption>
     </table>
   </div>
-  <h3 style="margin-top:28px">Round 4</h3>
+  <h3 id="round-4" style="margin-top:28px">Round 4</h3>
   <div class="table-scroll">
     <table>
       <thead>
@@ -1100,7 +1119,7 @@
       <caption>Round 4: season average .605 · hit .645 as a group this period.</caption>
     </table>
   </div>
-  <h3 style="margin-top:28px">Round 5</h3>
+  <h3 id="round-5" style="margin-top:28px">Round 5</h3>
   <div class="table-scroll">
     <table>
       <thead>
@@ -1123,7 +1142,7 @@
       <caption>Round 5: season average .574 · hit .551 as a group this period.</caption>
     </table>
   </div>
-  <h3 style="margin-top:28px">Round 6</h3>
+  <h3 id="round-6" style="margin-top:28px">Round 6</h3>
   <div class="table-scroll">
     <table>
       <thead>
@@ -1146,7 +1165,7 @@
       <caption>Round 6: season average .612 · hit .628 as a group this period.</caption>
     </table>
   </div>
-  <h3 style="margin-top:28px">Round 7</h3>
+  <h3 id="round-7" style="margin-top:28px">Round 7</h3>
   <div class="table-scroll">
     <table>
       <thead>
@@ -1169,7 +1188,7 @@
       <caption>Round 7: season average .527 · hit .573 as a group this period.</caption>
     </table>
   </div>
-  <h3 style="margin-top:28px">Round 8</h3>
+  <h3 id="round-8" style="margin-top:28px">Round 8</h3>
   <div class="table-scroll">
     <table>
       <thead>
@@ -1192,7 +1211,7 @@
       <caption>Round 8: season average .477 · hit .504 as a group this period.</caption>
     </table>
   </div>
-  <h3 style="margin-top:28px">Round 9</h3>
+  <h3 id="round-9" style="margin-top:28px">Round 9</h3>
   <div class="table-scroll">
     <table>
       <thead>
@@ -1215,7 +1234,7 @@
       <caption>Round 9: season average .478 · hit .480 as a group this period.</caption>
     </table>
   </div>
-  <h3 style="margin-top:28px">Round 10</h3>
+  <h3 id="round-10" style="margin-top:28px">Round 10</h3>
   <div class="table-scroll">
     <table>
       <thead>
@@ -1238,7 +1257,7 @@
       <caption>Round 10: season average .385 · hit .402 as a group this period.</caption>
     </table>
   </div>
-  <h3 style="margin-top:28px">Round 11</h3>
+  <h3 id="round-11" style="margin-top:28px">Round 11</h3>
   <div class="table-scroll">
     <table>
       <thead>
@@ -1261,7 +1280,7 @@
       <caption>Round 11: season average .439 · hit .479 as a group this period.</caption>
     </table>
   </div>
-  <h3 style="margin-top:28px">Round 12</h3>
+  <h3 id="round-12" style="margin-top:28px">Round 12</h3>
   <div class="table-scroll">
     <table>
       <thead>
@@ -1292,9 +1311,9 @@
   </ul>
 </section>
 
-<section>
+<section id="dynasty">
   <div class="eyebrow">Appendix</div>
-  <h2>The Dynasty Ledger</h2>
+  <h2><a href="#dynasty">The Dynasty Ledger</a></h2>
   <p class="lede">Because no CP Softball document is complete without acknowledging that this league is nine families in a trench coat — <strong>117 of 144 players share just nine surnames.</strong></p>
 
   <div class="table-scroll">

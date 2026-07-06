@@ -361,7 +361,7 @@ def html_tables(cur, prev=None):
     for rd in range(1, ROUNDS + 1):
         ps = sorted((p for p in cur if p["pick"] == rd),
                     key=lambda p: (-p["avg"], -p["ab"], p["name"]))
-        print(f'  <h3 style="margin-top:28px">Round {rd}</h3>')
+        print(f'  <h3 id="round-{rd}" style="margin-top:28px">Round {rd}</h3>')
         print('  <div class="table-scroll">\n    <table>\n      <thead>')
         week_th = '<th class="num">This Week (ABs)</th>' if prev else ''
         print(f'        <tr><th>Player</th><th>Team</th><th class="num">Avg</th>'

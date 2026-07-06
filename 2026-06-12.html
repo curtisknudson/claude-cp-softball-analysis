@@ -56,6 +56,17 @@
 
   a { color: var(--data); text-underline-offset: 2px; }
 
+  .toc {
+    font-size: 0.85rem;
+    color: var(--ink-2);
+    line-height: 2;
+    margin: -8px 0 40px;
+  }
+  .toc a { white-space: nowrap; }
+  h2 a { color: inherit; text-decoration: none; }
+  h2 a:hover { text-decoration: underline; text-decoration-color: var(--baseline); }
+  section[id], h3[id] { scroll-margin-top: 16px; }
+
   h1, h2, h3 {
     font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
     text-wrap: balance;
@@ -297,6 +308,11 @@
   For the latest numbers, <a href="index.html">read the current edition →</a></p>
 </header>
 
+<nav class="toc">
+  <div class="eyebrow">Jump to</div>
+  <a href="#glance">League at a Glance</a> · <a href="#draft-board">Draft Board</a> · <a href="#sleepers">Sleeper File</a> · <a href="#outliers">Outliers</a> · <a href="#teams">Teams</a> · <a href="#team-sheets">Team Sheets</a> · <a href="#round-rooms">Round Rooms</a> · <a href="#dynasty">Dynasty Ledger</a>
+</nav>
+
 <div class="headlines">
   <div class="eyebrow">The Headlines</div>
   <ul>
@@ -308,9 +324,9 @@
   </ul>
 </div>
 
-<section>
+<section id="glance">
   <div class="eyebrow">Section 1</div>
-  <h2>League at a Glance</h2>
+  <h2><a href="#glance">League at a Glance</a></h2>
   <p class="lede">A perfectly balanced league — 12 teams, 12 players each, drafted in 12 rounds — three weeks in. Five players have yet to record an at-bat.</p>
   <div class="tiles">
     <div class="tile"><div class="value">144</div><div class="label">Players</div></div>
@@ -322,9 +338,9 @@
   </div>
 </section>
 
-<section>
+<section id="draft-board">
   <div class="eyebrow">Section 2</div>
-  <h2>The Draft Board — Round-by-Round Averages</h2>
+  <h2><a href="#draft-board">The Draft Board — Round-by-Round Averages</a></h2>
   <p class="lede">Average adjusted average by draft round, players with at least one at-bat. Bars run on a 0–1.000 scale. The slope is already unmistakable — but three weeks of at-bats leave plenty of noise in the middle rounds.</p>
 
   <div class="table-scroll">
@@ -366,9 +382,9 @@
   </ul>
 </section>
 
-<section>
+<section id="sleepers">
   <div class="eyebrow">Section 3</div>
-  <h2>The Sleeper File</h2>
+  <h2><a href="#sleepers">The Sleeper File</a></h2>
   <p class="lede">Everyone drafted in <strong>round 6 or later</strong> who is hitting .600 or better (10+ at-bats to filter out hot streaks). League rank is out of 144.</p>
 
   <div class="table-scroll">
@@ -402,9 +418,9 @@
   </div>
 </section>
 
-<section>
+<section id="outliers">
   <div class="eyebrow">Section 4</div>
-  <h2>Outliers, Round by Round</h2>
+  <h2><a href="#outliers">Outliers, Round by Round</a></h2>
   <p class="lede">The single biggest over- and underperformer versus round expectation in every round (minimum 6 ABs). Read this as <em>the best and worst pick of each round, so far</em>. Round average shown in parentheses.</p>
 
   <div class="table-scroll">
@@ -442,9 +458,9 @@
   </ul>
 </section>
 
-<section>
+<section id="teams">
   <div class="eyebrow">Section 5</div>
-  <h2>Team-by-Team Breakdown</h2>
+  <h2><a href="#teams">Team-by-Team Breakdown</a></h2>
   <p class="lede">Sorted by team adjusted average. <strong>".500 Club"</strong> = players on the roster hitting .500 or better.</p>
 
   <div class="table-scroll">
@@ -557,9 +573,9 @@
   </div>
 </section>
 
-<section>
+<section id="team-sheets">
   <div class="eyebrow">Section 6</div>
-  <h2>Team Sheets</h2>
+  <h2><a href="#team-sheets">Team Sheets</a></h2>
   <p class="lede">Every team's draft-day coup and regret so far — the best and worst pick on the roster relative to round expectation.</p>
 
   <div class="table-scroll">
@@ -591,12 +607,12 @@
   </ul>
 </section>
 
-<section>
+<section id="round-rooms">
   <div class="eyebrow">Section 7</div>
-  <h2>The Round Rooms</h2>
+  <h2><a href="#round-rooms">The Round Rooms</a></h2>
   <p class="lede">The full class photo for every draft round — all twelve players, not just the best and worst pick. <strong>z</strong> compares a player to their round-mates. Players yet to bat are shown with em dashes.</p>
 
-  <h3 style="margin-top:28px">Round 1</h3>
+  <h3 id="round-1" style="margin-top:28px">Round 1</h3>
   <div class="table-scroll">
     <table>
       <thead>
@@ -619,7 +635,7 @@
       <caption>Round 1: season average .680.</caption>
     </table>
   </div>
-  <h3 style="margin-top:28px">Round 2</h3>
+  <h3 id="round-2" style="margin-top:28px">Round 2</h3>
   <div class="table-scroll">
     <table>
       <thead>
@@ -642,7 +658,7 @@
       <caption>Round 2: season average .616.</caption>
     </table>
   </div>
-  <h3 style="margin-top:28px">Round 3</h3>
+  <h3 id="round-3" style="margin-top:28px">Round 3</h3>
   <div class="table-scroll">
     <table>
       <thead>
@@ -665,7 +681,7 @@
       <caption>Round 3: season average .583.</caption>
     </table>
   </div>
-  <h3 style="margin-top:28px">Round 4</h3>
+  <h3 id="round-4" style="margin-top:28px">Round 4</h3>
   <div class="table-scroll">
     <table>
       <thead>
@@ -688,7 +704,7 @@
       <caption>Round 4: season average .601.</caption>
     </table>
   </div>
-  <h3 style="margin-top:28px">Round 5</h3>
+  <h3 id="round-5" style="margin-top:28px">Round 5</h3>
   <div class="table-scroll">
     <table>
       <thead>
@@ -711,7 +727,7 @@
       <caption>Round 5: season average .580.</caption>
     </table>
   </div>
-  <h3 style="margin-top:28px">Round 6</h3>
+  <h3 id="round-6" style="margin-top:28px">Round 6</h3>
   <div class="table-scroll">
     <table>
       <thead>
@@ -734,7 +750,7 @@
       <caption>Round 6: season average .576.</caption>
     </table>
   </div>
-  <h3 style="margin-top:28px">Round 7</h3>
+  <h3 id="round-7" style="margin-top:28px">Round 7</h3>
   <div class="table-scroll">
     <table>
       <thead>
@@ -757,7 +773,7 @@
       <caption>Round 7: season average .543.</caption>
     </table>
   </div>
-  <h3 style="margin-top:28px">Round 8</h3>
+  <h3 id="round-8" style="margin-top:28px">Round 8</h3>
   <div class="table-scroll">
     <table>
       <thead>
@@ -780,7 +796,7 @@
       <caption>Round 8: season average .467.</caption>
     </table>
   </div>
-  <h3 style="margin-top:28px">Round 9</h3>
+  <h3 id="round-9" style="margin-top:28px">Round 9</h3>
   <div class="table-scroll">
     <table>
       <thead>
@@ -803,7 +819,7 @@
       <caption>Round 9: season average .447.</caption>
     </table>
   </div>
-  <h3 style="margin-top:28px">Round 10</h3>
+  <h3 id="round-10" style="margin-top:28px">Round 10</h3>
   <div class="table-scroll">
     <table>
       <thead>
@@ -826,7 +842,7 @@
       <caption>Round 10: season average .344.</caption>
     </table>
   </div>
-  <h3 style="margin-top:28px">Round 11</h3>
+  <h3 id="round-11" style="margin-top:28px">Round 11</h3>
   <div class="table-scroll">
     <table>
       <thead>
@@ -849,7 +865,7 @@
       <caption>Round 11: season average .450.</caption>
     </table>
   </div>
-  <h3 style="margin-top:28px">Round 12</h3>
+  <h3 id="round-12" style="margin-top:28px">Round 12</h3>
   <div class="table-scroll">
     <table>
       <thead>
@@ -880,9 +896,9 @@
   </ul>
 </section>
 
-<section>
+<section id="dynasty">
   <div class="eyebrow">Appendix</div>
-  <h2>The Dynasty Ledger</h2>
+  <h2><a href="#dynasty">The Dynasty Ledger</a></h2>
   <p class="lede">Because no CP Softball document is complete without acknowledging that this league is nine families in a trench coat — <strong>118 of 144 players share just nine surnames.</strong></p>
 
   <div class="table-scroll">

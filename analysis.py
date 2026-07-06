@@ -139,6 +139,47 @@ def given(p):
     return p["name"].split(",")[1].strip() if "," in p["name"] else p["name"]
 
 
+# Shortstops — one per team, per Curtis (2026-07-06). Shortstop is the league's
+# premium defensive position: 10 of the 12 were round-1 picks, and a shortstop's
+# draft price buys a glove the batting ledger can't see. Temper "overdrafted"
+# verdicts for these names.
+SHORTSTOPS = {
+    "Hammon, Gideon",              # Good Guys
+    "Williams, Horatio",           # Youre Saying Theres A Chance
+    "Dockstader, Sefton",          # Lefty Looseys
+    "Hammon, Elliot",              # Ellites
+    "Timpson, Claude",             # Pliggas
+    "Williams, Michael",           # Playas
+    "Guy, Sam",                    # Stars and Strikes
+    "Dockstader Ephraims, Daniel", # Danites (R4)
+    "Williams, Daniel",            # Pure Breads
+    "Knudson, Levi",               # Slamma Jammas
+    "Hammon, Stafford",            # Fellowship of the Swing (R3)
+    "Dockstader Boyds, Jeremy",    # Diamonds and Dirtbags
+}
+
+
+def is_ss(p):
+    return p["name"] in SHORTSTOPS
+
+
+def add_value(players):
+    """Value = net hits above a league-average bat: (avg - league_adj) * AB.
+
+    Rewards volume: .750 over 30 AB (+5.6) beats .780 over 20 AB (+4.4).
+    Also deals every player a "true round" (vround): rank all by value,
+    12 per round. Returns the league adjusted average used.
+    """
+    tot_ab = sum(p["ab"] for p in players)
+    lg = (sum(p["h"] for p in players) - sum(p["co"] for p in players)) / tot_ab
+    for p in players:
+        p["value"] = (p["avg"] - lg) * p["ab"]
+    ranked = sorted(players, key=lambda p: (-p["value"], -p["avg"], -p["ab"], p["name"]))
+    for i, p in enumerate(ranked):
+        p["vround"] = i // ROUNDS + 1
+    return lg
+
+
 def add_z(players):
     """z within draft round, over players with AB > 0. DNP players get z = 0."""
     for rd in range(1, ROUNDS + 1):
@@ -276,6 +317,38 @@ def digest(players, label, min_ab_sleeper, min_ab_outlier):
     print("--- CAUSED OUTS (all CO >= 2) ---")
     for p in sorted((p for p in players if p["co"] >= 2), key=lambda p: (-p["co"], -p["ab"])):
         print(f"  {p['name']:30s} CO {p['co']}  on {p['ab']:2d} AB, avg {A(p['avg'])}  ({p['team']})")
+
+    # ---- verdict: value, true rounds, justified picks
+    lg = add_value(players)
+    just = sum(1 for p in players if p["vround"] <= p["pick"])
+    exact = [p for p in players if p["vround"] == p["pick"]]
+    print(f"\n--- VERDICT (value = (avg - {A(lg)}) * AB = net hits above a league-average bat) ---")
+    print(f"justified (true round <= drafted round): {just}/{len(players)} | priced exactly right: {len(exact)}")
+    print("VALUE TOP 12:")
+    for p in sorted(players, key=lambda p: -p["value"])[:12]:
+        print(f"  {p['name']:30s} value {p['value']:+5.1f}  {A(p['avg'])} on {p['ab']:2d} AB  "
+              f"drafted R{p['pick']:<2d} true R{p['vround']:<2d} {'SS' if is_ss(p) else ''}  ({p['team']})")
+    print("PRICED EXACTLY RIGHT (true round == drafted round):")
+    for p in sorted(exact, key=lambda p: p["pick"]):
+        print(f"  R{p['pick']:<2d} {p['name']:30s} {A(p['avg'])} on {p['ab']:2d} AB  value {p['value']:+5.1f} "
+              f"{'SS' if is_ss(p) else ''}  ({p['team']})")
+    under = sorted((p for p in players if p["pick"] > p["vround"]),
+                   key=lambda p: (-(p["pick"] - p["vround"]), -p["value"]))
+    over = sorted((p for p in players if p["pick"] < p["vround"]),
+                  key=lambda p: (p["pick"] - p["vround"], p["value"]))
+    print("UNDERDRAFTED top 8 (went later than their stats deserve):")
+    for p in under[:8]:
+        print(f"  {p['name']:30s} drafted R{p['pick']:<2d} true R{p['vround']:<2d} (+{p['pick']-p['vround']} rounds)  "
+              f"{A(p['avg'])} on {p['ab']:2d} AB  value {p['value']:+5.1f} {'SS' if is_ss(p) else ''}  ({p['team']})")
+    print("OVERDRAFTED top 8 (stats say they went too early):")
+    for p in over[:8]:
+        print(f"  {p['name']:30s} drafted R{p['pick']:<2d} true R{p['vround']:<2d} ({p['pick']-p['vround']} rounds)  "
+              f"{A(p['avg'])} on {p['ab']:2d} AB  value {p['value']:+5.1f} {'SS' if is_ss(p) else ''}  ({p['team']})")
+    print("DREAM TEAM (best value per round):")
+    for rd in range(1, ROUNDS + 1):
+        p = max((p for p in players if p["pick"] == rd), key=lambda p: p["value"])
+        print(f"  R{rd:<2d} {p['name']:30s} {A(p['avg'])} on {p['ab']:2d} AB  value {p['value']:+5.1f} "
+              f"{'SS' if is_ss(p) else ''}  ({p['team']})")
     return players
 
 
@@ -356,6 +429,46 @@ def html_tables(cur, prev=None):
                         f'<td class="num">{A(rate)} <span style="color:var(--muted)">(rd {A(rper[p["pick"]])})</span></td>'
                         f'<td class="num">{dab}</td>')
             print(f'        <tr><td class="player">{team_label(t)}</td>{cell(hot)}{cell(cold)}</tr>')
+
+    # ---- verdict tables (value-based)
+    add_value(cur)
+
+    def vspan(v):
+        return f'<span class="{"zpos" if v >= 0 else "zneg"}">{f"{v:+.1f}".replace("-", "−")}</span>'
+
+    def pname(p):
+        return p["name"] + (' <span style="color:var(--muted)">· SS</span>' if is_ss(p) else '')
+
+    print("\n<!-- DREAM TEAM: best value per round -->")
+    for rd in range(1, ROUNDS + 1):
+        p = max((q for q in cur if q["pick"] == rd), key=lambda q: q["value"])
+        print(f'        <tr><td class="ctr num">{rd}</td><td class="player">{pname(p)}</td>'
+              f'<td class="team-name">{team_label(p["team"])}</td><td class="num">{A(p["avg"])}</td>'
+              f'<td class="num">{p["ab"]}</td><td class="num">{vspan(p["value"])}</td></tr>')
+
+    print("\n<!-- PRICED RIGHT: true round == drafted round -->")
+    for p in sorted((q for q in cur if q["vround"] == q["pick"]), key=lambda q: (q["pick"], -q["value"])):
+        print(f'        <tr><td class="ctr num">{p["pick"]}</td><td class="player">{pname(p)}</td>'
+              f'<td class="team-name">{team_label(p["team"])}</td><td class="num">{A(p["avg"])}</td>'
+              f'<td class="num">{p["ab"]}</td><td class="num">{vspan(p["value"])}</td></tr>')
+
+    print("\n<!-- UNDERDRAFTED top 8: went later than their stats deserve -->")
+    under = sorted((q for q in cur if q["pick"] > q["vround"]),
+                   key=lambda q: (-(q["pick"] - q["vround"]), -q["value"]))
+    for p in under[:8]:
+        print(f'        <tr><td class="player">{pname(p)}</td><td class="team-name">{team_label(p["team"])}</td>'
+              f'<td class="ctr num">R{p["pick"]}</td><td class="ctr num big">R{p["vround"]}</td>'
+              f'<td class="num"><span class="zpos">{p["pick"]-p["vround"]} early</span></td>'
+              f'<td class="num">{A(p["avg"])}</td><td class="num">{p["ab"]}</td><td class="num">{vspan(p["value"])}</td></tr>')
+
+    print("\n<!-- OVERDRAFTED top 8: stats say they went too early -->")
+    over = sorted((q for q in cur if q["pick"] < q["vround"]),
+                  key=lambda q: (q["pick"] - q["vround"], q["value"]))
+    for p in over[:8]:
+        print(f'        <tr><td class="player">{pname(p)}</td><td class="team-name">{team_label(p["team"])}</td>'
+              f'<td class="ctr num">R{p["pick"]}</td><td class="ctr num big">R{p["vround"]}</td>'
+              f'<td class="num"><span class="zneg">{p["vround"]-p["pick"]} late</span></td>'
+              f'<td class="num">{A(p["avg"])}</td><td class="num">{p["ab"]}</td><td class="num">{vspan(p["value"])}</td></tr>')
 
     print("\n<!-- ROUND ROOMS -->")
     for rd in range(1, ROUNDS + 1):

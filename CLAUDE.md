@@ -67,6 +67,18 @@ from `CAPTAINS` (i.e., a roster change — refetch teams.php only then).
 The two Daniels are disambiguated patronymic-style ("Ephraims Daniel", "Boyds Daniel"),
 matching how the league's own rosters write compound names (e.g. "Dockstader Boyds, Daniel").
 
+## Shortstops (per Curtis, 2026-07-06 — one per team; no need to re-ask)
+
+Shortstop is the league's premium defensive position; 10 of the 12 were round-1 picks. A
+shortstop's draft price partly buys defense that batting stats can't see — **temper
+"overdrafted/didn't justify" verdicts for these names** and tag them `· SS` in Verdict tables
+(`SHORTSTOPS` set + `is_ss()` in analysis.py):
+
+Hammon, Gideon (GG) · Williams, Horatio (YS) · Dockstader, Sefton (LL) · Hammon, Elliot (EL) ·
+Timpson, Claude (PL) · Williams, Michael (PLA) · Guy, Sam (SS) · Dockstader Ephraims, Daniel
+(DA, R4) · Williams, Daniel (PB) · Knudson, Levi (SJ) · Hammon, Stafford (FS, R3) ·
+Dockstader Boyds, Jeremy (DD)
+
 ## Analysis conventions
 
 - **z-score** = standard deviations above/below the mean **within a player's draft round**
@@ -95,12 +107,15 @@ Draft-Day Report Card → S6 Draft Board Second Look (risk/re-draft/discipline +
 team split) → S7 Missing Pages (caused-out ledger, workload, distribution) → S8 What Changed
 (week-over-week, incl. Dynasty of the Week + **the Records Board** — weekly bests that future
 editions try to break; update it whenever a record falls) → S9 Team Sheets (best/worst pick per
-team by z; hot/cold bat of the week per team vs the round's period rate) → S10 The Round Rooms
-(12 tables, every player by round, season z + This Week column) → Appendix Dynasty Ledger →
-methodology footnote.
+team by z; hot/cold bat of the week per team vs the round's period rate) → S10 The Verdict
+(**value** = (avg − league adj) × ABs = net hits above a league-average bat, volume-weighted by
+design; "true round" = value rank dealt into rounds of 12; tables: Priced Exactly Right,
+Bargains/underdrafted, Didn't Justify/overdrafted, Dream Team = best value per round; shortstops
+tagged · SS with a defense caveat) → S11 The Round Rooms (12 tables, every player by round,
+season z + This Week column) → Appendix Dynasty Ledger → methodology footnote.
 
 **Anchors:** every section has a stable id (`temperature`, `glance`, `draft-board`, `sleepers`,
-`outliers`, `teams`, `second-look`, `missing-pages`, `what-changed`, `team-sheets`,
+`outliers`, `teams`, `second-look`, `missing-pages`, `what-changed`, `team-sheets`, `verdict`,
 `round-rooms`, `dynasty`) with a self-linking `<h2><a href="#id">`; each round-room h3 is
 `round-1`…`round-12` (the `--html-tables` emitter produces these). Keep ids stable across
 editions — people share deep links. The "Jump to" TOC after the masthead lists every section;

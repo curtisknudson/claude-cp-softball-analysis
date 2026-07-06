@@ -117,7 +117,9 @@ season z + This Week column) → Appendix Dynasty Ledger → methodology footnot
 **Anchors:** every section has a stable id (`temperature`, `glance`, `draft-board`, `sleepers`,
 `outliers`, `teams`, `second-look`, `missing-pages`, `what-changed`, `team-sheets`, `verdict`,
 `round-rooms`, `dynasty`) with a self-linking `<h2><a href="#id">`; each round-room h3 is
-`round-1`…`round-12` (the `--html-tables` emitter produces these). Keep ids stable across
+`round-1`…`round-12` (the `--html-tables` emitter produces these), and the Verdict subsections
+have h3 anchors `priced-right`, `bargains`, `didnt-justify`, `dream-team` (Dream Team is also
+in the Jump-to nav). Keep ids stable across
 editions — people share deep links. The "Jump to" TOC after the masthead lists every section;
 add new sections to it.
 

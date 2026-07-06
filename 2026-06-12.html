@@ -63,8 +63,8 @@
     margin: -8px 0 40px;
   }
   .toc a { white-space: nowrap; }
-  h2 a { color: inherit; text-decoration: none; }
-  h2 a:hover { text-decoration: underline; text-decoration-color: var(--baseline); }
+  h2 a, h3 a { color: inherit; text-decoration: none; }
+  h2 a:hover, h3 a:hover { text-decoration: underline; text-decoration-color: var(--baseline); }
   section[id], h3[id] { scroll-margin-top: 16px; }
 
   h1, h2, h3 {
@@ -310,7 +310,7 @@
 
 <nav class="toc">
   <div class="eyebrow">Jump to</div>
-  <a href="#glance">League at a Glance</a> · <a href="#draft-board">Draft Board</a> · <a href="#sleepers">Sleeper File</a> · <a href="#outliers">Outliers</a> · <a href="#teams">Teams</a> · <a href="#team-sheets">Team Sheets</a> · <a href="#round-rooms">Round Rooms</a> · <a href="#dynasty">Dynasty Ledger</a>
+  <a href="#glance">League at a Glance</a> · <a href="#draft-board">Draft Board</a> · <a href="#sleepers">Sleeper File</a> · <a href="#outliers">Outliers</a> · <a href="#teams">Teams</a> · <a href="#report-card">Report Card</a> · <a href="#team-sheets">Team Sheets</a> · <a href="#round-rooms">Round Rooms</a> · <a href="#dynasty">Dynasty Ledger</a>
 </nav>
 
 <div class="headlines">
@@ -501,7 +501,7 @@
     <li><strong>Slamma Jammas (Boyds Daniel's team)</strong> — Dead last by 58 points of average. Half the roster is in the .500 Club and it doesn't matter: three of their bats are at .182 or worse.</li>
   </ul>
 
-  <h3 style="margin-top:28px">Draft-Day Report Card</h3>
+  <h3 id="report-card" style="margin-top:28px"><a href="#report-card">Draft-Day Report Card</a></h3>
   <p class="lede">Total z across the whole roster — are each team's twelve picks over- or underperforming what their draft slots predict? Players who haven't batted yet count as neutral (z&nbsp;=&nbsp;0).</p>
 
   <div class="rc-card">

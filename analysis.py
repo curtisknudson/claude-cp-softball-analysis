@@ -261,6 +261,126 @@ def digest(players, label, min_ab_sleeper, min_ab_outlier):
     return players
 
 
+# ---------------------------------------------------------------- html tables
+
+def strip_the(team):
+    return team[4:] if team.startswith("The ") else team
+
+
+def period_map(prev, cur):
+    """(team, pick) -> (period AB, period rate or None), joined on the key."""
+    po = {(p["team"], p["pick"]): p for p in prev}
+    out = {}
+    for p in cur:
+        o = po[(p["team"], p["pick"])]
+        dab = p["ab"] - o["ab"]
+        dnet = (p["h"] - p["co"]) - (o["h"] - o["co"])
+        out[(p["team"], p["pick"])] = (dab, dnet / dab if dab > 0 else None)
+    return out
+
+
+def html_tables(cur, prev=None):
+    """Emit page-ready HTML for the Team Sheets and Round Rooms tables.
+
+    With prev: weekly variants included (This Week columns, hot/cold sheet,
+    dynasty-week rows). Without prev: season-only variants for archive pages.
+    """
+    add_z(cur)
+    per = period_map(prev, cur) if prev else None
+
+    rper = {}
+    if prev:
+        for rd in range(1, ROUNDS + 1):
+            ks = [(p["team"], p["pick"]) for p in cur if p["pick"] == rd]
+            dab = sum(per[k][0] for k in ks)
+            dnet = sum(per[k][0] * per[k][1] for k in ks if per[k][1] is not None)
+            rper[rd] = dnet / dab if dab else None
+
+    teams = {}
+    for p in cur:
+        teams.setdefault(p["team"], []).append(p)
+    order = sorted(teams, key=lambda t: -((sum(p["h"] for p in teams[t]) - sum(p["co"] for p in teams[t]))
+                                          / sum(p["ab"] for p in teams[t])))
+
+    def zspan(z):
+        return f'<span class="{"zpos" if z >= 0 else "zneg"}">{Z(z)}</span>'
+
+    print("<!-- TEAM SHEET A: best & worst pick per team, season z (standings order) -->")
+    for t in order:
+        live = [p for p in teams[t] if p["ab"] > 0]
+        b = max(live, key=lambda p: p["z"])
+        w = min(live, key=lambda p: p["z"])
+        print(f'        <tr><td class="player">{strip_the(t)}</td>'
+              f'<td class="team-name">{b["name"]} (R{b["pick"]})</td>'
+              f'<td class="num">{A(b["avg"])}</td><td class="num">{zspan(b["z"])}</td>'
+              f'<td class="team-name">{w["name"]} (R{w["pick"]})</td>'
+              f'<td class="num">{A(w["avg"])}</td><td class="num">{zspan(w["z"])}</td></tr>')
+
+    if prev:
+        print("\n<!-- TEAM SHEET B: hot & cold bat of the week per team (min 6 period AB; muted = round period rate) -->")
+        for t in order:
+            q = [p for p in teams[t] if per[(p["team"], p["pick"])][0] >= 6]
+            hot = max(q, key=lambda p: per[(p["team"], p["pick"])][1])
+            cold = min(q, key=lambda p: per[(p["team"], p["pick"])][1])
+
+            def cell(p):
+                dab, rate = per[(p["team"], p["pick"])]
+                return (f'<td class="team-name">{p["name"]} (R{p["pick"]})</td>'
+                        f'<td class="num">{A(rate)} <span style="color:var(--muted)">(rd {A(rper[p["pick"]])})</span></td>'
+                        f'<td class="num">{dab}</td>')
+            print(f'        <tr><td class="player">{strip_the(t)}</td>{cell(hot)}{cell(cold)}</tr>')
+
+    print("\n<!-- ROUND ROOMS -->")
+    for rd in range(1, ROUNDS + 1):
+        ps = sorted((p for p in cur if p["pick"] == rd),
+                    key=lambda p: (-p["avg"], -p["ab"], p["name"]))
+        print(f'  <h3 style="margin-top:28px">Round {rd}</h3>')
+        print('  <div class="table-scroll">\n    <table>\n      <thead>')
+        week_th = '<th class="num">This Week (ABs)</th>' if prev else ''
+        print(f'        <tr><th>Player</th><th>Team</th><th class="num">Avg</th>'
+              f'<th class="num">ABs</th><th class="num">z</th>{week_th}</tr>')
+        print('      </thead>\n      <tbody>')
+        for i, p in enumerate(ps):
+            hl = ' class="hl"' if i == 0 else ''
+            if p["ab"]:
+                avg_c = f'<td class="num{" big" if i == 0 else ""}">{A(p["avg"])}</td>'
+                z_c = f'<td class="num">{zspan(p["z"])}</td>'
+            else:
+                avg_c, z_c = '<td class="num">—</td>', '<td class="num">—</td>'
+            wk = ''
+            if prev:
+                dab, rate = per[(p["team"], p["pick"])]
+                wk = (f'<td class="num">{A(rate)} ({dab})</td>' if dab > 0
+                      else '<td class="num">—</td>')
+            print(f'        <tr{hl}><td class="player">{p["name"]}</td>'
+                  f'<td class="team-name">{strip_the(p["team"])}</td>{avg_c}'
+                  f'<td class="num">{p["ab"]}</td>{z_c}{wk}</tr>')
+        season = statistics.mean([p["avg"] for p in ps if p["ab"] > 0])
+        cap = f'Round {rd}: season average {A(season)}'
+        if prev and rper[rd] is not None:
+            cap += f' · hit {A(rper[rd])} as a group this period'
+        print(f'      </tbody>\n      <caption>{cap}.</caption>\n    </table>\n  </div>')
+
+    if prev:
+        print("\n<!-- DYNASTY WEEK: family period rates (family, rate, period ABs, players) -->")
+        fams = {}
+        for p in cur:
+            s = surname(p)
+            if " " not in s:
+                fams.setdefault(s, []).append(p)
+        rows = []
+        for s, ps in fams.items():
+            if len(ps) < 3:
+                continue
+            ks = [(p["team"], p["pick"]) for p in ps]
+            dab = sum(per[k][0] for k in ks)
+            dnet = sum(per[k][0] * per[k][1] for k in ks if per[k][1] is not None)
+            rows.append((s, dnet / dab, dab, len(ps)))
+        for s, rate, dab, n in sorted(rows, key=lambda r: -r[1]):
+            print(f'        <tr><td class="player">{s}</td><td class="num">{A(rate)}</td>'
+                  f'<td class="num">{dab}</td><td class="num">{n}</td></tr>')
+
+
 # ---------------------------------------------------------------- compare
 
 def compare(prev, cur, renames, min_old_ab=8, min_new_ab=15, min_dab=10):
@@ -339,13 +459,28 @@ def main():
     ap.add_argument("--min-ab-outlier", type=int, default=10)
     ap.add_argument("--prev-min-ab-sleeper", type=int, default=10)
     ap.add_argument("--prev-min-ab-outlier", type=int, default=6)
+    ap.add_argument("--html-tables", action="store_true",
+                    help="emit page-ready HTML for Team Sheets / Round Rooms instead of digests")
+    ap.add_argument("--names-from", metavar="CSV",
+                    help="canonicalize an old-format snapshot's names from this comma-format file")
     args = ap.parse_args()
 
-    cur, _ = load(args.snapshot)
-    digest(cur, args.snapshot, args.min_ab_sleeper, args.min_ab_outlier)
+    cur, cur_fmt = load(args.snapshot)
+    if args.names_from and cur_fmt == "old":
+        ref, _ = load(args.names_from)
+        canonicalize_prev_names(cur, ref)
+
+    prev = None
     if args.prev:
         prev, fmt = load(args.prev)
         renames = canonicalize_prev_names(prev, cur) if fmt == "old" else []
+
+    if args.html_tables:
+        html_tables(cur, prev)
+        return
+
+    digest(cur, args.snapshot, args.min_ab_sleeper, args.min_ab_outlier)
+    if prev:
         digest(prev, f"{args.prev} (prev)", args.prev_min_ab_sleeper, args.prev_min_ab_outlier)
         compare(prev, cur, renames)
 

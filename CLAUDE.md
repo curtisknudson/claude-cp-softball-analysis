@@ -65,9 +65,15 @@ Masthead (kicker · title · methodology sub · edition nav) → The Headlines �
 (tiles) → S2 Draft Board round averages → S3 Sleeper File → S4 Outliers per round → S5 Team
 breakdown + Draft-Day Report Card → S6 Draft Board Second Look (risk/re-draft/discipline +
 early-vs-late team split) → S7 Missing Pages (caused-out ledger, workload, distribution) →
-S8 What Changed (week-over-week) → Appendix Dynasty Ledger → methodology footnote.
+S8 What Changed (week-over-week, incl. Dynasty of the Week + **the Records Board** — weekly
+bests that future editions try to break; update it whenever a record falls) → S9 Team Sheets
+(best/worst pick per team by z; hot/cold bat of the week per team vs the round's period rate)
+→ S10 The Round Rooms (12 tables, every player by round, season z + This Week column) →
+Appendix Dynasty Ledger → methodology footnote.
 
-Archive pages mirror S1–S5 + Appendix only — **no week-over-week content and no foreshadowing**;
+Archive pages mirror the above minus anything weekly (2026-06-12.html has S1–S5, S6 Team Sheets
+season-only, S7 Round Rooms without the week column, + Appendix) — **no week-over-week content
+and no foreshadowing**;
 each archive is honest to its date. Archives are fully self-contained (own copy of the CSS) so
 they stay frozen if the current design evolves. Recurring bits of voice: the Good Guys'
 caused-out tragedy, the round-6 bump, the Sean Hammon R12 steal, and the running gag that the
@@ -83,11 +89,16 @@ analyst "offers no further comment" on Curtis Knudson's stats (he's the site own
    with — it compares against an even older edition and remains true. Don't touch its numbers;
    only the masthead/nav framing changes.
 3. **Run the full digest**: `python3 analysis.py NEW.csv --prev PREVIOUS.csv`. Three digests print:
-   current snapshot, previous snapshot, and the comparison.
+   current snapshot, previous snapshot, and the comparison. Then generate the bulk tables:
+   `python3 analysis.py NEW.csv --prev PREVIOUS.csv --html-tables` emits page-ready HTML for
+   Team Sheets A/B, all 12 Round Rooms (with This Week column), and Dynasty-of-the-Week rows —
+   splice these into S8/S9/S10 wholesale instead of hand-typing 26 tables.
+   (`--names-from COMMA_FORMAT.csv` canonicalizes names when the target file is the no-comma schema.)
 4. **Rewrite `index.html`** from the current-snapshot digest: headlines, tiles, every table,
    report card, dynasty ledger, S6/S7. Write a **fresh S8** from the comparison digest against the
-   just-archived edition. Update the masthead nav and the footnote's Editions list (add the new
-   archive link; keep old ones).
+   just-archived edition (check the Records Board — update any record that fell). Replace the S9/S10
+   table bodies with the freshly emitted HTML and rewrite their editorial notes. Update the masthead
+   nav and the footnote's Editions list (add the new archive link; keep old ones).
 5. **Transcribe, don't compute.** Every number on a page must appear in script output. If a number
    you want isn't printed, extend `analysis.py` rather than doing arithmetic by hand.
 6. **Verify** (checklist below), then commit everything (new CSV + new archive + index + any script

@@ -14,6 +14,7 @@ week-over-week comparison. All averages are the adjusted average
 (hits - caused_outs) / at_bats, recomputed from raw counts and checked
 against the file's own average column to catch format drift.
 """
+
 import argparse
 import csv
 import math
@@ -42,7 +43,15 @@ CAPTAINS = {
 
 # ---------------------------------------------------------------- loading
 
-NEW_COLS = {"player", "team", "draft_pick", "at_bats", "hits", "caused_outs", "adjusted_avg"}
+NEW_COLS = {
+    "player",
+    "team",
+    "draft_pick",
+    "at_bats",
+    "hits",
+    "caused_outs",
+    "adjusted_avg",
+}
 OLD_COLS = {"Name", "Pick#", "AVG", "AB", "H", "CO", "Team"}
 
 
@@ -57,28 +66,45 @@ def load(path):
     if NEW_COLS <= cols:
         fmt = "new"
         for r in rows:
-            players.append(dict(
-                name=r["player"].strip(), team=r["team"].strip(),
-                pick=int(r["draft_pick"]), ab=int(r["at_bats"]),
-                h=int(r["hits"]), co=int(r["caused_outs"]),
-                file_avg=float(r["adjusted_avg"]),
-                file_rank=int(r["rank"]) if "rank" in cols else None))
+            players.append(
+                dict(
+                    name=r["player"].strip(),
+                    team=r["team"].strip(),
+                    pick=int(r["draft_pick"]),
+                    ab=int(r["at_bats"]),
+                    h=int(r["hits"]),
+                    co=int(r["caused_outs"]),
+                    file_avg=float(r["adjusted_avg"]),
+                    file_rank=int(r["rank"]) if "rank" in cols else None,
+                )
+            )
     elif OLD_COLS <= cols:
         fmt = "old"
         for r in rows:
-            players.append(dict(
-                name=r["Name"].strip(), team=r["Team"].strip(),
-                pick=int(r["Pick#"]), ab=int(r["AB"]),
-                h=int(r["H"]), co=int(r["CO"]),
-                file_avg=float(r["AVG"]), file_rank=None))
+            players.append(
+                dict(
+                    name=r["Name"].strip(),
+                    team=r["Team"].strip(),
+                    pick=int(r["Pick#"]),
+                    ab=int(r["AB"]),
+                    h=int(r["H"]),
+                    co=int(r["CO"]),
+                    file_avg=float(r["AVG"]),
+                    file_rank=None,
+                )
+            )
     else:
-        sys.exit(f"{path}: unrecognized columns {sorted(cols)} — new schema? Update analysis.py.")
+        sys.exit(
+            f"{path}: unrecognized columns {sorted(cols)} — new schema? Update analysis.py."
+        )
 
     for p in players:
         p["avg"] = (p["h"] - p["co"]) / p["ab"] if p["ab"] else 0.0
         if p["ab"] and abs(p["avg"] - p["file_avg"]) > 0.0015:
-            sys.exit(f"{path}: {p['name']}: file avg {p['file_avg']:.3f} != "
-                     f"(H-CO)/AB = {p['avg']:.3f} — formula drift, investigate before publishing")
+            sys.exit(
+                f"{path}: {p['name']}: file avg {p['file_avg']:.3f} != "
+                f"(H-CO)/AB = {p['avg']:.3f} — formula drift, investigate before publishing"
+            )
 
     keys = [(p["team"], p["pick"]) for p in players]
     dups = sorted({k for k in keys if keys.count(k) > 1})
@@ -121,6 +147,7 @@ def canonicalize_prev_names(prev, cur):
 
 # ---------------------------------------------------------------- helpers
 
+
 def A(v):
     """Format an average the way the pages print it: .726 / 1.000."""
     s = f"{v:.3f}"
@@ -139,23 +166,70 @@ def given(p):
     return p["name"].split(",")[1].strip() if "," in p["name"] else p["name"]
 
 
+# Draft order (per Curtis, 2026-07-06): captains drafted in this team order,
+# SNAKED — odd rounds run 1->12, even rounds 12->1. So overall pick number =
+# (round-1)*12 + position in odd rounds, (round-1)*12 + (13-position) in even.
+# Verified anchors: Gideon Hammon = pick #1 (picked himself), Jairus Hammon =
+# #24, Sean Hammon = #140 (5th-to-last), Becky Wood = #144 (last pick).
+DRAFT_ORDER = [
+    "The Good Guys",  # 1  Gideon Hammon
+    "Youre Saying Theres A Chance",  # 2  Horatio Williams
+    "The Lefty Looseys",  # 3  Sefton Dockstader
+    "The Ellites",  # 4  Elliot Hammon
+    "The Pliggas",  # 5  Claude Timpson
+    "The Playas",  # 6  Michael Williams
+    "The Stars and Strikes",  # 7  Seth Cawley
+    "The Danites",  # 8  Daniel Dockstader Ephraims
+    "The Pure Breads",  # 9  Caleb Barlow
+    "The Slamma Jammas",  # 10 Daniel Dockstader Boyds
+    "The Fellowship of the Swing",  # 11 Stafford Hammon
+    "The Diamonds and Dirtbags",  # 12 Jeremy Dockstader Marvins
+]
+
+# Each captain as a roster player (team -> player name), for the Captain's Mirror.
+CAPTAIN_PLAYER = {
+    "The Good Guys": "Hammon, Gideon",
+    "Youre Saying Theres A Chance": "Williams, Horatio",
+    "The Lefty Looseys": "Dockstader, Sefton",
+    "The Ellites": "Hammon, Elliot",
+    "The Pliggas": "Timpson, Claude",
+    "The Playas": "Williams, Michael",
+    "The Stars and Strikes": "Cawley, Seth",
+    "The Danites": "Dockstader Ephraims, Daniel",
+    "The Pure Breads": "Barlow, Caleb",
+    "The Slamma Jammas": "Dockstader Boyds, Daniel",
+    "The Fellowship of the Swing": "Hammon, Stafford",
+    "The Diamonds and Dirtbags": "Dockstader Marvins, Jeremy",
+}
+
+
+def add_picks(players):
+    """Set p['pickno'] = overall draft pick number 1..144 from the snake order."""
+    for p in players:
+        pos = DRAFT_ORDER.index(p["team"]) + 1
+        r = p["pick"]
+        p["pickno"] = (r - 1) * ROUNDS + (pos if r % 2 else ROUNDS + 1 - pos)
+    nos = sorted(p["pickno"] for p in players)
+    assert nos == list(range(1, len(players) + 1)), "pick numbers not a clean 1..N"
+
+
 # Shortstops — one per team, per Curtis (2026-07-06). Shortstop is the league's
 # premium defensive position: 10 of the 12 were round-1 picks, and a shortstop's
 # draft price buys a glove the batting ledger can't see. Temper "overdrafted"
 # verdicts for these names.
 SHORTSTOPS = {
-    "Hammon, Gideon",              # Good Guys
-    "Williams, Horatio",           # Youre Saying Theres A Chance
-    "Dockstader, Sefton",          # Lefty Looseys
-    "Hammon, Elliot",              # Ellites
-    "Timpson, Claude",             # Pliggas
-    "Williams, Michael",           # Playas
-    "Guy, Sam",                    # Stars and Strikes
-    "Dockstader Ephraims, Daniel", # Danites (R4)
-    "Williams, Daniel",            # Pure Breads
-    "Knudson, Levi",               # Slamma Jammas
-    "Hammon, Stafford",            # Fellowship of the Swing (R3)
-    "Dockstader Boyds, Jeremy",    # Diamonds and Dirtbags
+    "Hammon, Gideon",  # Good Guys
+    "Williams, Horatio",  # Youre Saying Theres A Chance
+    "Dockstader, Sefton",  # Lefty Looseys
+    "Hammon, Elliot",  # Ellites
+    "Timpson, Claude",  # Pliggas
+    "Williams, Michael",  # Playas
+    "Guy, Sam",  # Stars and Strikes
+    "Dockstader Ephraims, Daniel",  # Danites (R4)
+    "Williams, Daniel",  # Pure Breads
+    "Knudson, Levi",  # Slamma Jammas
+    "Hammon, Stafford",  # Fellowship of the Swing (R3)
+    "Dockstader Boyds, Jeremy",  # Diamonds and Dirtbags
 }
 
 
@@ -169,11 +243,36 @@ def is_ss(p):
 # confirmed male. If Avery, Kendall, Sidney, Leslie, or J Daunt ever matter for
 # the rule, ask Curtis rather than guessing.
 FEMALE_GIVEN = {
-    "Maureen", "Jayla", "Tammy", "Marissa", "Violet", "Lexi", "Sophia",
-    "Dorothy", "Isabel", "Alyssa", "Selena", "Kaitlyn", "Sarah", "Lindsey",
-    "Layla", "Karen", "Lizzy", "Heather", "Sharon", "Pauline", "Becky",
-    "Samantha", "Deborah", "Angeline", "Brenda", "Rebecca", "Sabrina",
-    "Jazlin", "Amie Z", "Joanne Sis",
+    "Maureen",
+    "Jayla",
+    "Tammy",
+    "Marissa",
+    "Violet",
+    "Lexi",
+    "Sophia",
+    "Dorothy",
+    "Isabel",
+    "Alyssa",
+    "Selena",
+    "Kaitlyn",
+    "Sarah",
+    "Lindsey",
+    "Layla",
+    "Karen",
+    "Lizzy",
+    "Heather",
+    "Sharon",
+    "Pauline",
+    "Becky",
+    "Samantha",
+    "Deborah",
+    "Angeline",
+    "Brenda",
+    "Rebecca",
+    "Sabrina",
+    "Jazlin",
+    "Amie Z",
+    "Joanne Sis",
 }
 
 
@@ -188,8 +287,10 @@ def dream_team(players):
     woman from whichever rounds cost the least total value. Returns
     (round -> player, set of swapped rounds).
     """
-    team = {rd: max((p for p in players if p["pick"] == rd), key=lambda p: p["value"])
-            for rd in range(1, ROUNDS + 1)}
+    team = {
+        rd: max((p for p in players if p["pick"] == rd), key=lambda p: p["value"])
+        for rd in range(1, ROUNDS + 1)
+    }
     swapped = set()
     need = 2 - sum(1 for p in team.values() if is_female(p))
     options = []
@@ -200,7 +301,7 @@ def dream_team(players):
         if fs:
             best = max(fs, key=lambda p: (p["value"], p["avg"], p["ab"]))
             options.append((team[rd]["value"] - best["value"], rd, best))
-    for _, rd, f in sorted(options, key=lambda o: (o[0], o[1]))[:max(0, need)]:
+    for _, rd, f in sorted(options, key=lambda o: (o[0], o[1]))[: max(0, need)]:
         team[rd] = f
         swapped.add(rd)
     return team, swapped
@@ -217,7 +318,9 @@ def add_value(players):
     lg = (sum(p["h"] for p in players) - sum(p["co"] for p in players)) / tot_ab
     for p in players:
         p["value"] = (p["avg"] - lg) * p["ab"]
-    ranked = sorted(players, key=lambda p: (-p["value"], -p["avg"], -p["ab"], p["name"]))
+    ranked = sorted(
+        players, key=lambda p: (-p["value"], -p["avg"], -p["ab"], p["name"])
+    )
     for i, p in enumerate(ranked):
         p["vround"] = i // ROUNDS + 1
     return lg
@@ -236,6 +339,7 @@ def add_z(players):
 
 # ---------------------------------------------------------------- digest
 
+
 def digest(players, label, min_ab_sleeper, min_ab_outlier):
     P = [p for p in players if p["ab"] > 0]
     n_dnp = len(players) - len(P)
@@ -250,25 +354,38 @@ def digest(players, label, min_ab_sleeper, min_ab_outlier):
     add_z(players)
 
     print(f"\n{'=' * 72}\n=== SNAPSHOT DIGEST: {label} ===\n{'=' * 72}")
-    print(f"players {len(players)} | teams {len(teams)} | AB {tot_ab:,} | H {tot_h:,} | CO {tot_co}")
+    print(
+        f"players {len(players)} | teams {len(teams)} | AB {tot_ab:,} | H {tot_h:,} | CO {tot_co}"
+    )
     print(f"league raw avg {A(league_raw)} | league adj avg {A(league_adj)}")
-    print(f"player avgs (AB>0, n={len(P)}): mean {A(statistics.mean(avgs))} | median {A(med_player)}")
-    print(f"zero caused outs {sum(1 for p in players if p['co'] == 0)}/{len(players)} | "
-          f"zero AB {n_dnp} | players at/above .500 {sum(1 for a in avgs if a >= 0.5)}/{len(P)}")
+    print(
+        f"player avgs (AB>0, n={len(P)}): mean {A(statistics.mean(avgs))} | median {A(med_player)}"
+    )
+    print(
+        f"zero caused outs {sum(1 for p in players if p['co'] == 0)}/{len(players)} | "
+        f"zero AB {n_dnp} | players at/above .500 {sum(1 for a in avgs if a >= 0.5)}/{len(P)}"
+    )
 
     # pick <-> avg correlation (AB>0)
     xs = [p["pick"] for p in P]
     mx, my = statistics.mean(xs), statistics.mean(avgs)
-    r = (sum((x - mx) * (y - my) for x, y in zip(xs, avgs))
-         / math.sqrt(sum((x - mx) ** 2 for x in xs) * sum((y - my) ** 2 for y in avgs)))
+    r = sum((x - mx) * (y - my) for x, y in zip(xs, avgs)) / math.sqrt(
+        sum((x - mx) ** 2 for x in xs) * sum((y - my) ** 2 for y in avgs)
+    )
     print(f"pick vs avg correlation r = {r:+.2f}")
 
     # ---- rounds table (with re-draft: rank order chunked into rounds of 12)
     redraft = {}
-    for i, p in enumerate(sorted(players, key=lambda q: (-q["avg"], -q["ab"], q["name"]))):
+    for i, p in enumerate(
+        sorted(players, key=lambda q: (-q["avg"], -q["ab"], q["name"]))
+    ):
         redraft[id(p)] = i // ROUNDS + 1
-    print(f"\n--- ROUNDS (mean/median/min/max/sigma over AB>0; meter width = mean*100) ---")
-    print("rd |  n | mean  med   min   max  sigma | mAB  | CO CO/100 | >=.500 <med | redraft keep")
+    print(
+        f"\n--- ROUNDS (mean/median/min/max/sigma over AB>0; meter width = mean*100) ---"
+    )
+    print(
+        "rd |  n | mean  med   min   max  sigma | mAB  | CO CO/100 | >=.500 <med | redraft keep"
+    )
     for rd in range(1, ROUNDS + 1):
         ps = [p for p in players if p["pick"] == rd]
         live = [p for p in ps if p["ab"] > 0]
@@ -277,28 +394,42 @@ def digest(players, label, min_ab_sleeper, min_ab_outlier):
         rco = sum(p["co"] for p in ps)
         rr = [redraft[id(p)] for p in ps]
         keep = sum(1 for p in ps if redraft[id(p)] <= rd)
-        print(f"{rd:2d} | {len(live):2d} | {A(statistics.mean(a))} {A(statistics.median(a))} "
-              f"{A(min(a))} {A(max(a))} {A(statistics.stdev(a))} | {sum(p['ab'] for p in live)/len(live):4.1f} "
-              f"| {rco:2d} {100*rco/rab:5.1f} | {sum(1 for x in a if x >= .5):2d}/12  {sum(1 for x in a if x < med_player):2d}/12 "
-              f"| {statistics.mean(rr):4.1f}  {keep:2d}/12")
+        print(
+            f"{rd:2d} | {len(live):2d} | {A(statistics.mean(a))} {A(statistics.median(a))} "
+            f"{A(min(a))} {A(max(a))} {A(statistics.stdev(a))} | {sum(p['ab'] for p in live) / len(live):4.1f} "
+            f"| {rco:2d} {100 * rco / rab:5.1f} | {sum(1 for x in a if x >= 0.5):2d}/12  {sum(1 for x in a if x < med_player):2d}/12 "
+            f"| {statistics.mean(rr):4.1f}  {keep:2d}/12"
+        )
 
     # ---- sleepers
     print(f"\n--- SLEEPERS (round >= 6, AB >= {min_ab_sleeper}, sorted by avg) ---")
-    sl = sorted((p for p in P if p["pick"] >= 6 and p["ab"] >= min_ab_sleeper and p["avg"] >= med_player),
-                key=lambda p: (-p["avg"], -p["ab"]))
+    sl = sorted(
+        (
+            p
+            for p in P
+            if p["pick"] >= 6 and p["ab"] >= min_ab_sleeper and p["avg"] >= med_player
+        ),
+        key=lambda p: (-p["avg"], -p["ab"]),
+    )
     for p in sl:
-        print(f"  {p['name']:30s} {p['team']:30s} rd{p['pick']:2d} {A(p['avg'])} on {p['ab']:2d} AB  "
-              f"rank #{p['rank']:<3d} z {Z(p['z'])}")
+        print(
+            f"  {p['name']:30s} {p['team']:30s} rd{p['pick']:2d} {A(p['avg'])} on {p['ab']:2d} AB  "
+            f"rank #{p['rank']:<3d} z {Z(p['z'])}"
+        )
 
     # ---- outliers per round
-    print(f"\n--- OUTLIERS PER ROUND (AB >= {min_ab_outlier}; round mean in parens) ---")
+    print(
+        f"\n--- OUTLIERS PER ROUND (AB >= {min_ab_outlier}; round mean in parens) ---"
+    )
     for rd in range(1, ROUNDS + 1):
         live = [p for p in P if p["pick"] == rd and p["ab"] >= min_ab_outlier]
         rm = statistics.mean([p["avg"] for p in P if p["pick"] == rd])
         hi = max(live, key=lambda p: p["z"])
         lo = min(live, key=lambda p: p["z"])
-        print(f"{rd:2d} ({A(rm)})  UP {hi['name']:28s} {A(hi['avg'])} z {Z(hi['z'])}   "
-              f"DOWN {lo['name']:28s} {A(lo['avg'])} z {Z(lo['z'])}")
+        print(
+            f"{rd:2d} ({A(rm)})  UP {hi['name']:28s} {A(hi['avg'])} z {Z(hi['z'])}   "
+            f"DOWN {lo['name']:28s} {A(lo['avg'])} z {Z(lo['z'])}"
+        )
 
     # ---- teams
     print("\n--- TEAMS (sorted by adj avg; sigma over player avgs AB>0) ---")
@@ -306,26 +437,44 @@ def digest(players, label, min_ab_sleeper, min_ab_outlier):
     for t in teams:
         ps = [p for p in players if p["team"] == t]
         live = [p for p in ps if p["ab"] > 0]
-        ab = sum(p["ab"] for p in ps); h = sum(p["h"] for p in ps); co = sum(p["co"] for p in ps)
+        ab = sum(p["ab"] for p in ps)
+        h = sum(p["h"] for p in ps)
+        co = sum(p["co"] for p in ps)
         best = max(live, key=lambda p: (p["avg"], p["ab"]))
-        trows.append(dict(team=t, adj=(h - co) / ab, raw=h / ab, co=co, ab=ab,
-                          club=sum(1 for p in live if p["avg"] >= .5), n=len(ps),
-                          sigma=statistics.stdev([p["avg"] for p in live]), best=best,
-                          z=sum(p["z"] for p in ps),
-                          z_early=sum(p["z"] for p in ps if p["pick"] <= 6),
-                          z_late=sum(p["z"] for p in ps if p["pick"] > 6)))
+        trows.append(
+            dict(
+                team=t,
+                adj=(h - co) / ab,
+                raw=h / ab,
+                co=co,
+                ab=ab,
+                club=sum(1 for p in live if p["avg"] >= 0.5),
+                n=len(ps),
+                sigma=statistics.stdev([p["avg"] for p in live]),
+                best=best,
+                z=sum(p["z"] for p in ps),
+                z_early=sum(p["z"] for p in ps if p["pick"] <= 6),
+                z_late=sum(p["z"] for p in ps if p["pick"] > 6),
+            )
+        )
     for i, t in enumerate(sorted(trows, key=lambda x: -x["adj"]), 1):
-        print(f"{i:2d} {t['team']:32s} adj {A(t['adj'])} raw {A(t['raw'])} CO {t['co']:2d} "
-              f"AB {t['ab']:3d} club {t['club']:2d}/{t['n']} sig {A(t['sigma'])} "
-              f"best {t['best']['name']} ({A(t['best']['avg'])})")
+        print(
+            f"{i:2d} {t['team']:32s} adj {A(t['adj'])} raw {A(t['raw'])} CO {t['co']:2d} "
+            f"AB {t['ab']:3d} club {t['club']:2d}/{t['n']} sig {A(t['sigma'])} "
+            f"best {t['best']['name']} ({A(t['best']['avg'])})"
+        )
 
     # ---- report card
     zmax = max(abs(t["z"]) for t in trows)
     scale = max(6, math.ceil(zmax))
-    print(f"\n--- REPORT CARD (total z; bar width % = |z|/{scale}*50, scale ±{scale}) ---")
+    print(
+        f"\n--- REPORT CARD (total z; bar width % = |z|/{scale}*50, scale ±{scale}) ---"
+    )
     for t in sorted(trows, key=lambda x: -x["z"]):
-        print(f"  {t['team']:32s} {Z(t['z'])}  width {abs(t['z'])/scale*50:.1f}%   "
-              f"early(1-6) {Z(t['z_early'])}  late(7-12) {Z(t['z_late'])}")
+        print(
+            f"  {t['team']:32s} {Z(t['z'])}  width {abs(t['z']) / scale * 50:.1f}%   "
+            f"early(1-6) {Z(t['z_early'])}  late(7-12) {Z(t['z_late'])}"
+        )
 
     # ---- dynasty ledger (single-word surnames, >= 3 players)
     fams = {}
@@ -335,71 +484,108 @@ def digest(players, label, min_ab_sleeper, min_ab_outlier):
             fams.setdefault(s, []).append(p)
     fams = {s: ps for s, ps in fams.items() if len(ps) >= 3}
     covered = sum(len(ps) for ps in fams.values())
-    print(f"\n--- DYNASTY LEDGER ({len(fams)} families cover {covered}/{len(players)}; avg = mean of player avgs) ---")
+    print(
+        f"\n--- DYNASTY LEDGER ({len(fams)} families cover {covered}/{len(players)}; avg = mean of player avgs) ---"
+    )
     for s, ps in sorted(fams.items(), key=lambda kv: -len(kv[1])):
         live = [p for p in ps if p["ab"] > 0]
         best = max(live, key=lambda p: (p["avg"], p["ab"]))
-        print(f"  {s:12s} n {len(ps):2d}  teams {len({p['team'] for p in ps})}  "
-              f"best {given(best)} ({A(best['avg'])})  famavg {A(statistics.mean(p['avg'] for p in live))}")
+        print(
+            f"  {s:12s} n {len(ps):2d}  teams {len({p['team'] for p in ps})}  "
+            f"best {given(best)} ({A(best['avg'])})  famavg {A(statistics.mean(p['avg'] for p in live))}"
+        )
 
     # ---- distribution
-    print("\n--- DISTRIBUTION of adj avg (AB>0; .100 buckets; meter width = n/max*100) ---")
+    print(
+        "\n--- DISTRIBUTION of adj avg (AB>0; .100 buckets; meter width = n/max*100) ---"
+    )
     buckets = [0] * 10
     for a in avgs:
         buckets[min(int(a * 10), 9)] += 1
     mx = max(buckets)
     for i, n in enumerate(buckets):
-        print(f"  .{i}00-.{i}99: {n:3d}  width {100*n/mx:5.1f}%")
-    below5 = sum(1 for a in avgs if a < .5)
-    print(f"  .500 sits at the {100*below5/len(avgs):.0f}th percentile ({below5}/{len(avgs)} below)")
+        print(f"  .{i}00-.{i}99: {n:3d}  width {100 * n / mx:5.1f}%")
+    below5 = sum(1 for a in avgs if a < 0.5)
+    print(
+        f"  .500 sits at the {100 * below5 / len(avgs):.0f}th percentile ({below5}/{len(avgs)} below)"
+    )
 
     # ---- leaderboards
     print("\n--- WORKLOAD (top 8 AB) ---")
     for p in sorted(P, key=lambda p: -p["ab"])[:8]:
         print(f"  {p['name']:30s} {p['ab']:2d} AB at {A(p['avg'])}  ({p['team']})")
     print("--- CAUSED OUTS (all CO >= 2) ---")
-    for p in sorted((p for p in players if p["co"] >= 2), key=lambda p: (-p["co"], -p["ab"])):
-        print(f"  {p['name']:30s} CO {p['co']}  on {p['ab']:2d} AB, avg {A(p['avg'])}  ({p['team']})")
+    for p in sorted(
+        (p for p in players if p["co"] >= 2), key=lambda p: (-p["co"], -p["ab"])
+    ):
+        print(
+            f"  {p['name']:30s} CO {p['co']}  on {p['ab']:2d} AB, avg {A(p['avg'])}  ({p['team']})"
+        )
 
     # ---- verdict: value, true rounds, justified picks
     lg = add_value(players)
     just = sum(1 for p in players if p["vround"] <= p["pick"])
     exact = [p for p in players if p["vround"] == p["pick"]]
-    print(f"\n--- VERDICT (value = (avg - {A(lg)}) * AB = net hits above a league-average bat) ---")
-    print(f"justified (true round <= drafted round): {just}/{len(players)} | priced exactly right: {len(exact)}")
+    print(
+        f"\n--- VERDICT (value = (avg - {A(lg)}) * AB = net hits above a league-average bat) ---"
+    )
+    print(
+        f"justified (true round <= drafted round): {just}/{len(players)} | priced exactly right: {len(exact)}"
+    )
     print("VALUE TOP 12:")
     for p in sorted(players, key=lambda p: -p["value"])[:12]:
-        print(f"  {p['name']:30s} value {p['value']:+5.1f}  {A(p['avg'])} on {p['ab']:2d} AB  "
-              f"drafted R{p['pick']:<2d} true R{p['vround']:<2d} {'SS' if is_ss(p) else ''}  ({p['team']})")
+        print(
+            f"  {p['name']:30s} value {p['value']:+5.1f}  {A(p['avg'])} on {p['ab']:2d} AB  "
+            f"drafted R{p['pick']:<2d} true R{p['vround']:<2d} {'SS' if is_ss(p) else ''}  ({p['team']})"
+        )
     print("PRICED EXACTLY RIGHT (true round == drafted round):")
     for p in sorted(exact, key=lambda p: p["pick"]):
-        print(f"  R{p['pick']:<2d} {p['name']:30s} {A(p['avg'])} on {p['ab']:2d} AB  value {p['value']:+5.1f} "
-              f"{'SS' if is_ss(p) else ''}  ({p['team']})")
-    under = sorted((p for p in players if p["pick"] > p["vround"]),
-                   key=lambda p: (-(p["pick"] - p["vround"]), -p["value"]))
-    over = sorted((p for p in players if p["pick"] < p["vround"]),
-                  key=lambda p: (p["pick"] - p["vround"], p["value"]))
+        print(
+            f"  R{p['pick']:<2d} {p['name']:30s} {A(p['avg'])} on {p['ab']:2d} AB  value {p['value']:+5.1f} "
+            f"{'SS' if is_ss(p) else ''}  ({p['team']})"
+        )
+    under = sorted(
+        (p for p in players if p["pick"] > p["vround"]),
+        key=lambda p: (-(p["pick"] - p["vround"]), -p["value"]),
+    )
+    over = sorted(
+        (p for p in players if p["pick"] < p["vround"]),
+        key=lambda p: (p["pick"] - p["vround"], p["value"]),
+    )
     print("UNDERDRAFTED top 8 (went later than their stats deserve):")
     for p in under[:8]:
-        print(f"  {p['name']:30s} drafted R{p['pick']:<2d} true R{p['vround']:<2d} (+{p['pick']-p['vround']} rounds)  "
-              f"{A(p['avg'])} on {p['ab']:2d} AB  value {p['value']:+5.1f} {'SS' if is_ss(p) else ''}  ({p['team']})")
+        print(
+            f"  {p['name']:30s} drafted R{p['pick']:<2d} true R{p['vround']:<2d} (+{p['pick'] - p['vround']} rounds)  "
+            f"{A(p['avg'])} on {p['ab']:2d} AB  value {p['value']:+5.1f} {'SS' if is_ss(p) else ''}  ({p['team']})"
+        )
     print("OVERDRAFTED top 8 (stats say they went too early):")
     for p in over[:8]:
-        print(f"  {p['name']:30s} drafted R{p['pick']:<2d} true R{p['vround']:<2d} ({p['pick']-p['vround']} rounds)  "
-              f"{A(p['avg'])} on {p['ab']:2d} AB  value {p['value']:+5.1f} {'SS' if is_ss(p) else ''}  ({p['team']})")
+        print(
+            f"  {p['name']:30s} drafted R{p['pick']:<2d} true R{p['vround']:<2d} ({p['pick'] - p['vround']} rounds)  "
+            f"{A(p['avg'])} on {p['ab']:2d} AB  value {p['value']:+5.1f} {'SS' if is_ss(p) else ''}  ({p['team']})"
+        )
     team, swapped = dream_team(players)
     n_f = sum(1 for p in team.values() if is_female(p))
-    print(f"DREAM TEAM (best value per round; coed rule: {n_f} women"
-          f"{', legal as-is' if not swapped else f', swapped rounds {sorted(swapped)}'}):")
+    print(
+        f"DREAM TEAM (best value per round; coed rule: {n_f} women"
+        f"{', legal as-is' if not swapped else f', swapped rounds {sorted(swapped)}'}):"
+    )
     for rd in range(1, ROUNDS + 1):
         p = team[rd]
-        tags = " ".join(t for t in ("SS" if is_ss(p) else "", "COED-SWAP" if rd in swapped else "") if t)
-        print(f"  R{rd:<2d} {p['name']:30s} {A(p['avg'])} on {p['ab']:2d} AB  value {p['value']:+5.1f} "
-              f"{tags}  ({p['team']})")
+        tags = " ".join(
+            t
+            for t in ("SS" if is_ss(p) else "", "COED-SWAP" if rd in swapped else "")
+            if t
+        )
+        print(
+            f"  R{rd:<2d} {p['name']:30s} {A(p['avg'])} on {p['ab']:2d} AB  value {p['value']:+5.1f} "
+            f"{tags}  ({p['team']})"
+        )
     return players
 
 
 # ---------------------------------------------------------------- standings
+
 
 def load_standings(path):
     """Load a standings snapshot CSV: rank,team,w,l,t,gp,win_pct,pf,pa,diff.
@@ -410,15 +596,28 @@ def load_standings(path):
     st = []
     with open(path, newline="") as f:
         for r in csv.DictReader(f):
-            st.append(dict(rank=int(r["rank"]), team=r["team"].strip(),
-                           w=int(r["w"]), l=int(r["l"]), t=int(r["t"]), gp=int(r["gp"]),
-                           win_pct=float(r["win_pct"]), pf=int(r["pf"]),
-                           pa=int(r["pa"]), diff=int(r["diff"])))
-    assert sum(s["pf"] for s in st) == sum(s["pa"] for s in st), f"{path}: PF/PA don't balance"
+            st.append(
+                dict(
+                    rank=int(r["rank"]),
+                    team=r["team"].strip(),
+                    w=int(r["w"]),
+                    l=int(r["l"]),
+                    t=int(r["t"]),
+                    gp=int(r["gp"]),
+                    win_pct=float(r["win_pct"]),
+                    pf=int(r["pf"]),
+                    pa=int(r["pa"]),
+                    diff=int(r["diff"]),
+                )
+            )
+    assert sum(s["pf"] for s in st) == sum(s["pa"] for s in st), (
+        f"{path}: PF/PA don't balance"
+    )
     for s in st:
         assert s["w"] + s["l"] + s["t"] == s["gp"], f"{path}: {s['team']} W+L+T != GP"
-        assert abs((s["w"] + 0.5 * s["t"]) / s["gp"] - s["win_pct"]) < 0.0015, \
+        assert abs((s["w"] + 0.5 * s["t"]) / s["gp"] - s["win_pct"]) < 0.0015, (
             f"{path}: {s['team']} win_pct mismatch"
+        )
     return st
 
 
@@ -437,28 +636,35 @@ def team_batting(players):
 def standings_digest(st, players, prev_st=None):
     bat, brank, ab = team_batting(players)
     prev = {s["team"]: s for s in prev_st} if prev_st else None
-    print(f"\n--- STANDINGS (joined to team batting; bat-rank delta = bat rank − standings rank) ---")
+    print(
+        f"\n--- STANDINGS (joined to team batting; bat-rank delta = bat rank − standings rank) ---"
+    )
     for s in st:
         move = ""
         if prev:
             d = prev[s["team"]]["rank"] - s["rank"]
             move = f"  move {d:+d}" if d else "  move ="
-        print(f"{s['rank']:2d} {s['team']:32s} {s['w']}-{s['l']}-{s['t']}  win% {s['win_pct']:.3f}  "
-              f"PF {s['pf']:3d} PA {s['pa']:3d} diff {s['diff']:+4d} | "
-              f"bat {A(bat[s['team']])} rank {brank[s['team']]:2d} ({brank[s['team']]-s['rank']:+d}) | "
-              f"PF/100AB {100*s['pf']/ab[s['team']]:.0f}{move}")
+        print(
+            f"{s['rank']:2d} {s['team']:32s} {s['w']}-{s['l']}-{s['t']}  win% {s['win_pct']:.3f}  "
+            f"PF {s['pf']:3d} PA {s['pa']:3d} diff {s['diff']:+4d} | "
+            f"bat {A(bat[s['team']])} rank {brank[s['team']]:2d} ({brank[s['team']] - s['rank']:+d}) | "
+            f"PF/100AB {100 * s['pf'] / ab[s['team']]:.0f}{move}"
+        )
     xs = [s["win_pct"] for s in st]
     ys = [bat[s["team"]] for s in st]
     mx, my = statistics.mean(xs), statistics.mean(ys)
-    r = (sum((x - mx) * (y - my) for x, y in zip(xs, ys))
-         / math.sqrt(sum((x - mx) ** 2 for x in xs) * sum((y - my) ** 2 for y in ys)))
+    r = sum((x - mx) * (y - my) for x, y in zip(xs, ys)) / math.sqrt(
+        sum((x - mx) ** 2 for x in xs) * sum((y - my) ** 2 for y in ys)
+    )
     print(f"win% vs team adj avg: r = {r:+.2f}")
 
 
 def html_standings(st, players, prev_st=None):
     bat, brank, _ = team_batting(players)
     prev = {s["team"]: s for s in prev_st} if prev_st else None
-    print("<!-- STANDINGS: rank, team, record, win% meter, PF, PA, diff, team avg, bat rank -->")
+    print(
+        "<!-- STANDINGS: rank, team, record, win% meter, PF, PA, diff, team avg, bat rank -->"
+    )
     for s in st:
         d = s["diff"]
         dcell = f'<span class="{"zpos" if d >= 0 else "zneg"}">{f"{d:+d}".replace("-", "−")}</span>'
@@ -468,14 +674,17 @@ def html_standings(st, players, prev_st=None):
             arrow = "=" if m == 0 else (f"▲{m}" if m > 0 else f"▼{-m}")
             cls = "zpos" if m > 0 else ("zneg" if m < 0 else "")
             move = f'<td class="ctr num"><span class="{cls}">{arrow}</span></td>'
-        print(f'        <tr><td class="ctr num">{s["rank"]}</td>{move}<td class="player">{team_label(s["team"])}</td>'
-              f'<td class="num">{s["w"]}-{s["l"]}-{s["t"]}</td><td class="num big">{A(s["win_pct"])}</td>'
-              f'<td><span class="meter" title="{strip_the(s["team"])}: win% {A(s["win_pct"])}"><span style="width:{s["win_pct"]*100:.1f}%"></span></span></td>'
-              f'<td class="num">{s["pf"]}</td><td class="num">{s["pa"]}</td><td class="num">{dcell}</td>'
-              f'<td class="num">{A(bat[s["team"]])}</td><td class="ctr num">{brank[s["team"]]}</td></tr>')
+        print(
+            f'        <tr><td class="ctr num">{s["rank"]}</td>{move}<td class="player">{team_label(s["team"])}</td>'
+            f'<td class="num">{s["w"]}-{s["l"]}-{s["t"]}</td><td class="num big">{A(s["win_pct"])}</td>'
+            f'<td><span class="meter" title="{strip_the(s["team"])}: win% {A(s["win_pct"])}"><span style="width:{s["win_pct"] * 100:.1f}%"></span></span></td>'
+            f'<td class="num">{s["pf"]}</td><td class="num">{s["pa"]}</td><td class="num">{dcell}</td>'
+            f'<td class="num">{A(bat[s["team"]])}</td><td class="ctr num">{brank[s["team"]]}</td></tr>'
+        )
 
 
 # ---------------------------------------------------------------- html tables
+
 
 def strip_the(team):
     return team[4:] if team.startswith("The ") else team
@@ -485,7 +694,10 @@ def team_label(team):
     """Display form for a team name: 'Good Guys (Gideon's team)'."""
     cap = CAPTAINS.get(team)
     if cap is None:
-        print(f"WARNING: no captain on file for {team!r} — update CAPTAINS", file=sys.stderr)
+        print(
+            f"WARNING: no captain on file for {team!r} — update CAPTAINS",
+            file=sys.stderr,
+        )
         return strip_the(team)
     return f"{strip_the(team)} ({cap}'s team)"
 
@@ -509,49 +721,75 @@ def html_tables(cur, prev=None):
     dynasty-week rows). Without prev: season-only variants for archive pages.
     """
     add_z(cur)
-    per = period_map(prev, cur) if prev else None
+    per = period_map(prev, cur) if prev else {}
 
     rper = {}
     if prev:
         for rd in range(1, ROUNDS + 1):
-            ks = [(p["team"], p["pick"]) for p in cur if p["pick"] == rd]
-            dab = sum(per[k][0] for k in ks)
-            dnet = sum(per[k][0] * per[k][1] for k in ks if per[k][1] is not None)
+            vals = [per[(p["team"], p["pick"])] for p in cur if p["pick"] == rd]
+            dab = sum(d for d, _ in vals)
+            dnet = sum(d * r for d, r in vals if r is not None)
             rper[rd] = dnet / dab if dab else None
 
     teams = {}
     for p in cur:
         teams.setdefault(p["team"], []).append(p)
-    order = sorted(teams, key=lambda t: -((sum(p["h"] for p in teams[t]) - sum(p["co"] for p in teams[t]))
-                                          / sum(p["ab"] for p in teams[t])))
+    order = sorted(
+        teams,
+        key=lambda t: (
+            -(
+                (sum(p["h"] for p in teams[t]) - sum(p["co"] for p in teams[t]))
+                / sum(p["ab"] for p in teams[t])
+            )
+        ),
+    )
 
     def zspan(z):
         return f'<span class="{"zpos" if z >= 0 else "zneg"}">{Z(z)}</span>'
 
-    print("<!-- TEAM SHEET A: best & worst pick per team, season z (standings order) -->")
+    print(
+        "<!-- TEAM SHEET A: best & worst pick per team, season z (standings order) -->"
+    )
     for t in order:
         live = [p for p in teams[t] if p["ab"] > 0]
         b = max(live, key=lambda p: p["z"])
         w = min(live, key=lambda p: p["z"])
-        print(f'        <tr><td class="player">{team_label(t)}</td>'
-              f'<td class="team-name">{b["name"]} (R{b["pick"]})</td>'
-              f'<td class="num">{A(b["avg"])}</td><td class="num">{zspan(b["z"])}</td>'
-              f'<td class="team-name">{w["name"]} (R{w["pick"]})</td>'
-              f'<td class="num">{A(w["avg"])}</td><td class="num">{zspan(w["z"])}</td></tr>')
+        print(
+            f'        <tr><td class="player">{team_label(t)}</td>'
+            f'<td class="team-name">{b["name"]} (R{b["pick"]})</td>'
+            f'<td class="num">{A(b["avg"])}</td><td class="num">{zspan(b["z"])}</td>'
+            f'<td class="team-name">{w["name"]} (R{w["pick"]})</td>'
+            f'<td class="num">{A(w["avg"])}</td><td class="num">{zspan(w["z"])}</td></tr>'
+        )
 
     if prev:
-        print("\n<!-- TEAM SHEET B: hot & cold bat of the week per team (min 6 period AB; muted = round period rate) -->")
+        print(
+            "\n<!-- TEAM SHEET B: hot & cold bat of the week per team (min 6 period AB; muted = round period rate) -->"
+        )
         for t in order:
             q = [p for p in teams[t] if per[(p["team"], p["pick"])][0] >= 6]
-            hot = max(q, key=lambda p: per[(p["team"], p["pick"])][1])
-            cold = min(q, key=lambda p: per[(p["team"], p["pick"])][1])
+
+            def prate(p):
+                rate = per[(p["team"], p["pick"])][1]
+                assert rate is not None  # guaranteed by the >= 6 period-AB filter
+                return rate
+
+            hot = max(q, key=prate)
+            cold = min(q, key=prate)
 
             def cell(p):
                 dab, rate = per[(p["team"], p["pick"])]
-                return (f'<td class="team-name">{p["name"]} (R{p["pick"]})</td>'
-                        f'<td class="num">{A(rate)} <span style="color:var(--muted)">(rd {A(rper[p["pick"]])})</span></td>'
-                        f'<td class="num">{dab}</td>')
-            print(f'        <tr><td class="player">{team_label(t)}</td>{cell(hot)}{cell(cold)}</tr>')
+                rrate = rper[p["pick"]]
+                assert rate is not None and rrate is not None
+                return (
+                    f'<td class="team-name">{p["name"]} (R{p["pick"]})</td>'
+                    f'<td class="num">{A(rate)} <span style="color:var(--muted)">(rd {A(rrate)})</span></td>'
+                    f'<td class="num">{dab}</td>'
+                )
+
+            print(
+                f'        <tr><td class="player">{team_label(t)}</td>{cell(hot)}{cell(cold)}</tr>'
+            )
 
     # ---- verdict tables (value-based)
     add_value(cur)
@@ -560,74 +798,151 @@ def html_tables(cur, prev=None):
         return f'<span class="{"zpos" if v >= 0 else "zneg"}">{f"{v:+.1f}".replace("-", "−")}</span>'
 
     def pname(p):
-        return p["name"] + (' <span style="color:var(--muted)">· SS</span>' if is_ss(p) else '')
+        return p["name"] + (
+            ' <span style="color:var(--muted)">· SS</span>' if is_ss(p) else ""
+        )
 
-    print("\n<!-- DREAM TEAM: best value per round, coed rule enforced (>= 2 women) -->")
+    print(
+        "\n<!-- DREAM TEAM: best value per round, coed rule enforced (>= 2 women) -->"
+    )
     dteam, dswapped = dream_team(cur)
     for rd in range(1, ROUNDS + 1):
         p = dteam[rd]
-        coed = ' <span style="color:var(--muted)">· coed</span>' if rd in dswapped else ''
-        print(f'        <tr><td class="ctr num">{rd}</td><td class="player">{pname(p)}{coed}</td>'
-              f'<td class="team-name">{team_label(p["team"])}</td><td class="num">{A(p["avg"])}</td>'
-              f'<td class="num">{p["ab"]}</td><td class="num">{vspan(p["value"])}</td></tr>')
+        coed = (
+            ' <span style="color:var(--muted)">· coed</span>' if rd in dswapped else ""
+        )
+        print(
+            f'        <tr><td class="ctr num">{rd}</td><td class="player">{pname(p)}{coed}</td>'
+            f'<td class="team-name">{team_label(p["team"])}</td><td class="num">{A(p["avg"])}</td>'
+            f'<td class="num">{p["ab"]}</td><td class="num">{vspan(p["value"])}</td></tr>'
+        )
 
     print("\n<!-- PRICED RIGHT: true round == drafted round -->")
-    for p in sorted((q for q in cur if q["vround"] == q["pick"]), key=lambda q: (q["pick"], -q["value"])):
-        print(f'        <tr><td class="ctr num">{p["pick"]}</td><td class="player">{pname(p)}</td>'
-              f'<td class="team-name">{team_label(p["team"])}</td><td class="num">{A(p["avg"])}</td>'
-              f'<td class="num">{p["ab"]}</td><td class="num">{vspan(p["value"])}</td></tr>')
+    for p in sorted(
+        (q for q in cur if q["vround"] == q["pick"]),
+        key=lambda q: (q["pick"], -q["value"]),
+    ):
+        print(
+            f'        <tr><td class="ctr num">{p["pick"]}</td><td class="player">{pname(p)}</td>'
+            f'<td class="team-name">{team_label(p["team"])}</td><td class="num">{A(p["avg"])}</td>'
+            f'<td class="num">{p["ab"]}</td><td class="num">{vspan(p["value"])}</td></tr>'
+        )
 
     print("\n<!-- UNDERDRAFTED top 8: went later than their stats deserve -->")
-    under = sorted((q for q in cur if q["pick"] > q["vround"]),
-                   key=lambda q: (-(q["pick"] - q["vround"]), -q["value"]))
+    under = sorted(
+        (q for q in cur if q["pick"] > q["vround"]),
+        key=lambda q: (-(q["pick"] - q["vround"]), -q["value"]),
+    )
     for p in under[:8]:
-        print(f'        <tr><td class="player">{pname(p)}</td><td class="team-name">{team_label(p["team"])}</td>'
-              f'<td class="ctr num">R{p["pick"]}</td><td class="ctr num big">R{p["vround"]}</td>'
-              f'<td class="num"><span class="zpos">{p["pick"]-p["vround"]} early</span></td>'
-              f'<td class="num">{A(p["avg"])}</td><td class="num">{p["ab"]}</td><td class="num">{vspan(p["value"])}</td></tr>')
+        print(
+            f'        <tr><td class="player">{pname(p)}</td><td class="team-name">{team_label(p["team"])}</td>'
+            f'<td class="ctr num">R{p["pick"]}</td><td class="ctr num big">R{p["vround"]}</td>'
+            f'<td class="num"><span class="zpos">{p["pick"] - p["vround"]} early</span></td>'
+            f'<td class="num">{A(p["avg"])}</td><td class="num">{p["ab"]}</td><td class="num">{vspan(p["value"])}</td></tr>'
+        )
 
     print("\n<!-- OVERDRAFTED top 8: stats say they went too early -->")
-    over = sorted((q for q in cur if q["pick"] < q["vround"]),
-                  key=lambda q: (q["pick"] - q["vround"], q["value"]))
+    over = sorted(
+        (q for q in cur if q["pick"] < q["vround"]),
+        key=lambda q: (q["pick"] - q["vround"], q["value"]),
+    )
     for p in over[:8]:
-        print(f'        <tr><td class="player">{pname(p)}</td><td class="team-name">{team_label(p["team"])}</td>'
-              f'<td class="ctr num">R{p["pick"]}</td><td class="ctr num big">R{p["vround"]}</td>'
-              f'<td class="num"><span class="zneg">{p["vround"]-p["pick"]} late</span></td>'
-              f'<td class="num">{A(p["avg"])}</td><td class="num">{p["ab"]}</td><td class="num">{vspan(p["value"])}</td></tr>')
+        print(
+            f'        <tr><td class="player">{pname(p)}</td><td class="team-name">{team_label(p["team"])}</td>'
+            f'<td class="ctr num">R{p["pick"]}</td><td class="ctr num big">R{p["vround"]}</td>'
+            f'<td class="num"><span class="zneg">{p["vround"] - p["pick"]} late</span></td>'
+            f'<td class="num">{A(p["avg"])}</td><td class="num">{p["ab"]}</td><td class="num">{vspan(p["value"])}</td></tr>'
+        )
+
+    add_picks(cur)
+    ranked = sorted(cur, key=lambda p: (-p["value"], -p["avg"], -p["ab"], p["name"]))
+    vrank = {id(p): i for i, p in enumerate(ranked, 1)}
+
+    def gapspan(p):
+        gap = p["pick"] - p["vround"]
+        if gap > 0:
+            return f'<span class="zpos">+{gap}</span>'
+        if gap < 0:
+            return f'<span class="zneg">−{-gap}</span>'
+        return '<span style="color:var(--muted)">=</span>'
+
+    print(
+        "\n<!-- CAPTAINS MIRROR: where each captain drafted themselves vs their true round -->"
+    )
+    for team in DRAFT_ORDER:
+        p = next(q for q in cur if q["name"] == CAPTAIN_PLAYER[team])
+        print(
+            f'        <tr><td class="player">{pname(p)}</td><td class="team-name">{team_label(team)}</td>'
+            f'<td class="ctr num">#{p["pickno"]}</td><td class="ctr num">R{p["pick"]}</td>'
+            f'<td class="ctr num">R{p["vround"]}</td><td class="num">{gapspan(p)}</td>'
+            f'<td class="num">{A(p["avg"])}</td><td class="num">{p["ab"]}</td>'
+            f'<td class="num">{vspan(p["value"])}</td></tr>'
+        )
+
+    print(
+        "\n<!-- FULL DOCKET: every player in true snake-draft order; League # = value rank -->"
+    )
+    prev_rd = None
+    for p in sorted(cur, key=lambda p: p["pickno"]):
+        brk = (
+            ' class="rd-break"' if prev_rd is not None and p["pick"] != prev_rd else ""
+        )
+        prev_rd = p["pick"]
+        print(
+            f'        <tr{brk}><td class="ctr num">#{p["pickno"]}</td><td class="ctr num">{p["pick"]}</td>'
+            f'<td class="player">{pname(p)}</td>'
+            f'<td class="team-name">{team_label(p["team"])}</td>'
+            f'<td class="ctr num">R{p["vround"]}</td><td class="num">{gapspan(p)}</td>'
+            f'<td class="ctr num">#{vrank[id(p)]}</td><td class="num">{A(p["avg"])}</td>'
+            f'<td class="num">{p["ab"]}</td><td class="num">{vspan(p["value"])}</td></tr>'
+        )
 
     print("\n<!-- ROUND ROOMS -->")
     for rd in range(1, ROUNDS + 1):
-        ps = sorted((p for p in cur if p["pick"] == rd),
-                    key=lambda p: (-p["avg"], -p["ab"], p["name"]))
+        ps = sorted(
+            (p for p in cur if p["pick"] == rd),
+            key=lambda p: (-p["avg"], -p["ab"], p["name"]),
+        )
         print(f'  <h3 id="round-{rd}" style="margin-top:28px">Round {rd}</h3>')
         print('  <div class="table-scroll">\n    <table>\n      <thead>')
-        week_th = '<th class="num">This Week (ABs)</th>' if prev else ''
-        print(f'        <tr><th>Player</th><th>Team</th><th class="num">Avg</th>'
-              f'<th class="num">ABs</th><th class="num">z</th>{week_th}</tr>')
-        print('      </thead>\n      <tbody>')
+        week_th = '<th class="num">This Week (ABs)</th>' if prev else ""
+        print(
+            f'        <tr><th>Player</th><th>Team</th><th class="num">Avg</th>'
+            f'<th class="num">ABs</th><th class="num">z</th>{week_th}</tr>'
+        )
+        print("      </thead>\n      <tbody>")
         for i, p in enumerate(ps):
-            hl = ' class="hl"' if i == 0 else ''
+            hl = ' class="hl"' if i == 0 else ""
             if p["ab"]:
                 avg_c = f'<td class="num{" big" if i == 0 else ""}">{A(p["avg"])}</td>'
                 z_c = f'<td class="num">{zspan(p["z"])}</td>'
             else:
                 avg_c, z_c = '<td class="num">—</td>', '<td class="num">—</td>'
-            wk = ''
+            wk = ""
             if prev:
                 dab, rate = per[(p["team"], p["pick"])]
-                wk = (f'<td class="num">{A(rate)} ({dab})</td>' if dab > 0
-                      else '<td class="num">—</td>')
-            print(f'        <tr{hl}><td class="player">{p["name"]}</td>'
-                  f'<td class="team-name">{team_label(p["team"])}</td>{avg_c}'
-                  f'<td class="num">{p["ab"]}</td>{z_c}{wk}</tr>')
+                wk = (
+                    f'<td class="num">{A(rate)} ({dab})</td>'
+                    if rate is not None
+                    else '<td class="num">—</td>'
+                )
+            print(
+                f'        <tr{hl}><td class="player">{p["name"]}</td>'
+                f'<td class="team-name">{team_label(p["team"])}</td>{avg_c}'
+                f'<td class="num">{p["ab"]}</td>{z_c}{wk}</tr>'
+            )
         season = statistics.mean([p["avg"] for p in ps if p["ab"] > 0])
-        cap = f'Round {rd}: season average {A(season)}'
+        cap = f"Round {rd}: season average {A(season)}"
         if prev and rper[rd] is not None:
-            cap += f' · hit {A(rper[rd])} as a group this period'
-        print(f'      </tbody>\n      <caption>{cap}.</caption>\n    </table>\n  </div>')
+            cap += f" · hit {A(rper[rd])} as a group this period"
+        print(
+            f"      </tbody>\n      <caption>{cap}.</caption>\n    </table>\n  </div>"
+        )
 
     if prev:
-        print("\n<!-- DYNASTY WEEK: family period rates (family, rate, period ABs, players) -->")
+        print(
+            "\n<!-- DYNASTY WEEK: family period rates (family, rate, period ABs, players) -->"
+        )
         fams = {}
         for p in cur:
             s = surname(p)
@@ -637,84 +952,129 @@ def html_tables(cur, prev=None):
         for s, ps in fams.items():
             if len(ps) < 3:
                 continue
-            ks = [(p["team"], p["pick"]) for p in ps]
-            dab = sum(per[k][0] for k in ks)
-            dnet = sum(per[k][0] * per[k][1] for k in ks if per[k][1] is not None)
+            vals = [per[(p["team"], p["pick"])] for p in ps]
+            dab = sum(d for d, _ in vals)
+            dnet = sum(d * r for d, r in vals if r is not None)
             rows.append((s, dnet / dab, dab, len(ps)))
         for s, rate, dab, n in sorted(rows, key=lambda r: -r[1]):
-            print(f'        <tr><td class="player">{s}</td><td class="num">{A(rate)}</td>'
-                  f'<td class="num">{dab}</td><td class="num">{n}</td></tr>')
+            print(
+                f'        <tr><td class="player">{s}</td><td class="num">{A(rate)}</td>'
+                f'<td class="num">{dab}</td><td class="num">{n}</td></tr>'
+            )
 
 
 # ---------------------------------------------------------------- compare
+
 
 def compare(prev, cur, renames, min_old_ab=8, min_new_ab=15, min_dab=10):
     po = {(p["team"], p["pick"]): p for p in prev}
     pn = {(p["team"], p["pick"]): p for p in cur}
     if set(po) != set(pn):
-        sys.exit(f"join failure: only-prev {set(po)-set(pn)} only-cur {set(pn)-set(po)}")
+        sys.exit(
+            f"join failure: only-prev {set(po) - set(pn)} only-cur {set(pn) - set(po)}"
+        )
     print(f"\n{'=' * 72}\n=== COMPARISON: prev -> current ===\n{'=' * 72}")
     print(f"join OK: {len(po)}/{len(pn)} matched on (team, pick)")
     for old, new, team, pick in renames:
-        print(f"RENAME: '{old}' -> '{new}' ({team}, pick {pick}) — same player, name corrected")
+        print(
+            f"RENAME: '{old}' -> '{new}' ({team}, pick {pick}) — same player, name corrected"
+        )
 
     rows = []
     for k, o in po.items():
         n = pn[k]
         dab, dh, dco = n["ab"] - o["ab"], n["h"] - o["h"], n["co"] - o["co"]
         if dab < 0:
-            print(f"WARNING: {n['name']} AB decreased {o['ab']} -> {n['ab']} (data revision?)")
-        rows.append(dict(name=n["name"], team=k[0], pick=k[1], o=o, n=n, dab=dab,
-                         d=n["avg"] - o["avg"],
-                         prate=(dh - dco) / dab if dab > 0 else None))
+            print(
+                f"WARNING: {n['name']} AB decreased {o['ab']} -> {n['ab']} (data revision?)"
+            )
+        rows.append(
+            dict(
+                name=n["name"],
+                team=k[0],
+                pick=k[1],
+                o=o,
+                n=n,
+                dab=dab,
+                d=n["avg"] - o["avg"],
+                prate=(dh - dco) / dab if dab > 0 else None,
+            )
+        )
 
-    oab = sum(r["o"]["ab"] for r in rows); nab = sum(r["n"]["ab"] for r in rows)
-    onet = sum(r["o"]["h"] - r["o"]["co"] for r in rows); nnet = sum(r["n"]["h"] - r["n"]["co"] for r in rows)
-    print(f"\nleague AB {oab:,} -> {nab:,} (+{nab-oab:,}) | adj avg {A(onet/oab)} -> {A(nnet/nab)}"
-          f" | period rate {A((nnet-onet)/(nab-oab))}")
+    oab = sum(r["o"]["ab"] for r in rows)
+    nab = sum(r["n"]["ab"] for r in rows)
+    onet = sum(r["o"]["h"] - r["o"]["co"] for r in rows)
+    nnet = sum(r["n"]["h"] - r["n"]["co"] for r in rows)
+    print(
+        f"\nleague AB {oab:,} -> {nab:,} (+{nab - oab:,}) | adj avg {A(onet / oab)} -> {A(nnet / nab)}"
+        f" | period rate {A((nnet - onet) / (nab - oab))}"
+    )
 
     q = [r for r in rows if r["o"]["ab"] >= min_old_ab and r["n"]["ab"] >= min_new_ab]
     q.sort(key=lambda r: -r["d"])
-    print(f"\n--- SEASON-AVG MOVERS (AB >= {min_old_ab} then and >= {min_new_ab} now; top 10 each) ---")
+    print(
+        f"\n--- SEASON-AVG MOVERS (AB >= {min_old_ab} then and >= {min_new_ab} now; top 10 each) ---"
+    )
     for r in q[:10]:
-        print(f"  UP   {r['name']:30s} {A(r['o']['avg'])} -> {A(r['n']['avg'])} ({r['d']:+.3f})  "
-              f"AB {r['o']['ab']}->{r['n']['ab']}  ({r['team']}, rd{r['pick']})")
+        print(
+            f"  UP   {r['name']:30s} {A(r['o']['avg'])} -> {A(r['n']['avg'])} ({r['d']:+.3f})  "
+            f"AB {r['o']['ab']}->{r['n']['ab']}  ({r['team']}, rd{r['pick']})"
+        )
     for r in q[:-11:-1]:
-        print(f"  DOWN {r['name']:30s} {A(r['o']['avg'])} -> {A(r['n']['avg'])} ({r['d']:+.3f})  "
-              f"AB {r['o']['ab']}->{r['n']['ab']}  ({r['team']}, rd{r['pick']})")
+        print(
+            f"  DOWN {r['name']:30s} {A(r['o']['avg'])} -> {A(r['n']['avg'])} ({r['d']:+.3f})  "
+            f"AB {r['o']['ab']}->{r['n']['ab']}  ({r['team']}, rd{r['pick']})"
+        )
 
     pq = sorted((r for r in rows if r["dab"] >= min_dab), key=lambda r: -r["prate"])
-    print(f"\n--- PERIOD BATS ((dH-dCO)/dAB, dAB >= {min_dab}; {len(pq)} qualify; top 10 each) ---")
+    print(
+        f"\n--- PERIOD BATS ((dH-dCO)/dAB, dAB >= {min_dab}; {len(pq)} qualify; top 10 each) ---"
+    )
     for r in pq[:10]:
-        print(f"  HOT  {r['name']:30s} {A(r['prate'])} on {r['dab']:2d} period AB  "
-              f"season {A(r['o']['avg'])} -> {A(r['n']['avg'])}  ({r['team']})")
+        print(
+            f"  HOT  {r['name']:30s} {A(r['prate'])} on {r['dab']:2d} period AB  "
+            f"season {A(r['o']['avg'])} -> {A(r['n']['avg'])}  ({r['team']})"
+        )
     for r in pq[:-11:-1]:
-        print(f"  COLD {r['name']:30s} {A(r['prate'])} on {r['dab']:2d} period AB  "
-              f"season {A(r['o']['avg'])} -> {A(r['n']['avg'])}  ({r['team']})")
+        print(
+            f"  COLD {r['name']:30s} {A(r['prate'])} on {r['dab']:2d} period AB  "
+            f"season {A(r['o']['avg'])} -> {A(r['n']['avg'])}  ({r['team']})"
+        )
 
     deb = [r for r in rows if r["o"]["ab"] == 0 and r["n"]["ab"] > 0]
     print(f"\n--- DEBUTS ({len(deb)} first appeared this period) ---")
     for r in sorted(deb, key=lambda r: -r["n"]["avg"]):
-        print(f"  {r['name']:30s} {A(r['n']['avg'])} on {r['n']['ab']:2d} AB  ({r['team']}, rd{r['pick']})")
+        print(
+            f"  {r['name']:30s} {A(r['n']['avg'])} on {r['n']['ab']:2d} AB  ({r['team']}, rd{r['pick']})"
+        )
 
     print("\n--- PLAYING-TIME SURGES (top 8 dAB) ---")
     for r in sorted(rows, key=lambda r: -r["dab"])[:8]:
-        print(f"  {r['name']:30s} +{r['dab']} AB ({r['o']['ab']} -> {r['n']['ab']})  "
-              f"period {A(r['prate'])}  ({r['team']})")
+        print(
+            f"  {r['name']:30s} +{r['dab']} AB ({r['o']['ab']} -> {r['n']['ab']})  "
+            f"period {A(r['prate'])}  ({r['team']})"
+        )
 
     print("\n--- TEAM SHIFTS (delta adj avg; bar width % = |delta|/0.125*50) ---")
     tt = {}
     for r in rows:
         a = tt.setdefault(r["team"], [0, 0, 0, 0])
-        a[0] += r["o"]["h"] - r["o"]["co"]; a[1] += r["o"]["ab"]
-        a[2] += r["n"]["h"] - r["n"]["co"]; a[3] += r["n"]["ab"]
-    for t, (on, oa, nn_, na) in sorted(tt.items(), key=lambda kv: -(kv[1][2]/kv[1][3] - kv[1][0]/kv[1][1])):
-        d = nn_/na - on/oa
-        print(f"  {t:32s} {A(on/oa)} -> {A(nn_/na)}  ({d:+.3f})  width {abs(d)/0.125*50:.1f}%  "
-              f"period {A((nn_-on)/(na-oa))}")
+        a[0] += r["o"]["h"] - r["o"]["co"]
+        a[1] += r["o"]["ab"]
+        a[2] += r["n"]["h"] - r["n"]["co"]
+        a[3] += r["n"]["ab"]
+    for t, (on, oa, nn_, na) in sorted(
+        tt.items(), key=lambda kv: -(kv[1][2] / kv[1][3] - kv[1][0] / kv[1][1])
+    ):
+        d = nn_ / na - on / oa
+        print(
+            f"  {t:32s} {A(on / oa)} -> {A(nn_ / na)}  ({d:+.3f})  width {abs(d) / 0.125 * 50:.1f}%  "
+            f"period {A((nn_ - on) / (na - oa))}"
+        )
 
 
 # ---------------------------------------------------------------- main
+
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
@@ -724,14 +1084,26 @@ def main():
     ap.add_argument("--min-ab-outlier", type=int, default=10)
     ap.add_argument("--prev-min-ab-sleeper", type=int, default=10)
     ap.add_argument("--prev-min-ab-outlier", type=int, default=6)
-    ap.add_argument("--html-tables", action="store_true",
-                    help="emit page-ready HTML for Team Sheets / Round Rooms instead of digests")
-    ap.add_argument("--names-from", metavar="CSV",
-                    help="canonicalize an old-format snapshot's names from this comma-format file")
-    ap.add_argument("--standings", metavar="CSV",
-                    help="standings snapshot (MMDD-standings.csv) to join against team batting")
-    ap.add_argument("--prev-standings", metavar="CSV",
-                    help="older standings snapshot for week-over-week movement arrows")
+    ap.add_argument(
+        "--html-tables",
+        action="store_true",
+        help="emit page-ready HTML for Team Sheets / Round Rooms instead of digests",
+    )
+    ap.add_argument(
+        "--names-from",
+        metavar="CSV",
+        help="canonicalize an old-format snapshot's names from this comma-format file",
+    )
+    ap.add_argument(
+        "--standings",
+        metavar="CSV",
+        help="standings snapshot (MMDD-standings.csv) to join against team batting",
+    )
+    ap.add_argument(
+        "--prev-standings",
+        metavar="CSV",
+        help="older standings snapshot for week-over-week movement arrows",
+    )
     args = ap.parse_args()
 
     cur, cur_fmt = load(args.snapshot)
@@ -739,7 +1111,7 @@ def main():
         ref, _ = load(args.names_from)
         canonicalize_prev_names(cur, ref)
 
-    prev = None
+    prev, renames = None, []
     if args.prev:
         prev, fmt = load(args.prev)
         renames = canonicalize_prev_names(prev, cur) if fmt == "old" else []
@@ -757,7 +1129,12 @@ def main():
     if st:
         standings_digest(st, cur, prev_st)
     if prev:
-        digest(prev, f"{args.prev} (prev)", args.prev_min_ab_sleeper, args.prev_min_ab_outlier)
+        digest(
+            prev,
+            f"{args.prev} (prev)",
+            args.prev_min_ab_sleeper,
+            args.prev_min_ab_outlier,
+        )
         compare(prev, cur, renames)
 
 

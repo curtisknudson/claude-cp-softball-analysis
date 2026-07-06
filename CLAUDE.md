@@ -4,7 +4,9 @@ Editorial stats site for a church softball league, published on **GitHub Pages**
 `curtisknudson/claude-cp-softball-analysis` (remote `origin`, SSH). Curtis uploads a fresh
 stats CSV roughly weekly; each upload becomes a new "edition" of the site.
 
-- **No build step, no JS.** Every page is hand-authored static HTML with inline CSS.
+- **No build step, no JS** (single exception: the GoatCounter analytics snippet before `</body>`
+  on every page — `https://cp-softball.goatcounter.com/count`; keep it when creating archives).
+  Every page is hand-authored static HTML with inline CSS.
 - **Project Pages URL prefix:** the site is served under `/claude-cp-softball-analysis/`,
   so every internal link must be **relative** (`2026-06-12.html`), never root-absolute (`/foo.html`).
 - **Commits: plain messages, no Claude co-author or attribution lines** (owner's explicit rule).
@@ -80,6 +82,19 @@ Timpson, Claude (PL) · Williams, Michael (PLA) · Guy, Sam (SS) · Dockstader E
 (DA, R4) · Williams, Daniel (PB) · Knudson, Levi (SJ) · Hammon, Stafford (FS, R3) ·
 Dockstader Boyds, Jeremy (DD)
 
+## Draft order (per Curtis, 2026-07-06 — the draft SNAKED)
+
+Captains drafted in this order, and each captain also drafted **themselves** somewhere:
+Gideon Hammon → Horatio Williams → Sefton Dockstader → Elliot Hammon → Claude Timpson →
+Michael Williams → Seth Cawley → Ephraims Daniel → Caleb Barlow → Boyds Daniel →
+Stafford Hammon → Marvins Jeremy. Odd rounds run in that order, even rounds reverse
+(snake). Overall pick # = (round−1)×12 + position (odd rounds) or + (13−position) (even).
+`DRAFT_ORDER`, `CAPTAIN_PLAYER`, and `add_picks()` in analysis.py implement this; verified
+anchors: Gideon Hammon = pick #1 (took himself), Jairus Hammon = #24, Sean Hammon = #140
+(5th-to-last, NOT last), **Becky Wood = #144, the last pick of the draft**. The Verdict's
+Full Docket lists players in true pick order, and the Captain's Mirror table
+(`captains-mirror`) grades each captain's self-pick.
+
 ## Coed rule (per Curtis, 2026-07-06)
 
 **Every roster must carry two women — including the Dream Team.** `dream_team()` in analysis.py
@@ -126,8 +141,11 @@ editions try to break; update it whenever a record falls) → S9 Team Sheets (be
 team by z; hot/cold bat of the week per team vs the round's period rate) → S10 The Verdict
 (**value** = (avg − league adj) × ABs = net hits above a league-average bat, volume-weighted by
 design; "true round" = value rank dealt into rounds of 12; tables: Priced Exactly Right,
-Bargains/underdrafted, Didn't Justify/overdrafted, Dream Team = best value per round; shortstops
-tagged · SS with a defense caveat) → S11 The Round Rooms (12 tables, every player by round,
+Bargains/underdrafted, Didn't Justify/overdrafted, Dream Team = best value per round, and the
+**Captain's Mirror** = each captain's self-pick graded against their true round, and the
+**Full Docket** = all 144 players in true snake-draft pick order (#1–#144) with
+true-round/gap verdicts and a League # value-rank column, so every player can find their
+own row; shortstops tagged · SS with a defense caveat) → S11 The Round Rooms (12 tables, every player by round,
 season z + This Week column) → Appendix Dynasty Ledger → methodology footnote.
 
 **Anchors:** every section has a stable id (`temperature`, `standings`, `glance`, `draft-board`, `sleepers`,
@@ -137,7 +155,8 @@ season z + This Week column) → Appendix Dynasty Ledger → methodology footnot
 h3 anchor** listed in the Jump-to nav (grouped into four lines): `tier-1`, `tier-2`,
 `report-card`, `mined-rounds`, `caused-outs`, `iron-horses`, `league-shape`, `hot-bats`,
 `cold-bats`, `movers`, `dynasty-week`, `records`, `team-picks`, `team-week`, `priced-right`,
-`bargains`, `didnt-justify`, `dream-team`. New tables must get an id + nav entry. Keep ids stable across
+`bargains`, `didnt-justify`, `dream-team`, `captains-mirror`, `full-docket`. New tables must
+get an id + nav entry. Keep ids stable across
 editions — people share deep links. The "Jump to" TOC after the masthead lists every section;
 add new sections to it.
 

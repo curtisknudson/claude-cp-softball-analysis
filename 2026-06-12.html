@@ -1,0 +1,593 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CP Softball — Stats Deep Dive · June 12, 2026 (Archive)</title>
+<style>
+  :root {
+    --page: #f9f9f7;
+    --surface: #fcfcfb;
+    --ink: #0b0b0b;
+    --ink-2: #52514e;
+    --muted: #898781;
+    --grid: #e1e0d9;
+    --baseline: #c3c2b7;
+    --border: rgba(11, 11, 11, 0.10);
+    --data: #2a78d6;
+    --data-neg: #e34948;
+    --delta-up: #006300;
+    --delta-down: #d03b3b;
+    --highlight: rgba(42, 120, 214, 0.07);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --page: #0d0d0d;
+      --surface: #1a1a19;
+      --ink: #ffffff;
+      --ink-2: #c3c2b7;
+      --muted: #898781;
+      --grid: #2c2c2a;
+      --baseline: #383835;
+      --border: rgba(255, 255, 255, 0.10);
+      --data: #3987e5;
+      --data-neg: #e66767;
+      --delta-up: #0ca30c;
+      --delta-down: #e66767;
+      --highlight: rgba(57, 135, 229, 0.12);
+    }
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--page);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+  }
+
+  .wrap {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  a { color: var(--data); text-underline-offset: 2px; }
+
+  h1, h2, h3 {
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    text-wrap: balance;
+    line-height: 1.15;
+  }
+  h1 { font-size: 2.4rem; font-weight: 700; letter-spacing: -0.01em; }
+  h2 { font-size: 1.55rem; margin: 0 0 4px; }
+  h3 { font-size: 1.15rem; margin: 0 0 4px; }
+
+  header.masthead {
+    border-bottom: 3px double var(--baseline);
+    padding-bottom: 20px;
+    margin-bottom: 32px;
+  }
+  .masthead .kicker {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .masthead .sub {
+    margin-top: 10px;
+    color: var(--ink-2);
+    font-size: 1.02rem;
+    max-width: 72ch;
+  }
+  .masthead .sub code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.88em;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 5px;
+  }
+
+  section { margin-bottom: 48px; }
+
+  .eyebrow {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .lede {
+    color: var(--ink-2);
+    max-width: 72ch;
+    margin: 6px 0 18px;
+  }
+
+  .headlines {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--data);
+    border-radius: 6px;
+    padding: 18px 22px;
+    margin-bottom: 48px;
+  }
+  .headlines .eyebrow { margin-bottom: 10px; }
+  .headlines ul { list-style: none; }
+  .headlines li {
+    padding: 6px 0 6px 18px;
+    position: relative;
+    max-width: 76ch;
+  }
+  .headlines li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.85em;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--data);
+  }
+
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+    gap: 10px;
+  }
+  .tile {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+  }
+  .tile .value {
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  .tile .label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .table-scroll { overflow-x: auto; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 3px double var(--baseline);
+    font-size: 0.9rem;
+  }
+  caption {
+    caption-side: bottom;
+    text-align: left;
+    font-size: 0.78rem;
+    color: var(--muted);
+    padding: 8px 2px 0;
+  }
+  th {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--muted);
+    font-weight: 600;
+    text-align: left;
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--grid);
+    white-space: nowrap;
+  }
+  td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--grid);
+    vertical-align: middle;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  th.num { text-align: right; }
+  .ctr { text-align: center; }
+  th.ctr { text-align: center; }
+  td.player { font-weight: 600; white-space: nowrap; }
+  td.team-name { color: var(--ink-2); white-space: nowrap; }
+  tr.hl td { background: var(--highlight); }
+  .big { font-weight: 700; }
+
+  .zpos { color: var(--delta-up); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .zneg { color: var(--delta-down); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  .meter {
+    display: inline-block;
+    width: 140px;
+    height: 10px;
+    background: transparent;
+    border-left: 1px solid var(--baseline);
+    vertical-align: middle;
+  }
+  .meter > span {
+    display: block;
+    height: 100%;
+    background: var(--data);
+    border-radius: 0 4px 4px 0;
+  }
+
+  .rc-row {
+    display: grid;
+    grid-template-columns: minmax(150px, 220px) 1fr 64px;
+    align-items: center;
+    gap: 12px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--grid);
+  }
+  .rc-row:last-child { border-bottom: none; }
+  .rc-team { font-size: 0.88rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rc-team .grade { color: var(--muted); font-weight: 400; font-size: 0.78rem; margin-left: 6px; }
+  .rc-track { position: relative; height: 12px; }
+  .rc-track::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: -2px;
+    bottom: -2px;
+    width: 1px;
+    background: var(--baseline);
+  }
+  .rc-bar { position: absolute; top: 1px; height: 10px; }
+  .rc-bar.pos { left: 50%; background: var(--data); border-radius: 0 4px 4px 0; }
+  .rc-bar.neg { right: 50%; background: var(--data-neg); border-radius: 4px 0 0 4px; }
+  .rc-val { font-size: 0.85rem; font-variant-numeric: tabular-nums; text-align: right; }
+  .rc-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 20px 10px;
+  }
+  .rc-legend { font-size: 0.78rem; color: var(--muted); margin-top: 10px; padding-bottom: 6px; }
+  .rc-legend .swatch {
+    display: inline-block;
+    width: 9px; height: 9px;
+    border-radius: 2px;
+    vertical-align: baseline;
+    margin: 0 4px 0 10px;
+  }
+
+  .notes { margin-top: 18px; max-width: 78ch; }
+  .notes li { margin: 8px 0 8px 20px; color: var(--ink-2); }
+  .notes li strong, .notes li b { color: var(--ink); }
+
+  .callouts { margin-top: 16px; max-width: 78ch; }
+  .callouts p { margin: 10px 0; color: var(--ink-2); }
+  .callouts p strong { color: var(--ink); }
+
+  .footnote {
+    border-top: 1px solid var(--grid);
+    margin-top: 56px;
+    padding-top: 16px;
+    font-size: 0.8rem;
+    color: var(--muted);
+    max-width: 78ch;
+  }
+
+  @media (max-width: 560px) {
+    h1 { font-size: 1.8rem; }
+    .meter { width: 90px; }
+    .rc-row { grid-template-columns: minmax(110px, 150px) 1fr 56px; gap: 8px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="masthead">
+  <div class="kicker">cpsoftball.com · Current Season · Snapshot June 12, 2026 · Archived Edition</div>
+  <h1>CP Softball — Stats Deep Dive, June 12 Edition</h1>
+  <p class="sub">144 players · 12 teams · 12-round draft · three weeks of receipts.
+  All averages are the site's <strong>adjusted average</strong>:
+  <code>(hits − caused outs) ÷ at-bats</code>, verified exact on every row.
+  A <strong>z</strong> score is standard deviations above or below the average <em>for that draft round</em> —
+  it separates "good player" from "good pick."</p>
+  <p class="sub"><strong>This is a frozen snapshot of the season as it stood on June 12.</strong>
+  For the latest numbers, <a href="index.html">read the current edition →</a></p>
+</header>
+
+<div class="headlines">
+  <div class="eyebrow">The Headlines</div>
+  <ul>
+    <li><strong>Sefton Dockstader leads the league at .933</strong>, with Claude Timpson (.905) right behind — the only two .900 bats in the league.</li>
+    <li><strong>The Lefty Looseys lead everything:</strong> best team average (.626) <em>and</em> the best draft grade (+7.49 total z). Ten of their twelve players are hitting .500 or better.</li>
+    <li>The draft already predicts performance: pick round correlates with average at r&nbsp;=&nbsp;−0.51, from <strong>.680 (round 1)</strong> down to <strong>.338 (round 12)</strong>.</li>
+    <li>The steal of the draft so far is <strong>Sean Hammon</strong> — a 12th-round pick hitting .769, tenth-best in the entire league.</li>
+    <li>Discipline is nearly universal: <strong>115 of 144 players have yet to cause an out</strong> (33 caused outs league-wide, total).</li>
+  </ul>
+</div>
+
+<section>
+  <div class="eyebrow">Section 1</div>
+  <h2>League at a Glance</h2>
+  <p class="lede">A perfectly balanced league — 12 teams, 12 players each, drafted in 12 rounds — three weeks in. Five players have yet to record an at-bat.</p>
+  <div class="tiles">
+    <div class="tile"><div class="value">144</div><div class="label">Players</div></div>
+    <div class="tile"><div class="value">12</div><div class="label">Teams</div></div>
+    <div class="tile"><div class="value">1,632</div><div class="label">At-bats</div></div>
+    <div class="tile"><div class="value">928</div><div class="label">Hits</div></div>
+    <div class="tile"><div class="value">.569</div><div class="label">League raw avg</div></div>
+    <div class="tile"><div class="value">115<span style="font-size:1rem;color:var(--muted)">/144</span></div><div class="label">Zero caused outs</div></div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">Section 2</div>
+  <h2>The Draft Board — Round-by-Round Averages</h2>
+  <p class="lede">Average adjusted average by draft round, players with at least one at-bat. Bars run on a 0–1.000 scale. The slope is already unmistakable — but three weeks of at-bats leave plenty of noise in the middle rounds.</p>
+
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th class="ctr">Round</th>
+          <th class="num">Avg</th>
+          <th></th>
+          <th class="num">Median</th>
+          <th class="ctr">Range</th>
+          <th class="num">Typical ABs</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="ctr num">1</td><td class="num big">.680</td><td><span class="meter" title="Round 1 average: .680"><span style="width:68.0%"></span></span></td><td class="num">.690</td><td class="ctr num">.400 – .933</td><td class="num">13.7</td></tr>
+        <tr><td class="ctr num">2</td><td class="num big">.616</td><td><span class="meter" title="Round 2 average: .616"><span style="width:61.6%"></span></span></td><td class="num">.649</td><td class="ctr num">.462 – .714</td><td class="num">13.3</td></tr>
+        <tr><td class="ctr num">3</td><td class="num big">.583</td><td><span class="meter" title="Round 3 average: .583"><span style="width:58.3%"></span></span></td><td class="num">.596</td><td class="ctr num">.312 – .800</td><td class="num">14.8</td></tr>
+        <tr><td class="ctr num">4</td><td class="num big">.601</td><td><span class="meter" title="Round 4 average: .601"><span style="width:60.1%"></span></span></td><td class="num">.581</td><td class="ctr num">.455 – .727</td><td class="num">13.2</td></tr>
+        <tr><td class="ctr num">5</td><td class="num big">.580</td><td><span class="meter" title="Round 5 average: .580"><span style="width:58.0%"></span></span></td><td class="num">.583</td><td class="ctr num">.250 – .786</td><td class="num">10.9</td></tr>
+        <tr><td class="ctr num">6</td><td class="num big">.576</td><td><span class="meter" title="Round 6 average: .576"><span style="width:57.6%"></span></span></td><td class="num">.561</td><td class="ctr num">.273 – .800</td><td class="num">13.1</td></tr>
+        <tr><td class="ctr num">7</td><td class="num big">.543</td><td><span class="meter" title="Round 7 average: .543"><span style="width:54.3%"></span></span></td><td class="num">.523</td><td class="ctr num">.200 – .833</td><td class="num">10.7</td></tr>
+        <tr><td class="ctr num">8</td><td class="num big">.467</td><td><span class="meter" title="Round 8 average: .467"><span style="width:46.7%"></span></span></td><td class="num">.592</td><td class="ctr num">.000 – .733</td><td class="num">11.2</td></tr>
+        <tr><td class="ctr num">9</td><td class="num big">.447</td><td><span class="meter" title="Round 9 average: .447"><span style="width:44.7%"></span></span></td><td class="num">.406</td><td class="ctr num">.200 – .667</td><td class="num">11.4</td></tr>
+        <tr><td class="ctr num">10</td><td class="num big">.344</td><td><span class="meter" title="Round 10 average: .344"><span style="width:34.4%"></span></span></td><td class="num">.379</td><td class="ctr num">.000 – .636</td><td class="num">10.2</td></tr>
+        <tr class="hl"><td class="ctr num">11</td><td class="num big">.450</td><td><span class="meter" title="Round 11 average: .450 — the oddity"><span style="width:45.0%"></span></span></td><td class="num">.500</td><td class="ctr num">.167 – .667</td><td class="num">8.1</td></tr>
+        <tr><td class="ctr num">12</td><td class="num big">.338</td><td><span class="meter" title="Round 12 average: .338"><span style="width:33.8%"></span></span></td><td class="num">.273</td><td class="ctr num">.083 – .769</td><td class="num">10.1</td></tr>
+      </tbody>
+      <caption>Adjusted average by draft round, players with at least one at-bat. Highlighted row: round 11, the early-season oddity.</caption>
+    </table>
+  </div>
+
+  <ul class="notes">
+    <li><strong>Rounds 1–7 hold above .540; the cliff comes at round 8.</strong> The board falls off gently, then all at once.</li>
+    <li><strong>Round 11 out-hits rounds 8, 9, 10 and 12</strong> (.450), with seven of its twelve hitters at .500 or better — on the thinnest playing time of any round (8.1 at-bats each).</li>
+    <li><strong>Round 8 has a split personality:</strong> its <em>median</em> hitter is at .592 but the round averages .467 — the widest spread on the board (σ = .240), running from .000 to .733.</li>
+    <li><strong>Playing time follows draft capital already:</strong> first-rounders average 13.7 at-bats; 11th-rounders average 8.1.</li>
+    <li><strong>Small-sample warning:</strong> three weeks in, a typical player has about a dozen at-bats. Read these shapes as sketches, not verdicts.</li>
+  </ul>
+</section>
+
+<section>
+  <div class="eyebrow">Section 3</div>
+  <h2>The Sleeper File</h2>
+  <p class="lede">Everyone drafted in <strong>round 6 or later</strong> who is hitting .600 or better (10+ at-bats to filter out hot streaks). League rank is out of 144.</p>
+
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr><th>Player</th><th>Team</th><th class="ctr">Rd</th><th class="num">Avg</th><th class="num">ABs</th><th class="ctr">League Rank</th><th class="num">z</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="player">Timpson, Seth</td><td class="team-name">Lefty Looseys</td><td class="ctr num">6</td><td class="num big">.800</td><td class="num">15</td><td class="ctr num big">#5</td><td class="num"><span class="zpos">+1.43</span></td></tr>
+        <tr class="hl"><td class="player">Hammon, Sean</td><td class="team-name">Pliggas</td><td class="ctr num">12</td><td class="num big">.769</td><td class="num">13</td><td class="ctr num big">#10</td><td class="num big"><span class="zpos">+2.23</span></td></tr>
+        <tr><td class="player">Dockstader, Noah</td><td class="team-name">Danites</td><td class="ctr num">6</td><td class="num">.750</td><td class="num">12</td><td class="ctr num">#12</td><td class="num"><span class="zpos">+1.11</span></td></tr>
+        <tr><td class="player">Williams, Wesley</td><td class="team-name">Diamonds and Dirtbags</td><td class="ctr num">6</td><td class="num">.750</td><td class="num">12</td><td class="ctr num">#13</td><td class="num"><span class="zpos">+1.11</span></td></tr>
+        <tr><td class="player">Williams, Tammy</td><td class="team-name">Good Guys</td><td class="ctr num">8</td><td class="num">.733</td><td class="num">15</td><td class="ctr num">#19</td><td class="num"><span class="zpos">+1.11</span></td></tr>
+        <tr><td class="player">Williams, Charles</td><td class="team-name">Fellowship of the Swing</td><td class="ctr num">6</td><td class="num">.722</td><td class="num">18</td><td class="ctr num">#22</td><td class="num"><span class="zpos">+0.93</span></td></tr>
+        <tr><td class="player">Hammon, Lewis</td><td class="team-name">Youre Saying Theres A Chance</td><td class="ctr num">8</td><td class="num">.667</td><td class="num">12</td><td class="ctr num">#36</td><td class="num"><span class="zpos">+0.83</span></td></tr>
+        <tr><td class="player">Williams, Anthony</td><td class="team-name">Youre Saying Theres A Chance</td><td class="ctr num">7</td><td class="num">.667</td><td class="num">12</td><td class="ctr num">#37</td><td class="num"><span class="zpos">+0.69</span></td></tr>
+        <tr><td class="player">Barlow, Wallace</td><td class="team-name">Good Guys</td><td class="ctr num">10</td><td class="num">.636</td><td class="num">11</td><td class="ctr num">#42</td><td class="num"><span class="zpos">+1.35</span></td></tr>
+        <tr><td class="player">Hammon, Brigham</td><td class="team-name">Pliggas</td><td class="ctr num">8</td><td class="num">.636</td><td class="num">11</td><td class="ctr num">#43</td><td class="num"><span class="zpos">+0.71</span></td></tr>
+        <tr><td class="player">Williams, Jerold</td><td class="team-name">Fellowship of the Swing</td><td class="ctr num">8</td><td class="num">.625</td><td class="num">16</td><td class="ctr num">#47</td><td class="num"><span class="zpos">+0.66</span></td></tr>
+        <tr><td class="player">Hammon, Logan</td><td class="team-name">Pliggas</td><td class="ctr num">9</td><td class="num">.615</td><td class="num">13</td><td class="ctr num">#49</td><td class="num"><span class="zpos">+0.96</span></td></tr>
+        <tr><td class="player">Musser, Andrew</td><td class="team-name">Lefty Looseys</td><td class="ctr num">11</td><td class="num">.615</td><td class="num">13</td><td class="ctr num">#50</td><td class="num"><span class="zpos">+1.16</span></td></tr>
+        <tr><td class="player">Timpson, Alma</td><td class="team-name">Lefty Looseys</td><td class="ctr num">8</td><td class="num">.600</td><td class="num">20</td><td class="ctr num">#51</td><td class="num"><span class="zpos">+0.56</span></td></tr>
+        <tr><td class="player">Johnson, Anson</td><td class="team-name">Pure Breads</td><td class="ctr num">9</td><td class="num">.600</td><td class="num">15</td><td class="ctr num">#52</td><td class="num"><span class="zpos">+0.87</span></td></tr>
+      </tbody>
+      <caption>Highlighted row: largest overperformance of any pick, any round, so far.</caption>
+    </table>
+  </div>
+  <div class="callouts">
+    <p><strong>Sean Hammon is the early steal of the draft:</strong> the Pliggas spent a final-round pick on a bat that's currently tenth in the league. His +2.23 z is the biggest slot-beating line on the board.</p>
+    <p><strong>The Pliggas and Lefty Looseys are hoarding sleepers</strong> — three names apiece on this list. The Looseys got theirs in rounds 6, 8, and 11 (Seth Timpson, Alma Timpson, Andrew Musser); the Pliggas found theirs in rounds 8, 9, and 12.</p>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">Section 4</div>
+  <h2>Outliers, Round by Round</h2>
+  <p class="lede">The single biggest over- and underperformer versus round expectation in every round (minimum 6 ABs). Read this as <em>the best and worst pick of each round, so far</em>. Round average shown in parentheses.</p>
+
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th class="ctr">Rd</th>
+          <th>Overperformer</th><th class="num">Avg (rd)</th><th class="num">z</th>
+          <th>Underperformer</th><th class="num">Avg (rd)</th><th class="num">z</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="ctr num">1</td><td class="player">Dockstader, Sefton</td><td class="num big">.933 <span style="color:var(--muted)">(.680)</span></td><td class="num"><span class="zpos">+1.54</span></td><td class="player">Knudson, Levi</td><td class="num">.500 <span style="color:var(--muted)">(.680)</span></td><td class="num"><span class="zneg">−1.09</span></td></tr>
+        <tr><td class="ctr num">2</td><td class="player">Knudson, Curtis</td><td class="num">.714 <span style="color:var(--muted)">(.616)</span></td><td class="num"><span class="zpos">+1.05</span></td><td class="player">Timpson, Jason W</td><td class="num">.462 <span style="color:var(--muted)">(.616)</span></td><td class="num"><span class="zneg">−1.64</span></td></tr>
+        <tr><td class="ctr num">3</td><td class="player">Williams, Evan</td><td class="num">.800 <span style="color:var(--muted)">(.583)</span></td><td class="num"><span class="zpos">+1.20</span></td><td class="player">Timpson, Kayden</td><td class="num">.312 <span style="color:var(--muted)">(.583)</span></td><td class="num"><span class="zneg">−1.49</span></td></tr>
+        <tr><td class="ctr num">4</td><td class="player">Williams, Matt</td><td class="num">.727 <span style="color:var(--muted)">(.601)</span></td><td class="num"><span class="zpos">+1.38</span></td><td class="player">Hammon, Roy</td><td class="num">.455 <span style="color:var(--muted)">(.601)</span></td><td class="num"><span class="zneg">−1.59</span></td></tr>
+        <tr><td class="ctr num">5</td><td class="player">Knudson, Daniel</td><td class="num">.786 <span style="color:var(--muted)">(.580)</span></td><td class="num"><span class="zpos">+1.27</span></td><td class="player">Timpson, Teancum</td><td class="num">.400 <span style="color:var(--muted)">(.580)</span></td><td class="num"><span class="zneg">−1.11</span></td></tr>
+        <tr><td class="ctr num">6</td><td class="player">Timpson, Seth</td><td class="num">.800 <span style="color:var(--muted)">(.576)</span></td><td class="num"><span class="zpos">+1.43</span></td><td class="player">Horsley, Lizzy</td><td class="num">.273 <span style="color:var(--muted)">(.576)</span></td><td class="num"><span class="zneg">−1.94</span></td></tr>
+        <tr><td class="ctr num">7</td><td class="player">Barlow, Riley</td><td class="num">.833 <span style="color:var(--muted)">(.543)</span></td><td class="num"><span class="zpos">+1.62</span></td><td class="player">Timpson, Lexi</td><td class="num">.385 <span style="color:var(--muted)">(.543)</span></td><td class="num"><span class="zneg">−0.88</span></td></tr>
+        <tr><td class="ctr num">8</td><td class="player">Williams, Tammy</td><td class="num">.733 <span style="color:var(--muted)">(.467)</span></td><td class="num"><span class="zpos">+1.11</span></td><td class="player">Dutson, Leroy</td><td class="num">.182 <span style="color:var(--muted)">(.467)</span></td><td class="num"><span class="zneg">−1.19</span></td></tr>
+        <tr><td class="ctr num">9</td><td class="player">Williams, Marissa</td><td class="num">.667 <span style="color:var(--muted)">(.447)</span></td><td class="num"><span class="zpos">+1.26</span></td><td class="player">Bauer, Cleeson</td><td class="num">.286 <span style="color:var(--muted)">(.447)</span></td><td class="num"><span class="zneg">−0.92</span></td></tr>
+        <tr><td class="ctr num">10</td><td class="player">Barlow, Wallace</td><td class="num">.636 <span style="color:var(--muted)">(.344)</span></td><td class="num"><span class="zpos">+1.35</span></td><td class="player">Timpson, Lindsey</td><td class="num">.143 <span style="color:var(--muted)">(.344)</span></td><td class="num"><span class="zneg">−0.92</span></td></tr>
+        <tr><td class="ctr num">11</td><td class="player">Dockstader, Marvin</td><td class="num">.667 <span style="color:var(--muted)">(.450)</span></td><td class="num"><span class="zpos">+1.51</span></td><td class="player">Hammon, David</td><td class="num">.167 <span style="color:var(--muted)">(.450)</span></td><td class="num"><span class="zneg">−1.97</span></td></tr>
+        <tr class="hl"><td class="ctr num">12</td><td class="player">Hammon, Sean</td><td class="num">.769 <span style="color:var(--muted)">(.338)</span></td><td class="num big"><span class="zpos">+2.23</span></td><td class="player">Dockstader, Isabel</td><td class="num">.083 <span style="color:var(--muted)">(.338)</span></td><td class="num"><span class="zneg">−1.31</span></td></tr>
+      </tbody>
+      <caption>Green = above round expectation, red = below. Highlighted row: the largest overperformance of any pick so far.</caption>
+    </table>
+  </div>
+
+  <ul class="notes">
+    <li><strong>Sefton Dockstader (R1, .933)</strong> — 14 hits in 15 at-bats, zero caused outs. The best line in the league isn't close right now.</li>
+    <li><strong>Riley Barlow (R7, .833)</strong> — the hottest per-at-bat start in the league, though on just 6 trips to the plate. Watch this space.</li>
+    <li><strong>David Hammon (R11, .167)</strong> — the worst slot-relative line on the board (−1.97 z), edging out Lizzy Horsley's .273 in the sleeper-rich sixth round.</li>
+    <li><strong>Isabel Dockstader (R12, .083)</strong> — one hit and a caused out in 12 at-bats. Final-round picks come with no warranty.</li>
+  </ul>
+</section>
+
+<section>
+  <div class="eyebrow">Section 5</div>
+  <h2>Team-by-Team Breakdown</h2>
+  <p class="lede">Sorted by team adjusted average. <strong>".500 Club"</strong> = players on the roster hitting .500 or better.</p>
+
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr><th class="ctr">#</th><th>Team</th><th class="num">Adj Avg</th><th class="num">Raw Avg</th><th class="num">Caused Outs</th><th class="num">Team ABs</th><th class="ctr">.500 Club</th><th>Best Bat</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="ctr num">1</td><td class="player">Lefty Looseys</td><td class="num big">.626</td><td class="num big">.645</td><td class="num">3</td><td class="num">155</td><td class="ctr num big">10/12</td><td class="team-name">Dockstader, Sefton (.933)</td></tr>
+        <tr><td class="ctr num">2</td><td class="player">Fellowship of the Swing</td><td class="num">.599</td><td class="num">.611</td><td class="num">2</td><td class="num">157</td><td class="ctr num big">10/12</td><td class="team-name">Hammon, Stafford (.778)</td></tr>
+        <tr><td class="ctr num">3</td><td class="player">Diamonds and Dirtbags</td><td class="num">.597</td><td class="num">.605</td><td class="num big">1</td><td class="num">124</td><td class="ctr num">8/12</td><td class="team-name">Dockstader Marvins, Jeremy (.750)</td></tr>
+        <tr><td class="ctr num">4</td><td class="player">Good Guys</td><td class="num">.578</td><td class="num">.619</td><td class="num big">6</td><td class="num">147</td><td class="ctr num">9/12</td><td class="team-name">Hammon, Gideon (.800)</td></tr>
+        <tr><td class="ctr num">5</td><td class="player">Pliggas</td><td class="num">.576</td><td class="num">.600</td><td class="num">4</td><td class="num big">165</td><td class="ctr num">8/12</td><td class="team-name">Timpson, Claude (.905)</td></tr>
+        <tr><td class="ctr num">6</td><td class="player">Youre Saying Theres A Chance</td><td class="num">.565</td><td class="num">.585</td><td class="num">3</td><td class="num">147</td><td class="ctr num">9/12</td><td class="team-name">Williams, Horatio (.786)</td></tr>
+        <tr><td class="ctr num">7</td><td class="player">Pure Breads</td><td class="num">.560</td><td class="num">.580</td><td class="num">3</td><td class="num">150</td><td class="ctr num">7/12</td><td class="team-name">Williams, Daniel (.733)</td></tr>
+        <tr><td class="ctr num">8</td><td class="player">Danites</td><td class="num">.512</td><td class="num">.543</td><td class="num">4</td><td class="num">127</td><td class="ctr num">7/12</td><td class="team-name">Dockstader, Noah (.750)</td></tr>
+        <tr><td class="ctr num">9</td><td class="player">Stars and Strikes</td><td class="num">.508</td><td class="num">.515</td><td class="num big">1</td><td class="num">132</td><td class="ctr num">6/12</td><td class="team-name">Guy, Sam (.714)</td></tr>
+        <tr><td class="ctr num">10</td><td class="player">Ellites</td><td class="num">.492</td><td class="num">.508</td><td class="num">2</td><td class="num">126</td><td class="ctr num">6/12</td><td class="team-name">Dockstader, Bryan (.727)</td></tr>
+        <tr><td class="ctr num">11</td><td class="player">Playas</td><td class="num">.470</td><td class="num">.470</td><td class="num big">0</td><td class="num big">100</td><td class="ctr num">5/12</td><td class="team-name">Knudson, Nathan (.692)</td></tr>
+        <tr><td class="ctr num">12</td><td class="player">Slamma Jammas</td><td class="num">.412</td><td class="num">.451</td><td class="num">4</td><td class="num">102</td><td class="ctr num">6/12</td><td class="team-name">Williams, Ben (.692)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="margin-top:28px">One thing that jumps out about every team</h3>
+  <ul class="notes">
+    <li><strong>Lefty Looseys</strong> — Leading the league in average <em>and</em> depth (ten of twelve at .500+), with the league's best bat (Sefton, .933). Also the widest player spread (σ = .227) — stars and strugglers on the same bench.</li>
+    <li><strong>Fellowship of the Swing</strong> — The quiet contender: second in average, ten players in the .500 Club, and just 2 caused outs.</li>
+    <li><strong>Diamonds and Dirtbags</strong> — One caused out all season, and third place without a single .800 bat. Their best hitter is at "only" .750 — this is a depth play.</li>
+    <li><strong>Good Guys</strong> — Second-best raw hitting (.619), but the league-worst 6 caused outs already cost them .041 of average, the biggest discipline penalty in the league.</li>
+    <li><strong>Pliggas</strong> — Top-heavy: Claude Timpson is at .905 and nobody logs more team at-bats (165). The gap between their stars and their bench (σ = .203) is real.</li>
+    <li><strong>Youre Saying Theres A Chance</strong> — Nine of twelve at .500+ and quietly tidy (3 caused outs). Solidly mid-table with upside.</li>
+    <li><strong>Pure Breads</strong> — The second-widest spread in the league (σ = .218): five bats at .667 or better, and a bottom four hitting .333 or worse.</li>
+    <li><strong>Danites</strong> — Found a top-15 league bat in round 6 (Noah Dockstader, .750), but their first-rounder Heber Williams (.500) sits bottom-three in round 1.</li>
+    <li><strong>Stars and Strikes</strong> — Clean (1 caused out) but thin: only six players at .500+, and their best bat (Sam Guy, .714) ranks just 24th league-wide.</li>
+    <li><strong>Ellites</strong> — Tenth place, but Bryan Dockstader (.727) is a legitimate third-round hit. The problem is everything after round 5.</li>
+    <li><strong>Playas</strong> — The only team with <em>zero</em> caused outs — and the fewest at-bats in the league (100). Perfect discipline, missing bodies.</li>
+    <li><strong>Slamma Jammas</strong> — Dead last by 58 points of average. Half the roster is in the .500 Club and it doesn't matter: three of their bats are at .182 or worse.</li>
+  </ul>
+
+  <h3 style="margin-top:28px">Draft-Day Report Card</h3>
+  <p class="lede">Total z across the whole roster — are each team's twelve picks over- or underperforming what their draft slots predict? Players who haven't batted yet count as neutral (z&nbsp;=&nbsp;0).</p>
+
+  <div class="rc-card">
+    <div class="rc-row">
+      <div class="rc-team">Lefty Looseys<span class="grade">A+</span></div>
+      <div class="rc-track" title="Lefty Looseys: +7.49 total z"><div class="rc-bar pos" style="width:46.8%"></div></div>
+      <div class="rc-val zpos">+7.49</div>
+    </div>
+    <div class="rc-row">
+      <div class="rc-team">Diamonds and Dirtbags<span class="grade">A</span></div>
+      <div class="rc-track" title="Diamonds and Dirtbags: +5.15 total z"><div class="rc-bar pos" style="width:32.2%"></div></div>
+      <div class="rc-val zpos">+5.15</div>
+    </div>
+    <div class="rc-row">
+      <div class="rc-team">Fellowship of the Swing<span class="grade">B+</span></div>
+      <div class="rc-track" title="Fellowship of the Swing: +3.22 total z"><div class="rc-bar pos" style="width:20.1%"></div></div>
+      <div class="rc-val zpos">+3.22</div>
+    </div>
+    <div class="rc-row">
+      <div class="rc-team">Good Guys<span class="grade">B+</span></div>
+      <div class="rc-track" title="Good Guys: +2.84 total z"><div class="rc-bar pos" style="width:17.8%"></div></div>
+      <div class="rc-val zpos">+2.84</div>
+    </div>
+    <div class="rc-row">
+      <div class="rc-team">Youre Saying Theres A Chance<span class="grade">B</span></div>
+      <div class="rc-track" title="Youre Saying Theres A Chance: +2.30 total z"><div class="rc-bar pos" style="width:14.4%"></div></div>
+      <div class="rc-val zpos">+2.30</div>
+    </div>
+    <div class="rc-row">
+      <div class="rc-team">Pure Breads<span class="grade">B</span></div>
+      <div class="rc-track" title="Pure Breads: +1.97 total z"><div class="rc-bar pos" style="width:12.3%"></div></div>
+      <div class="rc-val zpos">+1.97</div>
+    </div>
+    <div class="rc-row">
+      <div class="rc-team">Pliggas<span class="grade">B−</span></div>
+      <div class="rc-track" title="Pliggas: +1.85 total z"><div class="rc-bar pos" style="width:11.6%"></div></div>
+      <div class="rc-val zpos">+1.85</div>
+    </div>
+    <div class="rc-row">
+      <div class="rc-team">Danites<span class="grade">C−</span></div>
+      <div class="rc-track" title="Danites: −1.95 total z"><div class="rc-bar neg" style="width:12.2%"></div></div>
+      <div class="rc-val zneg">−1.95</div>
+    </div>
+    <div class="rc-row">
+      <div class="rc-team">Ellites<span class="grade">D</span></div>
+      <div class="rc-track" title="Ellites: −4.09 total z"><div class="rc-bar neg" style="width:25.6%"></div></div>
+      <div class="rc-val zneg">−4.09</div>
+    </div>
+    <div class="rc-row">
+      <div class="rc-team">Stars and Strikes<span class="grade">D−</span></div>
+      <div class="rc-track" title="Stars and Strikes: −4.52 total z"><div class="rc-bar neg" style="width:28.2%"></div></div>
+      <div class="rc-val zneg">−4.52</div>
+    </div>
+    <div class="rc-row">
+      <div class="rc-team">Slamma Jammas<span class="grade">F</span></div>
+      <div class="rc-track" title="Slamma Jammas: −6.50 total z"><div class="rc-bar neg" style="width:40.6%"></div></div>
+      <div class="rc-val zneg">−6.50</div>
+    </div>
+    <div class="rc-row">
+      <div class="rc-team">Playas<span class="grade">F</span></div>
+      <div class="rc-track" title="Playas: −7.76 total z"><div class="rc-bar neg" style="width:48.5%"></div></div>
+      <div class="rc-val zneg">−7.76</div>
+    </div>
+    <div class="rc-legend">Bars scaled to ±8 z around the center line.<span class="swatch" style="background:var(--data)"></span>outperforming draft slots<span class="swatch" style="background:var(--data-neg)"></span>underperforming</div>
+  </div>
+
+  <div class="callouts">
+    <p>Three weeks in, the draft grades already sort the standings almost perfectly. The one warning sign at the bottom: the <strong>Playas' first six rounds</strong> have underperformed their slots by −5.44 z, the worst early-round haul in the league.</p>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">Appendix</div>
+  <h2>The Dynasty Ledger</h2>
+  <p class="lede">Because no CP Softball document is complete without acknowledging that this league is nine families in a trench coat — <strong>118 of 144 players share just nine surnames.</strong></p>
+
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr><th>Family</th><th class="num">Players</th><th class="num">Teams</th><th>Best Bat</th><th class="num">Family Avg</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="player">Hammon</td><td class="num big">32</td><td class="num">11</td><td class="team-name">Gideon (.800)</td><td class="num">.523</td></tr>
+        <tr><td class="player">Timpson</td><td class="num">24</td><td class="num">11</td><td class="team-name">Claude (.905)</td><td class="num">.497</td></tr>
+        <tr><td class="player">Williams</td><td class="num">21</td><td class="num">9</td><td class="team-name">Evan (.800)</td><td class="num big">.608</td></tr>
+        <tr><td class="player">Dockstader</td><td class="num">14</td><td class="num">8</td><td class="team-name">Sefton (.933)</td><td class="num">.565</td></tr>
+        <tr><td class="player">Knudson</td><td class="num">8</td><td class="num">5</td><td class="team-name">Daniel (.786)</td><td class="num">.581</td></tr>
+        <tr><td class="player">Barlow</td><td class="num">7</td><td class="num">6</td><td class="team-name">Riley (.833)</td><td class="num">.525</td></tr>
+        <tr><td class="player">Naylor</td><td class="num">5</td><td class="num">3</td><td class="team-name">Timothy (.750)</td><td class="num">.412</td></tr>
+        <tr><td class="player">Horsley</td><td class="num">4</td><td class="num">3</td><td class="team-name">Max (.625)</td><td class="num">.340</td></tr>
+        <tr><td class="player">Cawley</td><td class="num">3</td><td class="num">3</td><td class="team-name">Seth (.692)</td><td class="num">.556</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callouts">
+    <p>The Williamses are the best <em>per-capita</em> dynasty (.608 across 21 players), with the Knudsons second among the major families (.581) — carried at this point by Daniel Knudson's .786 at rank #7 of 144. The family averages only count players who have batted.</p>
+  </div>
+</section>
+
+<p class="footnote"><strong>Methodology:</strong> snapshot of cpsoftball.com as it stood on June 12, 2026, three weeks into the season. Adjusted average = (H − CO) / AB, verified exact on all 144 rows. Five players had not yet batted; they are excluded from round and family averages and count as z = 0 in the report card. z-scores computed within each draft round, so treat individual z values as directional, not gospel. Sleeper table: rounds 6+, minimum 10 at-bats. Outlier table: minimum 6 at-bats. Early-season samples are small — spreads are sketches, not verdicts. <strong>This page is a frozen archive;</strong> the <a href="index.html">current edition</a> has the latest numbers.</p>
+
+</div>
+</body>
+</html>

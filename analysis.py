@@ -163,6 +163,49 @@ def is_ss(p):
     return p["name"] in SHORTSTOPS
 
 
+# Coed rule (per Curtis, 2026-07-06): every roster must carry two women — the
+# Dream Team included. Gender is deduced from given names. Ambiguous names are
+# treated as male unless confirmed; Taylor (Timpson) and Riley (Barlow) are
+# confirmed male. If Avery, Kendall, Sidney, Leslie, or J Daunt ever matter for
+# the rule, ask Curtis rather than guessing.
+FEMALE_GIVEN = {
+    "Maureen", "Jayla", "Tammy", "Marissa", "Violet", "Lexi", "Sophia",
+    "Dorothy", "Isabel", "Alyssa", "Selena", "Kaitlyn", "Sarah", "Lindsey",
+    "Layla", "Karen", "Lizzy", "Heather", "Sharon", "Pauline", "Becky",
+    "Samantha", "Deborah", "Angeline", "Brenda", "Rebecca", "Sabrina",
+    "Jazlin", "Amie Z", "Joanne Sis",
+}
+
+
+def is_female(p):
+    return given(p) in FEMALE_GIVEN
+
+
+def dream_team(players):
+    """Best value per round, then enforce the coed rule (>= 2 women).
+
+    If the pure-value team has fewer than two women, swap in the best-value
+    woman from whichever rounds cost the least total value. Returns
+    (round -> player, set of swapped rounds).
+    """
+    team = {rd: max((p for p in players if p["pick"] == rd), key=lambda p: p["value"])
+            for rd in range(1, ROUNDS + 1)}
+    swapped = set()
+    need = 2 - sum(1 for p in team.values() if is_female(p))
+    options = []
+    for rd in range(1, ROUNDS + 1):
+        if is_female(team[rd]):
+            continue
+        fs = [p for p in players if p["pick"] == rd and is_female(p)]
+        if fs:
+            best = max(fs, key=lambda p: (p["value"], p["avg"], p["ab"]))
+            options.append((team[rd]["value"] - best["value"], rd, best))
+    for _, rd, f in sorted(options, key=lambda o: (o[0], o[1]))[:max(0, need)]:
+        team[rd] = f
+        swapped.add(rd)
+    return team, swapped
+
+
 def add_value(players):
     """Value = net hits above a league-average bat: (avg - league_adj) * AB.
 
@@ -344,11 +387,15 @@ def digest(players, label, min_ab_sleeper, min_ab_outlier):
     for p in over[:8]:
         print(f"  {p['name']:30s} drafted R{p['pick']:<2d} true R{p['vround']:<2d} ({p['pick']-p['vround']} rounds)  "
               f"{A(p['avg'])} on {p['ab']:2d} AB  value {p['value']:+5.1f} {'SS' if is_ss(p) else ''}  ({p['team']})")
-    print("DREAM TEAM (best value per round):")
+    team, swapped = dream_team(players)
+    n_f = sum(1 for p in team.values() if is_female(p))
+    print(f"DREAM TEAM (best value per round; coed rule: {n_f} women"
+          f"{', legal as-is' if not swapped else f', swapped rounds {sorted(swapped)}'}):")
     for rd in range(1, ROUNDS + 1):
-        p = max((p for p in players if p["pick"] == rd), key=lambda p: p["value"])
+        p = team[rd]
+        tags = " ".join(t for t in ("SS" if is_ss(p) else "", "COED-SWAP" if rd in swapped else "") if t)
         print(f"  R{rd:<2d} {p['name']:30s} {A(p['avg'])} on {p['ab']:2d} AB  value {p['value']:+5.1f} "
-              f"{'SS' if is_ss(p) else ''}  ({p['team']})")
+              f"{tags}  ({p['team']})")
     return players
 
 
@@ -515,10 +562,12 @@ def html_tables(cur, prev=None):
     def pname(p):
         return p["name"] + (' <span style="color:var(--muted)">· SS</span>' if is_ss(p) else '')
 
-    print("\n<!-- DREAM TEAM: best value per round -->")
+    print("\n<!-- DREAM TEAM: best value per round, coed rule enforced (>= 2 women) -->")
+    dteam, dswapped = dream_team(cur)
     for rd in range(1, ROUNDS + 1):
-        p = max((q for q in cur if q["pick"] == rd), key=lambda q: q["value"])
-        print(f'        <tr><td class="ctr num">{rd}</td><td class="player">{pname(p)}</td>'
+        p = dteam[rd]
+        coed = ' <span style="color:var(--muted)">· coed</span>' if rd in dswapped else ''
+        print(f'        <tr><td class="ctr num">{rd}</td><td class="player">{pname(p)}{coed}</td>'
               f'<td class="team-name">{team_label(p["team"])}</td><td class="num">{A(p["avg"])}</td>'
               f'<td class="num">{p["ab"]}</td><td class="num">{vspan(p["value"])}</td></tr>')
 

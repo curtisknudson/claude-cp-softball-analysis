@@ -80,6 +80,18 @@ Timpson, Claude (PL) · Williams, Michael (PLA) · Guy, Sam (SS) · Dockstader E
 (DA, R4) · Williams, Daniel (PB) · Knudson, Levi (SJ) · Hammon, Stafford (FS, R3) ·
 Dockstader Boyds, Jeremy (DD)
 
+## Coed rule (per Curtis, 2026-07-06)
+
+**Every roster must carry two women — including the Dream Team.** `dream_team()` in analysis.py
+enforces this: if the pure-value team has fewer than two women, it swaps in the best-value woman
+from whichever rounds cost the least total value, and tags swapped rows `· coed` (digest prints
+`legal as-is` when no swap was needed — true of the July 3 edition: Maureen Williams and Jayla
+Dockstader make it on value alone; say so in the page notes when it holds). Gender is deduced
+from given names via `FEMALE_GIVEN` in analysis.py. **Confirmed male despite ambiguous names:
+Taylor (Timpson) and Riley (Barlow)** — Curtis confirmed the current Dream Team's only women are
+Maureen and Jayla. If Avery, Kendall, Sidney, Leslie, or J Daunt ever matter for the rule, ask
+Curtis; never guess a gender into print.
+
 ## Analysis conventions
 
 - **z-score** = standard deviations above/below the mean **within a player's draft round**

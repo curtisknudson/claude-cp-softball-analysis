@@ -87,15 +87,24 @@ matching how the league's own rosters write compound names (e.g. "Dockstader Boy
 
 ## Page anatomy (index.html)
 
-Masthead (kicker · title · methodology sub · edition nav) → The Headlines → S1 League at a Glance
-(tiles) → S2 Draft Board round averages → S3 Sleeper File → S4 Outliers per round → S5 Team
-breakdown + Draft-Day Report Card → S6 Draft Board Second Look (risk/re-draft/discipline +
-early-vs-late team split) → S7 Missing Pages (caused-out ledger, workload, distribution) →
-S8 What Changed (week-over-week, incl. Dynasty of the Week + **the Records Board** — weekly
-bests that future editions try to break; update it whenever a record falls) → S9 Team Sheets
-(best/worst pick per team by z; hot/cold bat of the week per team vs the round's period rate)
-→ S10 The Round Rooms (12 tables, every player by round, season z + This Week column) →
-Appendix Dynasty Ledger → methodology footnote.
+Masthead (kicker · title · methodology sub · edition nav) → "Jump to" TOC nav → The Headlines →
+**Team Temperature** (unnumbered "This Week" section at the top — the week-over-week team
+diverging bars live HERE, not in S8; rebuild it each edition) → S1 League at a Glance (tiles) →
+S2 Draft Board round averages → S3 Sleeper File → S4 Outliers per round → S5 Team breakdown +
+Draft-Day Report Card → S6 Draft Board Second Look (risk/re-draft/discipline + early-vs-late
+team split) → S7 Missing Pages (caused-out ledger, workload, distribution) → S8 What Changed
+(week-over-week, incl. Dynasty of the Week + **the Records Board** — weekly bests that future
+editions try to break; update it whenever a record falls) → S9 Team Sheets (best/worst pick per
+team by z; hot/cold bat of the week per team vs the round's period rate) → S10 The Round Rooms
+(12 tables, every player by round, season z + This Week column) → Appendix Dynasty Ledger →
+methodology footnote.
+
+**Anchors:** every section has a stable id (`temperature`, `glance`, `draft-board`, `sleepers`,
+`outliers`, `teams`, `second-look`, `missing-pages`, `what-changed`, `team-sheets`,
+`round-rooms`, `dynasty`) with a self-linking `<h2><a href="#id">`; each round-room h3 is
+`round-1`…`round-12` (the `--html-tables` emitter produces these). Keep ids stable across
+editions — people share deep links. The "Jump to" TOC after the masthead lists every section;
+add new sections to it.
 
 Archive pages mirror the above minus anything weekly (2026-06-12.html has S1–S5, S6 Team Sheets
 season-only, S7 Round Rooms without the week column, + Appendix) — **no week-over-week content

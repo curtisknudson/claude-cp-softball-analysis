@@ -22,6 +22,24 @@ import sys
 
 ROUNDS = 12
 
+# Team captains, from https://cpsoftball.com/teams.php (fetched 2026-07-06).
+# Every displayed team name carries "(<captain>'s team)". The two captains
+# named Daniel are disambiguated patronymic-style, matching league usage.
+CAPTAINS = {
+    "The Good Guys": "Gideon",
+    "Youre Saying Theres A Chance": "Horatio",
+    "The Lefty Looseys": "Sefton",
+    "The Ellites": "Elliot",
+    "The Pliggas": "Claude",
+    "The Playas": "Michael",
+    "The Stars and Strikes": "Seth",
+    "The Danites": "Ephraims Daniel",
+    "The Pure Breads": "Caleb",
+    "The Slamma Jammas": "Boyds Daniel",
+    "The Fellowship of the Swing": "Stafford",
+    "The Diamonds and Dirtbags": "Jeremy",
+}
+
 # ---------------------------------------------------------------- loading
 
 NEW_COLS = {"player", "team", "draft_pick", "at_bats", "hits", "caused_outs", "adjusted_avg"}
@@ -267,6 +285,15 @@ def strip_the(team):
     return team[4:] if team.startswith("The ") else team
 
 
+def team_label(team):
+    """Display form for a team name: 'Good Guys (Gideon's team)'."""
+    cap = CAPTAINS.get(team)
+    if cap is None:
+        print(f"WARNING: no captain on file for {team!r} — update CAPTAINS", file=sys.stderr)
+        return strip_the(team)
+    return f"{strip_the(team)} ({cap}'s team)"
+
+
 def period_map(prev, cur):
     """(team, pick) -> (period AB, period rate or None), joined on the key."""
     po = {(p["team"], p["pick"]): p for p in prev}
@@ -310,7 +337,7 @@ def html_tables(cur, prev=None):
         live = [p for p in teams[t] if p["ab"] > 0]
         b = max(live, key=lambda p: p["z"])
         w = min(live, key=lambda p: p["z"])
-        print(f'        <tr><td class="player">{strip_the(t)}</td>'
+        print(f'        <tr><td class="player">{team_label(t)}</td>'
               f'<td class="team-name">{b["name"]} (R{b["pick"]})</td>'
               f'<td class="num">{A(b["avg"])}</td><td class="num">{zspan(b["z"])}</td>'
               f'<td class="team-name">{w["name"]} (R{w["pick"]})</td>'
@@ -328,7 +355,7 @@ def html_tables(cur, prev=None):
                 return (f'<td class="team-name">{p["name"]} (R{p["pick"]})</td>'
                         f'<td class="num">{A(rate)} <span style="color:var(--muted)">(rd {A(rper[p["pick"]])})</span></td>'
                         f'<td class="num">{dab}</td>')
-            print(f'        <tr><td class="player">{strip_the(t)}</td>{cell(hot)}{cell(cold)}</tr>')
+            print(f'        <tr><td class="player">{team_label(t)}</td>{cell(hot)}{cell(cold)}</tr>')
 
     print("\n<!-- ROUND ROOMS -->")
     for rd in range(1, ROUNDS + 1):
@@ -353,7 +380,7 @@ def html_tables(cur, prev=None):
                 wk = (f'<td class="num">{A(rate)} ({dab})</td>' if dab > 0
                       else '<td class="num">—</td>')
             print(f'        <tr{hl}><td class="player">{p["name"]}</td>'
-                  f'<td class="team-name">{strip_the(p["team"])}</td>{avg_c}'
+                  f'<td class="team-name">{team_label(p["team"])}</td>{avg_c}'
                   f'<td class="num">{p["ab"]}</td>{z_c}{wk}</tr>')
         season = statistics.mean([p["avg"] for p in ps if p["ab"] > 0])
         cap = f'Round {rd}: season average {A(season)}'

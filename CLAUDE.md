@@ -41,6 +41,32 @@ Facts that hold for every snapshot so far (the script asserts them and dies loud
 - Team names carry a "The " prefix except "Youre Saying Theres A Chance". Pages drop the "The "
   in tables but keep full names in prose.
 
+## Captains (source: https://cpsoftball.com/teams.php — fetched 2026-07-06, no need to refetch)
+
+**Every displayed team name carries the captain in parentheses**: `Good Guys (Gideon's team)`.
+The rule applies everywhere a team is named — tables, bars, prose, tooltips — EXCEPT possessive
+forms ("the Good Guys' 15 caused outs" stays unannotated; the grammar breaks otherwise).
+`team_label()` in analysis.py implements this for generated tables and warns if a team is missing
+from `CAPTAINS` (i.e., a roster change — refetch teams.php only then).
+
+| Team | Captain | Label |
+|---|---|---|
+| The Good Guys | Gideon Hammon | Gideon's team |
+| Youre Saying Theres A Chance | Horatio Williams | Horatio's team |
+| The Lefty Looseys | Sefton Dockstader | Sefton's team |
+| The Ellites | Elliot Hammon | Elliot's team |
+| The Pliggas | Claude Timpson | Claude's team |
+| The Playas | Michael Williams | Michael's team |
+| The Stars and Strikes | Seth Cawley | Seth's team |
+| The Danites | Daniel Dockstader Ephraims | Ephraims Daniel's team |
+| The Pure Breads | Caleb Barlow | Caleb's team |
+| The Slamma Jammas | Daniel Dockstader Boyds | Boyds Daniel's team |
+| The Fellowship of the Swing | Stafford Hammon | Stafford's team |
+| The Diamonds and Dirtbags | Jeremy Dockstader Marvins | Jeremy's team |
+
+The two Daniels are disambiguated patronymic-style ("Ephraims Daniel", "Boyds Daniel"),
+matching how the league's own rosters write compound names (e.g. "Dockstader Boyds, Daniel").
+
 ## Analysis conventions
 
 - **z-score** = standard deviations above/below the mean **within a player's draft round**

@@ -352,6 +352,82 @@ def digest(players, label, min_ab_sleeper, min_ab_outlier):
     return players
 
 
+# ---------------------------------------------------------------- standings
+
+def load_standings(path):
+    """Load a standings snapshot CSV: rank,team,w,l,t,gp,win_pct,pf,pa,diff.
+
+    Snapshots come from https://cpsoftball.com/standings.php, saved weekly as
+    MMDD-standings.csv so future editions can show week-over-week movement.
+    """
+    st = []
+    with open(path, newline="") as f:
+        for r in csv.DictReader(f):
+            st.append(dict(rank=int(r["rank"]), team=r["team"].strip(),
+                           w=int(r["w"]), l=int(r["l"]), t=int(r["t"]), gp=int(r["gp"]),
+                           win_pct=float(r["win_pct"]), pf=int(r["pf"]),
+                           pa=int(r["pa"]), diff=int(r["diff"])))
+    assert sum(s["pf"] for s in st) == sum(s["pa"] for s in st), f"{path}: PF/PA don't balance"
+    for s in st:
+        assert s["w"] + s["l"] + s["t"] == s["gp"], f"{path}: {s['team']} W+L+T != GP"
+        assert abs((s["w"] + 0.5 * s["t"]) / s["gp"] - s["win_pct"]) < 0.0015, \
+            f"{path}: {s['team']} win_pct mismatch"
+    return st
+
+
+def team_batting(players):
+    agg = {}
+    for p in players:
+        a = agg.setdefault(p["team"], [0, 0])
+        a[0] += p["h"] - p["co"]
+        a[1] += p["ab"]
+    bat = {t: v[0] / v[1] for t, v in agg.items()}
+    brank = {t: i for i, t in enumerate(sorted(bat, key=lambda t: -bat[t]), 1)}
+    ab = {t: v[1] for t, v in agg.items()}
+    return bat, brank, ab
+
+
+def standings_digest(st, players, prev_st=None):
+    bat, brank, ab = team_batting(players)
+    prev = {s["team"]: s for s in prev_st} if prev_st else None
+    print(f"\n--- STANDINGS (joined to team batting; bat-rank delta = bat rank − standings rank) ---")
+    for s in st:
+        move = ""
+        if prev:
+            d = prev[s["team"]]["rank"] - s["rank"]
+            move = f"  move {d:+d}" if d else "  move ="
+        print(f"{s['rank']:2d} {s['team']:32s} {s['w']}-{s['l']}-{s['t']}  win% {s['win_pct']:.3f}  "
+              f"PF {s['pf']:3d} PA {s['pa']:3d} diff {s['diff']:+4d} | "
+              f"bat {A(bat[s['team']])} rank {brank[s['team']]:2d} ({brank[s['team']]-s['rank']:+d}) | "
+              f"PF/100AB {100*s['pf']/ab[s['team']]:.0f}{move}")
+    xs = [s["win_pct"] for s in st]
+    ys = [bat[s["team"]] for s in st]
+    mx, my = statistics.mean(xs), statistics.mean(ys)
+    r = (sum((x - mx) * (y - my) for x, y in zip(xs, ys))
+         / math.sqrt(sum((x - mx) ** 2 for x in xs) * sum((y - my) ** 2 for y in ys)))
+    print(f"win% vs team adj avg: r = {r:+.2f}")
+
+
+def html_standings(st, players, prev_st=None):
+    bat, brank, _ = team_batting(players)
+    prev = {s["team"]: s for s in prev_st} if prev_st else None
+    print("<!-- STANDINGS: rank, team, record, win% meter, PF, PA, diff, team avg, bat rank -->")
+    for s in st:
+        d = s["diff"]
+        dcell = f'<span class="{"zpos" if d >= 0 else "zneg"}">{f"{d:+d}".replace("-", "−")}</span>'
+        move = ""
+        if prev:
+            m = prev[s["team"]]["rank"] - s["rank"]
+            arrow = "=" if m == 0 else (f"▲{m}" if m > 0 else f"▼{-m}")
+            cls = "zpos" if m > 0 else ("zneg" if m < 0 else "")
+            move = f'<td class="ctr num"><span class="{cls}">{arrow}</span></td>'
+        print(f'        <tr><td class="ctr num">{s["rank"]}</td>{move}<td class="player">{team_label(s["team"])}</td>'
+              f'<td class="num">{s["w"]}-{s["l"]}-{s["t"]}</td><td class="num big">{A(s["win_pct"])}</td>'
+              f'<td><span class="meter" title="{strip_the(s["team"])}: win% {A(s["win_pct"])}"><span style="width:{s["win_pct"]*100:.1f}%"></span></span></td>'
+              f'<td class="num">{s["pf"]}</td><td class="num">{s["pa"]}</td><td class="num">{dcell}</td>'
+              f'<td class="num">{A(bat[s["team"]])}</td><td class="ctr num">{brank[s["team"]]}</td></tr>')
+
+
 # ---------------------------------------------------------------- html tables
 
 def strip_the(team):
@@ -603,6 +679,10 @@ def main():
                     help="emit page-ready HTML for Team Sheets / Round Rooms instead of digests")
     ap.add_argument("--names-from", metavar="CSV",
                     help="canonicalize an old-format snapshot's names from this comma-format file")
+    ap.add_argument("--standings", metavar="CSV",
+                    help="standings snapshot (MMDD-standings.csv) to join against team batting")
+    ap.add_argument("--prev-standings", metavar="CSV",
+                    help="older standings snapshot for week-over-week movement arrows")
     args = ap.parse_args()
 
     cur, cur_fmt = load(args.snapshot)
@@ -615,11 +695,18 @@ def main():
         prev, fmt = load(args.prev)
         renames = canonicalize_prev_names(prev, cur) if fmt == "old" else []
 
+    st = load_standings(args.standings) if args.standings else None
+    prev_st = load_standings(args.prev_standings) if args.prev_standings else None
+
     if args.html_tables:
+        if st:
+            html_standings(st, cur, prev_st)
         html_tables(cur, prev)
         return
 
     digest(cur, args.snapshot, args.min_ab_sleeper, args.min_ab_outlier)
+    if st:
+        standings_digest(st, cur, prev_st)
     if prev:
         digest(prev, f"{args.prev} (prev)", args.prev_min_ab_sleeper, args.prev_min_ab_outlier)
         compare(prev, cur, renames)

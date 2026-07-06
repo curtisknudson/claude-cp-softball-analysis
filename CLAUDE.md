@@ -16,6 +16,7 @@ stats CSV roughly weekly; each upload becomes a new "edition" of the site.
 | `index.html` | The **current edition** — always the latest snapshot, includes a "What Changed" section vs the previous one |
 | `YYYY-MM-DD.html` | Frozen **archive editions**, named by data snapshot date (e.g. `2026-06-12.html`) |
 | `MMDD-stats.csv` | Raw snapshots as uploaded (e.g. `0612-stats.csv`, `0703-stats.csv`) |
+| `MMDD-standings.csv` | Weekly standings snapshots hand-saved from https://cpsoftball.com/standings.php (`rank,team,w,l,t,gp,win_pct,pf,pa,diff`; first one: `0706-standings.csv`) |
 | `analysis.py` | **The single source of truth for every number on every page.** Stdlib-only Python 3 |
 
 ## The data
@@ -101,7 +102,10 @@ Dockstader Boyds, Jeremy (DD)
 
 Masthead (kicker · title · methodology sub · edition nav) → "Jump to" TOC nav → The Headlines →
 **Team Temperature** (unnumbered "This Week" section at the top — the week-over-week team
-diverging bars live HERE, not in S8; rebuild it each edition) → S1 League at a Glance (tiles) →
+diverging bars live HERE, not in S8; rebuild it each edition) → **The Standings** (unnumbered
+"Scoreboard" section, id `standings` — W-L-T/PF/PA/diff joined to team batting, from the weekly
+standings snapshot; `--standings NEW.csv --prev-standings OLD.csv` prints the digest + emits the
+table rows, with movement arrows ▲▼ once a previous snapshot exists) → S1 League at a Glance (tiles) →
 S2 Draft Board round averages → S3 Sleeper File → S4 Outliers per round → S5 Team breakdown +
 Draft-Day Report Card → S6 Draft Board Second Look (risk/re-draft/discipline + early-vs-late
 team split) → S7 Missing Pages (caused-out ledger, workload, distribution) → S8 What Changed
@@ -114,7 +118,7 @@ Bargains/underdrafted, Didn't Justify/overdrafted, Dream Team = best value per r
 tagged · SS with a defense caveat) → S11 The Round Rooms (12 tables, every player by round,
 season z + This Week column) → Appendix Dynasty Ledger → methodology footnote.
 
-**Anchors:** every section has a stable id (`temperature`, `glance`, `draft-board`, `sleepers`,
+**Anchors:** every section has a stable id (`temperature`, `standings`, `glance`, `draft-board`, `sleepers`,
 `outliers`, `teams`, `second-look`, `missing-pages`, `what-changed`, `team-sheets`, `verdict`,
 `round-rooms`, `dynasty`) with a self-linking `<h2><a href="#id">`; each round-room h3 is
 `round-1`…`round-12` (the `--html-tables` emitter produces these), and the Verdict subsections
@@ -135,16 +139,20 @@ analyst "offers no further comment" on Curtis Knudson's stats (he's the site own
 
 1. **Save the new upload** as `MMDD-stats.csv`. Run `python3 analysis.py NEW.csv` alone first —
    it validates schema, formula, and join keys, and will exit with an error on format drift.
+   Also fetch https://cpsoftball.com/standings.php and save it as `MMDD-standings.csv` (same
+   columns as 0706-standings.csv; the loader asserts W+L+T=GP, PF/PA balance, win% = (W+T/2)/GP).
 2. **Archive the current edition**: copy `index.html` to `YYYY-MM-DD.html` named for **its** data
    snapshot date (not today). In the copy: re-title/kicker it as an archived edition and add the
    "frozen snapshot" notice linking to `index.html`. Keep whatever What Changed section it shipped
    with — it compares against an even older edition and remains true. Don't touch its numbers;
    only the masthead/nav framing changes.
-3. **Run the full digest**: `python3 analysis.py NEW.csv --prev PREVIOUS.csv`. Three digests print:
-   current snapshot, previous snapshot, and the comparison. Then generate the bulk tables:
-   `python3 analysis.py NEW.csv --prev PREVIOUS.csv --html-tables` emits page-ready HTML for
-   Team Sheets A/B, all 12 Round Rooms (with This Week column), and Dynasty-of-the-Week rows —
-   splice these into S8/S9/S10 wholesale instead of hand-typing 26 tables.
+3. **Run the full digest**: `python3 analysis.py NEW.csv --prev PREVIOUS.csv --standings
+   NEW-standings.csv --prev-standings OLD-standings.csv`. Digests print for both snapshots, the
+   comparison, and the standings join (movement, bat-rank deltas, win%↔batting correlation).
+   Then generate the bulk tables: the same command with `--html-tables` emits page-ready HTML for
+   the Standings table (with ▲▼ movement arrows), Team Sheets A/B, the Verdict tables, all 12
+   Round Rooms (with This Week column), and Dynasty-of-the-Week rows —
+   splice these into the page wholesale instead of hand-typing the tables.
    (`--names-from COMMA_FORMAT.csv` canonicalizes names when the target file is the no-comma schema.)
 4. **Rewrite `index.html`** from the current-snapshot digest: headlines, tiles, every table,
    report card, dynasty ledger, S6/S7. Write a **fresh S8** from the comparison digest against the

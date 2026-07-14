@@ -28,6 +28,7 @@ the new numbers are up; Claude harvests them from cpsoftball.com into a fresh st
 | `MMDD-stats.csv` | Raw snapshots as uploaded (e.g. `0612-stats.csv`, `0703-stats.csv`) |
 | `MMDD-standings.csv` | Weekly standings snapshots hand-saved from https://cpsoftball.com/standings.php (`rank,team,w,l,t,gp,win_pct,pf,pa,diff`; first one: `0706-standings.csv`) |
 | `analysis.py` | **The single source of truth for every number on every page.** Stdlib-only Python 3 |
+| `pyrightconfig.json` | Type-checker settings (`typeCheckingMode: "standard"`). basedpyright's *default* mode assumes a fully-annotated codebase and fires ~1,500 `reportUnknown*` warnings at this script's plain-dict records — none of them defects. Under `standard` it's 0 errors / 0 warnings. Schema is enforced at **runtime** instead (`load()` exits loudly), which is the right tool for external CSVs |
 | `CNAME` | GitHub Pages custom-domain file (`softball.best`) — never edit or delete |
 | `favicon.svg` · `apple-touch-icon.png` · `og.png` | Site chrome: favicon, iOS home-screen icon, social-share card (og.png is referenced absolutely as `https://softball.best/og.png` from every page's meta block) |
 

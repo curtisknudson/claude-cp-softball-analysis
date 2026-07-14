@@ -1,0 +1,18 @@
+{
+  // analysis.py is a deliberately plain, stdlib-only script: every record (player,
+  // standings row, period row) is a bare dict, and the schema is enforced at RUNTIME
+  // — load() exits loudly on formula drift, duplicate (team, pick) keys, or an
+  // unrecognized header. That's the right tool here, because the CSVs come from
+  // cpsoftball.com and a static type can't check an external file.
+  //
+  // basedpyright's default mode is "recommended", which assumes a fully-annotated
+  // codebase and reports ~1,500 reportUnknown*/reportAny/reportImplicitStringConcatenation
+  // warnings against that design — none of which are defects. "standard" is the mode
+  // Pylance uses by default and the one this code is written for: 0 errors, 0 warnings.
+  //
+  // If the script ever grows real type annotations (TypedDicts for Player/Standing/
+  // PeriodRow), raise this to "strict" and delete this comment.
+  "typeCheckingMode": "standard",
+  "include": ["analysis.py"],
+  "pythonVersion": "3.11"
+}

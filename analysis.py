@@ -733,7 +733,7 @@ def standings_digest(st, players, prev_st=None, prev_players=None):
         print(
             f"{s['rank']:2d} {s['team']:32s} {rec:5s} "
             f"PF {r['dpf']:+3d} PA {r['dpa']:+3d} diff {r['ddiff']:+4d} | "
-            f"rank #{prev[s['team']]['rank']} -> #{s['rank']} ({r['move']:+d}) | "
+            f"rank #{r['orank']} -> #{s['rank']} ({r['move']:+d}) | "
             f"week bat {A(r['rate'])} (line {A(r['line'])}, gap {r['gap']:+.3f}) | "
             f"bat rank #{r['obrank']} -> #{r['brank']}"
         )
@@ -918,6 +918,7 @@ def team_week_rows(prev, cur, st=None, prev_st=None):
                 dpa=n["pa"] - o["pa"],
                 ddiff=(n["pf"] - o["pf"]) - (n["pa"] - o["pa"]),
                 rank=n["rank"],
+                orank=o["rank"],
                 move=o["rank"] - n["rank"],
             )
         rows.append(r)

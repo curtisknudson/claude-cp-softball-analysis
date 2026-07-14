@@ -8,8 +8,12 @@ the new numbers are up; Claude harvests them from cpsoftball.com into a fresh st
 - **No build step, no JS** (single exception: the GoatCounter analytics snippet before `</body>`
   on every page — `https://cp-softball.goatcounter.com/count`; keep it when creating archives).
   Every page is hand-authored static HTML with inline CSS.
-- **Project Pages URL prefix:** the site is served under `/claude-cp-softball-analysis/`,
-  so every internal link must be **relative** (`2026-06-12.html`), never root-absolute (`/foo.html`).
+- **Custom domain:** the site is served at **https://softball.best/** (the `CNAME` file; GitHub
+  Pages serves custom domains at the domain root, so the old `/claude-cp-softball-analysis/`
+  project-pages prefix no longer applies). Internal links must still be **relative**
+  (`2026-06-12.html`), never root-absolute (`/foo.html`) — that keeps every page working at any
+  serving root. The head's canonical/OG/Twitter URLs are deliberately absolute on
+  `https://softball.best/` (og.png lives at the repo root); update them only if the domain changes.
 - **Claude NEVER commits or pushes — no `git commit`, no `git push`, ever. Curtis handles all
   git operations himself** (owner's explicit rule, 2026-07-13). Leave finished work in the
   working tree and stop. If Curtis ever asks for a suggested commit message: plain text, no
@@ -24,6 +28,8 @@ the new numbers are up; Claude harvests them from cpsoftball.com into a fresh st
 | `MMDD-stats.csv` | Raw snapshots as uploaded (e.g. `0612-stats.csv`, `0703-stats.csv`) |
 | `MMDD-standings.csv` | Weekly standings snapshots hand-saved from https://cpsoftball.com/standings.php (`rank,team,w,l,t,gp,win_pct,pf,pa,diff`; first one: `0706-standings.csv`) |
 | `analysis.py` | **The single source of truth for every number on every page.** Stdlib-only Python 3 |
+| `CNAME` | GitHub Pages custom-domain file (`softball.best`) — never edit or delete |
+| `favicon.svg` · `apple-touch-icon.png` · `og.png` | Site chrome: favicon, iOS home-screen icon, social-share card (og.png is referenced absolutely as `https://softball.best/og.png` from every page's meta block) |
 
 ## The data
 
@@ -77,6 +83,14 @@ players), not emailed as a file. To produce `MMDD-stats.csv`:
     WARN lines** (it independently re-asserts schema, formula, and join keys).
 - Grab the standings the same day too: https://cpsoftball.com/standings.php → `MMDD-standings.csv`
   (columns per the Files table / weekly procedure step 3).
+
+**Known unharvested source** (verified 2026-07-13): https://cpsoftball.com/schedule.php lists
+every **completed game with its final score** — date, both teams, score, time, field,
+FINAL/TIE, and notes like "Sub Rule Infraction Forfeit" (60 of 120 games done at that date).
+Harvesting it would unlock win/loss streaks, close-game vs blowout splits, head-to-head grids,
+and strength of schedule. **Ask Curtis before harvesting it** (same discipline as stats.php);
+if harvested, the built-in check is that each team's summed scores must equal the same-day
+standings PF/PA exactly.
 
 ## Captains (source: https://cpsoftball.com/teams.php — fetched 2026-07-06, no need to refetch)
 
@@ -159,37 +173,86 @@ Curtis; never guess a gender into print.
   Period bats: 10+ period ABs. Scale these sensibly as the season accumulates at-bats.
 - **Period rate** ("what did they hit between snapshots") = (ΔH − ΔCO) ÷ ΔAB.
 - **League rank**: the file's `rank` column when present, else avg desc → AB desc → name asc.
+- **Pyth / Luck** (standings, added 2026-07-13): Pyth = PF² ÷ (PF² + PA²) — the win% a team's
+  points profile "earns"; **Luck = actual win% − Pyth** (positive: out-running the points;
+  negative: owed wins). Printed by the standings digest and emitted as two columns.
+- **Batting Race**: top 3 by avg, min 15 AB. **"Hits back" = (leader avg − avg) × own AB** —
+  the gap at the chaser's own volume. Digest prints it; ARCS prints each snapshot's leader
+  (min 10 AB) for the lead-change history.
+- **Streaks & Slides** (needs three snapshots; `--prev2 OLDEST.csv`): a streak = second-period
+  rate above BOTH the first period's rate and the player's own season avg (slide = mirror),
+  6+ period ABs in each period. Page shows top 6 each; the ARCS digest also prints team arcs
+  (same rule at team level) and the race history.
+- **Clean Hands Club**: zero CO all season, ranked by AB desc (top 8 shown). The praise-side
+  counterweight to the caused-out ledger — keep both.
+- **Records Board CO categories** (added 2026-07-13): most caused outs in a week, team (+9,
+  Good Guys, Jun 12→Jul 3) and player (+3 shared, Roy Hammon Jun 12→Jul 3 / Noah Dockstader
+  Jul 3→Jul 10). The CO WATCH block in the compare digest prints each period's numbers.
+- **True-round Move arrows** (added 2026-07-13): every Verdict table with a True Rd column
+  (Priced Right, Bargains, Didn't Justify, Captain's Mirror, Full Docket) carries a ▲▼= Move
+  cell = previous snapshot's true round − current true round, each snapshot ranked against its
+  **own** league average (i.e. what each edition published). Emitted only when `--prev` is
+  given — archive pages have no Move column. The compare digest's TRUE-ROUND MOVERS block
+  prints the churn count and top movers; most moves are ±1 (noise), ±3+ is news.
+- **Dream Team seat changes** (added 2026-07-13): with `--prev`, any Dream Team row whose
+  (team, pick) differs from the previous edition's occupant for that round is tagged
+  `· in for <prev name>` inline in the player cell (both editions' teams computed on their own
+  values, coed rule enforced). The compare digest's DREAM TEAM CHANGES block prints each IN/OUT
+  pair with both editions' values. No `--prev` → no tags (archive pages).
+- **Digest-only outputs** (printed for reference; on no page since 2026-07-13): the ROUNDS
+  table's re-draft/keep columns and the OUTLIERS PER ROUND block. The page retired them —
+  Second Look is risk-only, and each round's best/worst live in the Round Rooms' tinted rows —
+  but keep them in the digest: they still inform the room notes and hl/lo commentary.
 
 ## Page anatomy (index.html)
 
 Masthead (kicker · title · methodology sub · edition nav) → "Jump to" TOC nav → The Headlines →
 **Team Temperature** (unnumbered "This Week" section at the top — the week-over-week team
-diverging bars live HERE, not in S8; rebuild it each edition) → **The Standings** (unnumbered
-"Scoreboard" section, id `standings` — W-L-T/PF/PA/diff joined to team batting, from the weekly
+diverging bars live HERE, not in What Changed; rebuild it each edition. **Thermal palette,
+owner's rule 2026-07-13: red = warmer, blue = cooler**, via the `.rc-card.temp` CSS override;
+its value text is plain ink, no zpos/zneg. The Report Card keeps the default mapping,
+blue = outperformed) → **The Batting Race**
+(unnumbered "The Chase" section, id `race` — top 3 by avg with "hits back"; note any lead
+change against the ARCS race history) → **The Standings** (unnumbered "Scoreboard" section,
+id `standings` — W-L-T/PF/PA/diff/**Pyth/Luck** joined to team batting, from the weekly
 standings snapshot; `--standings NEW.csv --prev-standings OLD.csv` prints the digest + emits the
 table rows, with movement arrows ▲▼ once a previous snapshot exists) → S1 League at a Glance (tiles) →
-S2 Draft Board round averages → S3 Sleeper File → S4 Outliers per round → S5 Team breakdown +
-Draft-Day Report Card → S6 Draft Board Second Look (risk/re-draft/discipline + early-vs-late
-team split) → S7 Missing Pages (caused-out ledger, workload, distribution) → S8 What Changed
-(week-over-week, incl. Dynasty of the Week + **the Records Board** — weekly bests that future
-editions try to break; update it whenever a record falls) → S9 Team Sheets (best/worst pick per
-team by z; hot/cold bat of the week per team vs the round's period rate) → S10 The Verdict
+S2 Draft Board round averages → S3 Sleeper File → S4 Team breakdown +
+Draft-Day Report Card → S5 Draft Board Second Look (risk-only: spread/bust-rate/discipline +
+early-vs-late team split; re-pricing belongs to the Verdict) → S6 The Back Office (id
+`missing-pages` — caused-out ledger, **Clean Hands Club**, workload, distribution) → S7 What Changed
+(week-over-week, incl. **Streaks & Slides** (needs `--prev2`), Dynasty of the Week + **the
+Records Board** — weekly bests that future
+editions try to break; update it whenever a record falls) → S8 Team Sheets (best/worst pick per
+team by z; hot/cold bat of the week per team vs the round's period rate) → S9 The Verdict
 (**value** = (avg − league adj) × ABs = net hits above a league-average bat, volume-weighted by
 design; "true round" = value rank dealt into rounds of 12; tables: Priced Exactly Right,
-Bargains/underdrafted, Didn't Justify/overdrafted, Dream Team = best value per round, and the
+Bargains/underdrafted, Didn't Justify/overdrafted, Dream Team = best value per round (rows tag
+weekly seat changes `· in for <prev occupant>`), and the
 **Captain's Mirror** = each captain's self-pick graded against their true round, and the
 **Full Docket** = all 144 players in true snake-draft pick order (#1–#144) with
 true-round/gap verdicts and a League # value-rank column, so every player can find their
-own row; shortstops tagged · SS with a defense caveat) → S11 The Round Rooms (12 tables, every player by round,
-season z + This Week column) → Appendix Dynasty Ledger → methodology footnote.
+own row; every True Rd column carries a ▲▼= **Move** cell vs the previous edition's true
+rounds; shortstops tagged · SS with a defense caveat) → S10 The Round Rooms (12 tables, every player by round,
+season z + This Week column; each room's h3 carries its standing nickname from
+`ROUND_NICKNAMES` in analysis.py — Penthouse/Second Story/Money Pit/Suburbs/Flats/Bump/
+Mezzanine/Casino/Spill Zone/Pothole/Attic/Floor — and the emitter tints the top row `hl` and
+the cellar row `lo`) → Appendix Dynasty Ledger → **What to Watch** (unnumbered "Next Week"
+section, id `watch` — three concrete stakes for the next edition, built only from
+already-printed numbers) → methodology footnote.
 
-**Anchors:** every section has a stable id (`temperature`, `standings`, `glance`, `draft-board`, `sleepers`,
-`outliers`, `teams`, `second-look`, `missing-pages`, `what-changed`, `team-sheets`, `verdict`,
-`round-rooms`, `dynasty`) with a self-linking `<h2><a href="#id">`; each round-room h3 is
+(The old S4 "Outliers per round" section was retired 2026-07-13 — its content lives in the
+Round Rooms' tinted rows and section notes. Don't reuse the `outliers` id.)
+
+**Anchors:** every section has a stable id (`temperature`, `race`, `standings`, `glance`,
+`draft-board`, `sleepers`, `teams`, `second-look`, `missing-pages`, `what-changed`,
+`team-sheets`, `verdict`, `round-rooms`, `dynasty`, `watch`) with a self-linking
+`<h2><a href="#id">`; each round-room h3 is
 `round-1`…`round-12` (the `--html-tables` emitter produces these). **Every table also has an
 h3 anchor** listed in the Jump-to nav (grouped into four lines): `tier-1`, `tier-2`,
-`report-card`, `mined-rounds`, `caused-outs`, `iron-horses`, `league-shape`, `hot-bats`,
-`cold-bats`, `movers`, `dynasty-week`, `records`, `team-picks`, `team-week`, `priced-right`,
+`report-card`, `mined-rounds`, `caused-outs`, `clean-hands`, `iron-horses`, `league-shape`,
+`hot-bats`, `cold-bats`, `movers`, `streaks`, `dynasty-week`, `records`, `team-picks`,
+`team-week`, `priced-right`,
 `bargains`, `didnt-justify`, `dream-team`, `captains-mirror`, `full-docket`. New tables must
 get an id + nav entry. Keep ids stable across
 editions — people share deep links. The "Jump to" TOC after the masthead lists every section;
@@ -197,11 +260,18 @@ add new sections to it.
 
 Archive pages mirror the above minus anything weekly (2026-06-12.html has S1–S5, S6 Team Sheets
 season-only, S7 Round Rooms without the week column, + Appendix) — **no week-over-week content
-and no foreshadowing**;
-each archive is honest to its date. Archives are fully self-contained (own copy of the CSS) so
-they stay frozen if the current design evolves. Recurring bits of voice: the Good Guys'
-caused-out tragedy, the round-6 bump, the Sean Hammon R12 steal, and the running gag that the
-analyst "offers no further comment" on Curtis Knudson's stats (he's the site owner).
+and no foreshadowing**; each archive is honest to its date. **When archiving, delete the
+What to Watch section outright** (it is pure foreshadowing) and remove its TOC entry.
+Archives are fully self-contained (own copy of the CSS) so
+they stay frozen if the current design evolves.
+
+**Gag ledger** (keep bits consistent and escalating, not reset): the Good Guys' caused-out
+tragedy is numbered in acts (July 10 edition = "act three"); the analyst "offers no further
+comment" on Curtis Knudson (site owner) — at most twice per edition, vary the wording elsewhere
+("declines to recuse himself"); the Sean Hammon R12 steal is now a *deflating* fairy tale —
+track it down, not up; the round-6 bump; Becky Wood (pick #144) "still technically a bargain";
+the Fellowship's luck is "an invoice in the mail" (opened 2026-07-13 at +.243 — pay it off or
+double it next edition).
 
 ## Weekly update procedure
 
@@ -212,22 +282,30 @@ analyst "offers no further comment" on Curtis Knudson's stats (he's the site own
    Also fetch https://cpsoftball.com/standings.php and save it as `MMDD-standings.csv` (same
    columns as 0706-standings.csv; the loader asserts W+L+T=GP, PF/PA balance, win% = (W+T/2)/GP).
 2. **Archive the current edition**: copy `index.html` to `YYYY-MM-DD.html` named for **its** data
-   snapshot date (not today). In the copy: re-title/kicker it as an archived edition and add the
-   "frozen snapshot" notice linking to `index.html`. Keep whatever What Changed section it shipped
+   snapshot date (not today). In the copy: re-title/kicker it as an archived edition, add the
+   "frozen snapshot" notice linking to `index.html`, and **delete the What to Watch section and
+   its TOC entry** (foreshadowing doesn't archive). Keep whatever What Changed section it shipped
    with — it compares against an even older edition and remains true. Don't touch its numbers;
    only the masthead/nav framing changes.
-3. **Run the full digest**: `python3 analysis.py NEW.csv --prev PREVIOUS.csv --standings
-   NEW-standings.csv --prev-standings OLD-standings.csv`. Digests print for both snapshots, the
-   comparison, and the standings join (movement, bat-rank deltas, win%↔batting correlation).
+3. **Run the full digest**: `python3 analysis.py NEW.csv --prev PREVIOUS.csv --prev2
+   PREV-PREVIOUS.csv --standings NEW-standings.csv --prev-standings OLD-standings.csv`.
+   Digests print for both snapshots, the comparison (incl. CO WATCH), the standings join
+   (movement, Pyth/Luck, bat-rank deltas, win%↔batting correlation), and the ARCS digest
+   (streaks & slides, team arcs, race history).
    Then generate the bulk tables: the same command with `--html-tables` emits page-ready HTML for
-   the Standings table (with ▲▼ movement arrows), Team Sheets A/B, the Verdict tables, all 12
-   Round Rooms (with This Week column), and Dynasty-of-the-Week rows —
+   the Standings table (with ▲▼ movement arrows and Pyth/Luck), the Batting Race, Clean Hands,
+   Team Sheets A/B, the Verdict tables, all 12
+   Round Rooms (with This Week column, nicknames, hl/lo tinted rows), Dynasty-of-the-Week rows,
+   and Streaks & Slides rows —
    splice these into the page wholesale instead of hand-typing the tables.
    (`--names-from COMMA_FORMAT.csv` canonicalizes names when the target file is the no-comma schema.)
 4. **Rewrite `index.html`** from the current-snapshot digest: headlines, tiles, every table,
-   report card, dynasty ledger, S6/S7. Write a **fresh S8** from the comparison digest against the
-   just-archived edition (check the Records Board — update any record that fell). Replace the S9/S10
-   table bodies with the freshly emitted HTML and rewrite their editorial notes. Update the masthead
+   report card, dynasty ledger, the Back Office, Second Look. Write a **fresh What Changed** from
+   the comparison + ARCS digests against the
+   just-archived edition (check the Records Board — update any record that fell, including the
+   CO categories). Replace the Team Sheets / Verdict / Round Rooms
+   table bodies with the freshly emitted HTML and rewrite their editorial notes. Rewrite
+   **What to Watch** with next edition's stakes (only already-printed numbers). Update the masthead
    nav and the footnote's Editions list (add the new archive link; keep old ones).
 5. **Transcribe, don't compute.** Every number on a page must appear in script output. If a number
    you want isn't printed, extend `analysis.py` rather than doing arithmetic by hand.
@@ -238,12 +316,14 @@ analyst "offers no further comment" on Curtis Knudson's stats (he's the site own
 ## Verification checklist
 
 - Re-run both script modes; spot-check each page section against the printed digest.
-- `python3 -c "import html.parser, pathlib; ..."` — parse both HTML files for tag balance
-  (or any HTML validator available).
+- `python3 -c "import html.parser, pathlib; ..."` — parse every HTML page (index + all
+  archives) for tag balance (or any HTML validator available). Void/self-closing tags
+  (`<meta/>`, `<link/>`) need a parser that handles `handle_startendtag`, or they false-alarm.
 - `grep -n 'href=' *.html` — every internal link relative; new archive reachable from index
   (masthead + footnote) and index reachable from the archive.
-- `python3 -m http.server` from the repo root and eyeball both pages, light and dark
-  (`prefers-color-scheme`), plus the ≤560px mobile breakpoint.
+- `python3 -m http.server` from the repo root and eyeball index and the newest archive, light
+  and dark (`prefers-color-scheme`), plus the ≤560px mobile breakpoint. Wide tables (the
+  13-column Standings, the Full Docket) must scroll inside `.table-scroll`, not the page.
 - Archive page: masthead shows its snapshot date; no references to data newer than that date.
 - `git status` — nothing intended left untracked, then hand off. **Never run `git commit` or
   `git push` — Curtis handles all git operations himself.**

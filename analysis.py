@@ -7,12 +7,16 @@ Stdlib only. See CLAUDE.md for the weekly update procedure.
 Usage:
   python3 analysis.py 0703-stats.csv
   python3 analysis.py 0703-stats.csv --prev 0612-stats.csv
+  python3 analysis.py 0710-stats.csv --prev 0703-stats.csv --prev2 0612-stats.csv
 
 With --prev, three digests print: the current snapshot, the previous
 snapshot (with names canonicalized from the current file), and the
-week-over-week comparison. All averages are the adjusted average
-(hits - caused_outs) / at_bats, recomputed from raw counts and checked
-against the file's own average column to catch format drift.
+week-over-week comparison. With --prev2 (the snapshot before --prev),
+a two-week ARCS digest also prints: players/teams trending the same
+direction across both periods, and the batting-race history. All
+averages are the adjusted average (hits - caused_outs) / at_bats,
+recomputed from raw counts and checked against the file's own average
+column to catch format drift.
 """
 
 import argparse
@@ -211,6 +215,26 @@ def add_picks(players):
         p["pickno"] = (r - 1) * ROUNDS + (pos if r % 2 else ROUNDS + 1 - pos)
     nos = sorted(p["pickno"] for p in players)
     assert nos == list(range(1, len(players) + 1)), "pick numbers not a clean 1..N"
+
+
+# Standing nicknames for the Round Rooms — editorial lore, each grounded in a
+# season-long stat (R1 tightest spread, R3 most overpriced, R6 the bump, R8 the
+# widest sigma, R9 the sloppiest CO rate, R10 the dip below R11, R11 the odd
+# overachiever directly above R12, the floor). Keep stable across editions.
+ROUND_NICKNAMES = {
+    1: "The Penthouse",
+    2: "The Second Story",
+    3: "The Money Pit",
+    4: "The Suburbs",
+    5: "The Flats",
+    6: "The Bump",
+    7: "The Mezzanine",
+    8: "The Casino",
+    9: "The Spill Zone",
+    10: "The Pothole",
+    11: "The Attic",
+    12: "The Floor",
+}
 
 
 # Shortstops — one per team, per Curtis (2026-07-06). Shortstop is the league's
@@ -524,6 +548,19 @@ def digest(players, label, min_ab_sleeper, min_ab_outlier):
         print(
             f"  {p['name']:30s} CO {p['co']}  on {p['ab']:2d} AB, avg {A(p['avg'])}  ({p['team']})"
         )
+    clean = sorted((p for p in players if p["co"] == 0 and p["ab"] > 0),
+                   key=lambda p: (-p["ab"], -p["avg"]))
+    print(f"--- CLEAN HANDS (zero CO all season, {len(clean)} qualify; top 8 by AB) ---")
+    for p in clean[:8]:
+        print(f"  {p['name']:30s} {p['ab']:2d} AB, avg {A(p['avg'])}  ({p['team']})")
+
+    # ---- batting race (top 3 by average, min 15 AB; hits back at own volume)
+    racers = sorted((p for p in P if p["ab"] >= 15), key=lambda p: (-p["avg"], -p["ab"]))[:3]
+    lead = racers[0]
+    print("--- BATTING RACE (top 3 by avg, AB >= 15; back = (leader avg - avg) * own AB) ---")
+    for i, p in enumerate(racers, 1):
+        back = "  lead" if p is lead else f"  back {(lead['avg'] - p['avg']) * p['ab']:.1f} hits"
+        print(f"  {i}. {p['name']:30s} {A(p['avg'])} on {p['ab']:2d} AB{back}  ({p['team']})")
 
     # ---- verdict: value, true rounds, justified picks
     lg = add_value(players)
@@ -626,6 +663,16 @@ def load_standings(path):
     return st
 
 
+def pythag(s):
+    """Pythagorean expectation: the win% a team's points profile 'earns'.
+
+    Classic exponent 2. luck = actual win% - pythag; positive luck means the
+    record is out-running the point differential (close wins), negative means
+    the record understates the team.
+    """
+    return s["pf"] ** 2 / (s["pf"] ** 2 + s["pa"] ** 2)
+
+
 def team_batting(players):
     agg = {}
     for p in players:
@@ -649,9 +696,11 @@ def standings_digest(st, players, prev_st=None):
         if prev:
             d = prev[s["team"]]["rank"] - s["rank"]
             move = f"  move {d:+d}" if d else "  move ="
+        py = pythag(s)
         print(
             f"{s['rank']:2d} {s['team']:32s} {s['w']}-{s['l']}-{s['t']}  win% {s['win_pct']:.3f}  "
             f"PF {s['pf']:3d} PA {s['pa']:3d} diff {s['diff']:+4d} | "
+            f"pyth {py:.3f} luck {s['win_pct'] - py:+.3f} | "
             f"bat {A(bat[s['team']])} rank {brank[s['team']]:2d} ({brank[s['team']] - s['rank']:+d}) | "
             f"PF/100AB {100 * s['pf'] / ab[s['team']]:.0f}{move}"
         )
@@ -668,11 +717,14 @@ def html_standings(st, players, prev_st=None):
     bat, brank, _ = team_batting(players)
     prev = {s["team"]: s for s in prev_st} if prev_st else None
     print(
-        "<!-- STANDINGS: rank, team, record, win% meter, PF, PA, diff, team avg, bat rank -->"
+        "<!-- STANDINGS: rank, team, record, win% meter, PF, PA, diff, pyth, luck, team avg, bat rank -->"
     )
     for s in st:
         d = s["diff"]
         dcell = f'<span class="{"zpos" if d >= 0 else "zneg"}">{f"{d:+d}".replace("-", "−")}</span>'
+        py = pythag(s)
+        luck = s["win_pct"] - py
+        lcell = f'<span class="{"zpos" if luck >= 0 else "zneg"}">{f"{luck:+.3f}".replace("-", "−")}</span>'
         move = ""
         if prev:
             m = prev[s["team"]]["rank"] - s["rank"]
@@ -684,6 +736,7 @@ def html_standings(st, players, prev_st=None):
             f'<td class="num">{s["w"]}-{s["l"]}-{s["t"]}</td><td class="num big">{A(s["win_pct"])}</td>'
             f'<td><span class="meter" title="{strip_the(s["team"])}: win% {A(s["win_pct"])}"><span style="width:{s["win_pct"] * 100:.1f}%"></span></span></td>'
             f'<td class="num">{s["pf"]}</td><td class="num">{s["pa"]}</td><td class="num">{dcell}</td>'
+            f'<td class="num">{A(py)}</td><td class="num">{lcell}</td>'
             f'<td class="num">{A(bat[s["team"]])}</td><td class="ctr num">{brank[s["team"]]}</td></tr>'
         )
 
@@ -719,14 +772,43 @@ def period_map(prev, cur):
     return out
 
 
-def html_tables(cur, prev=None):
+def html_tables(cur, prev=None, prev2=None):
     """Emit page-ready HTML for the Team Sheets and Round Rooms tables.
 
     With prev: weekly variants included (This Week columns, hot/cold sheet,
-    dynasty-week rows). Without prev: season-only variants for archive pages.
+    dynasty-week rows). With prev2 as well: the Streaks & Slides rows.
+    Without prev: season-only variants for archive pages.
     """
     add_z(cur)
     per = period_map(prev, cur) if prev else {}
+
+    print("<!-- BATTING RACE: top 3 by avg (min 15 AB); back = (leader avg - avg) * own AB -->")
+    racers = sorted((p for p in cur if p["ab"] >= 15), key=lambda p: (-p["avg"], -p["ab"]))[:3]
+    lead = racers[0]
+    for i, p in enumerate(racers, 1):
+        back = (
+            '<span style="color:var(--muted)">—</span>'
+            if p is lead
+            else f"{(lead['avg'] - p['avg']) * p['ab']:.1f}"
+        )
+        cls = ' class="hl"' if p is lead else ""
+        print(
+            f'        <tr{cls}><td class="ctr num">{i}</td><td class="player">{p["name"]}</td>'
+            f'<td class="team-name">{team_label(p["team"])}</td>'
+            f'<td class="num{" big" if p is lead else ""}">{A(p["avg"])}</td>'
+            f'<td class="num">{p["ab"]}</td><td class="num">{back}</td></tr>'
+        )
+
+    print("\n<!-- CLEAN HANDS: zero caused outs all season, top 8 by AB -->")
+    clean = sorted(
+        (p for p in cur if p["co"] == 0 and p["ab"] > 0), key=lambda p: (-p["ab"], -p["avg"])
+    )
+    for p in clean[:8]:
+        print(
+            f'        <tr><td class="player">{p["name"]}</td>'
+            f'<td class="team-name">{team_label(p["team"])}</td>'
+            f'<td class="num">{p["ab"]}</td><td class="num">{A(p["avg"])}</td></tr>'
+        )
 
     rper = {}
     if prev:
@@ -799,6 +881,23 @@ def html_tables(cur, prev=None):
     # ---- verdict tables (value-based)
     add_value(cur)
 
+    # Previous snapshot's true rounds (its own league average — i.e. exactly
+    # what the previous edition published), for ▲▼= Move cells on every table
+    # with a True Rd column. No prev -> no Move column (archive pages).
+    vprev = None
+    if prev:
+        add_value(prev)
+        vprev = {(q["team"], q["pick"]): q["vround"] for q in prev}
+
+    def movecell(p):
+        if vprev is None:
+            return ""
+        m = vprev[(p["team"], p["pick"])] - p["vround"]
+        if m == 0:
+            return '<td class="ctr num"><span style="color:var(--muted)">=</span></td>'
+        arrow = f"▲{m}" if m > 0 else f"▼{-m}"
+        return f'<td class="ctr num"><span class="{"zpos" if m > 0 else "zneg"}">{arrow}</span></td>'
+
     def vspan(v):
         return f'<span class="{"zpos" if v >= 0 else "zneg"}">{f"{v:+.1f}".replace("-", "−")}</span>'
 
@@ -808,27 +907,36 @@ def html_tables(cur, prev=None):
         )
 
     print(
-        "\n<!-- DREAM TEAM: best value per round, coed rule enforced (>= 2 women) -->"
+        "\n<!-- DREAM TEAM: best value per round, coed rule enforced (>= 2 women); "
+        "'in for' = seat change vs the prev edition's dream team -->"
     )
     dteam, dswapped = dream_team(cur)
+    dprev = dream_team(prev)[0] if prev else None
     for rd in range(1, ROUNDS + 1):
         p = dteam[rd]
         coed = (
             ' <span style="color:var(--muted)">· coed</span>' if rd in dswapped else ""
         )
+        change = ""
+        if dprev is not None:
+            o = dprev[rd]
+            if (o["team"], o["pick"]) != (p["team"], p["pick"]):
+                change = (
+                    f' <span style="color:var(--muted)">· in for {o["name"]}</span>'
+                )
         print(
-            f'        <tr><td class="ctr num">{rd}</td><td class="player">{pname(p)}{coed}</td>'
+            f'        <tr><td class="ctr num">{rd}</td><td class="player">{pname(p)}{coed}{change}</td>'
             f'<td class="team-name">{team_label(p["team"])}</td><td class="num">{A(p["avg"])}</td>'
             f'<td class="num">{p["ab"]}</td><td class="num">{vspan(p["value"])}</td></tr>'
         )
 
-    print("\n<!-- PRICED RIGHT: true round == drafted round -->")
+    print("\n<!-- PRICED RIGHT: true round == drafted round (Move = true round vs prev snapshot) -->")
     for p in sorted(
         (q for q in cur if q["vround"] == q["pick"]),
         key=lambda q: (q["pick"], -q["value"]),
     ):
         print(
-            f'        <tr><td class="ctr num">{p["pick"]}</td><td class="player">{pname(p)}</td>'
+            f'        <tr><td class="ctr num">{p["pick"]}</td>{movecell(p)}<td class="player">{pname(p)}</td>'
             f'<td class="team-name">{team_label(p["team"])}</td><td class="num">{A(p["avg"])}</td>'
             f'<td class="num">{p["ab"]}</td><td class="num">{vspan(p["value"])}</td></tr>'
         )
@@ -841,7 +949,7 @@ def html_tables(cur, prev=None):
     for p in under[:8]:
         print(
             f'        <tr><td class="player">{pname(p)}</td><td class="team-name">{team_label(p["team"])}</td>'
-            f'<td class="ctr num">R{p["pick"]}</td><td class="ctr num big">R{p["vround"]}</td>'
+            f'<td class="ctr num">R{p["pick"]}</td><td class="ctr num big">R{p["vround"]}</td>{movecell(p)}'
             f'<td class="num"><span class="zpos">{p["pick"] - p["vround"]} early</span></td>'
             f'<td class="num">{A(p["avg"])}</td><td class="num">{p["ab"]}</td><td class="num">{vspan(p["value"])}</td></tr>'
         )
@@ -854,7 +962,7 @@ def html_tables(cur, prev=None):
     for p in over[:8]:
         print(
             f'        <tr><td class="player">{pname(p)}</td><td class="team-name">{team_label(p["team"])}</td>'
-            f'<td class="ctr num">R{p["pick"]}</td><td class="ctr num big">R{p["vround"]}</td>'
+            f'<td class="ctr num">R{p["pick"]}</td><td class="ctr num big">R{p["vround"]}</td>{movecell(p)}'
             f'<td class="num"><span class="zneg">{p["vround"] - p["pick"]} late</span></td>'
             f'<td class="num">{A(p["avg"])}</td><td class="num">{p["ab"]}</td><td class="num">{vspan(p["value"])}</td></tr>'
         )
@@ -879,7 +987,7 @@ def html_tables(cur, prev=None):
         print(
             f'        <tr><td class="player">{pname(p)}</td><td class="team-name">{team_label(team)}</td>'
             f'<td class="ctr num">#{p["pickno"]}</td><td class="ctr num">R{p["pick"]}</td>'
-            f'<td class="ctr num">R{p["vround"]}</td><td class="num">{gapspan(p)}</td>'
+            f'<td class="ctr num">R{p["vround"]}</td>{movecell(p)}<td class="num">{gapspan(p)}</td>'
             f'<td class="num">{A(p["avg"])}</td><td class="num">{p["ab"]}</td>'
             f'<td class="num">{vspan(p["value"])}</td></tr>'
         )
@@ -897,18 +1005,20 @@ def html_tables(cur, prev=None):
             f'        <tr{brk}><td class="ctr num">#{p["pickno"]}</td><td class="ctr num">{p["pick"]}</td>'
             f'<td class="player">{pname(p)}</td>'
             f'<td class="team-name">{team_label(p["team"])}</td>'
-            f'<td class="ctr num">R{p["vround"]}</td><td class="num">{gapspan(p)}</td>'
+            f'<td class="ctr num">R{p["vround"]}</td>{movecell(p)}<td class="num">{gapspan(p)}</td>'
             f'<td class="ctr num">#{vrank[id(p)]}</td><td class="num">{A(p["avg"])}</td>'
             f'<td class="num">{p["ab"]}</td><td class="num">{vspan(p["value"])}</td></tr>'
         )
 
-    print("\n<!-- ROUND ROOMS -->")
+    print("\n<!-- ROUND ROOMS: hl row = round valedictorian, lo row = the cellar -->")
     for rd in range(1, ROUNDS + 1):
         ps = sorted(
             (p for p in cur if p["pick"] == rd),
             key=lambda p: (-p["avg"], -p["ab"], p["name"]),
         )
-        print(f'  <h3 id="round-{rd}" style="margin-top:28px">Round {rd}</h3>')
+        print(
+            f'  <h3 id="round-{rd}" style="margin-top:28px">Round {rd} — {ROUND_NICKNAMES[rd]}</h3>'
+        )
         print('  <div class="table-scroll">\n    <table>\n      <thead>')
         week_th = '<th class="num">This Week (ABs)</th>' if prev else ""
         print(
@@ -916,8 +1026,9 @@ def html_tables(cur, prev=None):
             f'<th class="num">ABs</th><th class="num">z</th>{week_th}</tr>'
         )
         print("      </thead>\n      <tbody>")
+        cellar = max((i for i, p in enumerate(ps) if p["ab"] > 0), default=0)
         for i, p in enumerate(ps):
-            hl = ' class="hl"' if i == 0 else ""
+            hl = ' class="hl"' if i == 0 else (' class="lo"' if i == cellar else "")
             if p["ab"]:
                 avg_c = f'<td class="num{" big" if i == 0 else ""}">{A(p["avg"])}</td>'
                 z_c = f'<td class="num">{zspan(p["z"])}</td>'
@@ -966,6 +1077,24 @@ def html_tables(cur, prev=None):
                 f'        <tr><td class="player">{s}</td><td class="num">{A(rate)}</td>'
                 f'<td class="num">{dab}</td><td class="num">{n}</td></tr>'
             )
+
+    if prev and prev2:
+        print(
+            "\n<!-- STREAKS & SLIDES: same direction both periods, 6+ ABs in each; "
+            "heat rows then cool rows (rd-break starts the slides) -->"
+        )
+        heat, cool = two_week_trends(prev2, prev, cur)
+        for kind, rows_ in (("zpos", heat[:6]), ("zneg", cool[:6])):
+            for j, (p, r1, r2, d1, d2) in enumerate(rows_):
+                brk = ' class="rd-break"' if kind == "zneg" and j == 0 else ""
+                print(
+                    f'        <tr{brk}><td class="player">{p["name"]}</td>'
+                    f'<td class="team-name">{team_label(p["team"])}</td>'
+                    f'<td class="ctr num">R{p["pick"]}</td>'
+                    f'<td class="num">{A(r1)} ({d1})</td>'
+                    f'<td class="num"><span class="{kind}">{A(r2)}</span> ({d2})</td>'
+                    f'<td class="num">{A(p["avg"])}</td></tr>'
+                )
 
 
 # ---------------------------------------------------------------- compare
@@ -1031,6 +1160,46 @@ def compare(prev, cur, renames, min_old_ab=8, min_new_ab=15, min_dab=10):
             f"AB {r['o']['ab']}->{r['n']['ab']}  ({r['team']}, rd{r['pick']})"
         )
 
+    # true-round movers: re-run the value ranking on both snapshots (each with
+    # its own league average, i.e. what each edition published) and diff vround
+    add_value(prev)
+    add_value(cur)
+    moved = []
+    for k, o in po.items():
+        n = pn[k]
+        m = o["vround"] - n["vround"]  # positive = climbed toward round 1
+        if m:
+            moved.append((m, n, o))
+    print(
+        f"\n--- TRUE-ROUND MOVERS ({len(moved)}/{len(po)} changed true round; top 8 each) ---"
+    )
+    for m, n, o in sorted(moved, key=lambda t: (-t[0], -t[1]["value"]))[:8]:
+        print(
+            f"  UP   {n['name']:30s} R{o['vround']:<2d} -> R{n['vround']:<2d} (▲{m})  "
+            f"{A(n['avg'])} on {n['ab']:2d} AB  value {n['value']:+5.1f}  ({n['team']})"
+        )
+    for m, n, o in sorted(moved, key=lambda t: (t[0], t[1]["value"]))[:8]:
+        print(
+            f"  DOWN {n['name']:30s} R{o['vround']:<2d} -> R{n['vround']:<2d} (▼{-m})  "
+            f"{A(n['avg'])} on {n['ab']:2d} AB  value {n['value']:+5.1f}  ({n['team']})"
+        )
+
+    # dream-team turnover: each snapshot's dream team on its own values,
+    # seats compared by (team, pick)
+    dt_o, _ = dream_team(prev)
+    dt_n, _ = dream_team(cur)
+    turns = [
+        (rd, dt_o[rd], dt_n[rd])
+        for rd in range(1, ROUNDS + 1)
+        if (dt_o[rd]["team"], dt_o[rd]["pick"]) != (dt_n[rd]["team"], dt_n[rd]["pick"])
+    ]
+    print(f"\n--- DREAM TEAM CHANGES ({len(turns)}/12 seats turned over) ---")
+    for rd, o, n in turns:
+        print(
+            f"  R{rd:<2d} IN  {n['name']:28s} value {n['value']:+5.1f}  "
+            f"OUT {o['name']:28s} (value {o['value']:+5.1f} at the prev snapshot)"
+        )
+
     pq = sorted((r for r in rows if r["dab"] >= min_dab), key=lambda r: -r["prate"])
     print(
         f"\n--- PERIOD BATS ((dH-dCO)/dAB, dAB >= {min_dab}; {len(pq)} qualify; top 10 each) ---"
@@ -1060,6 +1229,22 @@ def compare(prev, cur, renames, min_old_ab=8, min_new_ab=15, min_dab=10):
             f"period {A(r['prate'])}  ({r['team']})"
         )
 
+    co_up = sorted(
+        (r for r in rows if r["n"]["co"] > r["o"]["co"]),
+        key=lambda r: (-(r["n"]["co"] - r["o"]["co"]), -r["dab"]),
+    )
+    tco = {}
+    for r in rows:
+        tco[r["team"]] = tco.get(r["team"], 0) + r["n"]["co"] - r["o"]["co"]
+    print(f"\n--- CO WATCH (+{sum(tco.values())} league-wide this period) ---")
+    for r in co_up[:8]:
+        print(
+            f"  {r['name']:30s} +{r['n']['co'] - r['o']['co']} (CO {r['o']['co']} -> {r['n']['co']})  ({r['team']})"
+        )
+    print("  by team (worst first): " + " | ".join(
+        f"{strip_the(t)} +{d}" for t, d in sorted(tco.items(), key=lambda kv: (-kv[1], kv[0]))
+    ))
+
     print("\n--- TEAM SHIFTS (delta adj avg; bar width % = |delta|/0.125*50) ---")
     tt = {}
     for r in rows:
@@ -1078,6 +1263,85 @@ def compare(prev, cur, renames, min_old_ab=8, min_new_ab=15, min_dab=10):
         )
 
 
+# ---------------------------------------------------------------- arcs
+
+
+def two_week_trends(prev2, prev, cur, min_dab=6):
+    """Players trending the same direction across both periods.
+
+    Heating: period-2 rate > period-1 rate AND > their own season line.
+    Cooling: the mirror image. Requires min_dab period at-bats in BOTH
+    periods. Returns (heating, cooling) as lists of
+    (player, rate1, rate2, dab1, dab2), sorted hottest/coldest first.
+    """
+    p2 = {(p["team"], p["pick"]): p for p in prev2}
+    p1 = {(p["team"], p["pick"]): p for p in prev}
+    heat, cool = [], []
+    for p in cur:
+        a, b = p2[(p["team"], p["pick"])], p1[(p["team"], p["pick"])]
+        d1, d2 = b["ab"] - a["ab"], p["ab"] - b["ab"]
+        if d1 < min_dab or d2 < min_dab:
+            continue
+        r1 = ((b["h"] - b["co"]) - (a["h"] - a["co"])) / d1
+        r2 = ((p["h"] - p["co"]) - (b["h"] - b["co"])) / d2
+        if r2 > r1 and r2 > p["avg"]:
+            heat.append((p, r1, r2, d1, d2))
+        elif r2 < r1 and r2 < p["avg"]:
+            cool.append((p, r1, r2, d1, d2))
+    heat.sort(key=lambda t: (-t[2], -(t[2] - t[1])))
+    cool.sort(key=lambda t: (t[2], t[2] - t[1]))
+    return heat, cool
+
+
+def arcs(prev2, prev, cur, min_dab=6, top=6):
+    """Two-week digest across three snapshots: streaks, team arcs, race history."""
+    print(f"\n{'=' * 72}\n=== ARCS: two-week trends across three snapshots ===\n{'=' * 72}")
+    heat, cool = two_week_trends(prev2, prev, cur, min_dab)
+    print(
+        f"\n--- STREAKS & SLIDES ({min_dab}+ ABs in both periods; "
+        f"{len(heat)} heating / {len(cool)} cooling; top {top} each) ---"
+    )
+    for p, r1, r2, d1, d2 in heat[:top]:
+        print(
+            f"  HEAT {p['name']:30s} {A(r1)} ({d1}) -> {A(r2)} ({d2})  season {A(p['avg'])}  ({p['team']})"
+        )
+    for p, r1, r2, d1, d2 in cool[:top]:
+        print(
+            f"  COOL {p['name']:30s} {A(r1)} ({d1}) -> {A(r2)} ({d2})  season {A(p['avg'])}  ({p['team']})"
+        )
+
+    # team arcs: period rate per team per period, same direction both weeks
+    def trates(old, new):
+        agg = {}
+        for p in new:
+            o = {(q["team"], q["pick"]): q for q in old}[(p["team"], p["pick"])]
+            a = agg.setdefault(p["team"], [0, 0])
+            a[0] += (p["h"] - p["co"]) - (o["h"] - o["co"])
+            a[1] += p["ab"] - o["ab"]
+        return {t: v[0] / v[1] for t, v in agg.items() if v[1] > 0}
+
+    t1, t2 = trates(prev2, prev), trates(prev, cur)
+    season = {}
+    for p in cur:
+        a = season.setdefault(p["team"], [0, 0])
+        a[0] += p["h"] - p["co"]
+        a[1] += p["ab"]
+    season = {t: v[0] / v[1] for t, v in season.items()}
+    print("\n--- TEAM ARCS (period rates; same direction both weeks) ---")
+    for t in sorted(t2, key=lambda t: -(t2[t] - t1[t])):
+        tag = ""
+        if t2[t] > t1[t] and t2[t] > season[t]:
+            tag = "  HEATING"
+        elif t2[t] < t1[t] and t2[t] < season[t]:
+            tag = "  COOLING"
+        print(f"  {t:32s} {A(t1[t])} -> {A(t2[t])}  season {A(season[t])}{tag}")
+
+    print("\n--- RACE HISTORY (leader by avg, AB >= 10, each snapshot) ---")
+    for label, snap in (("oldest", prev2), ("middle", prev), ("current", cur)):
+        lead = max((p for p in snap if p["ab"] >= 10), key=lambda p: (p["avg"], p["ab"]))
+        print(f"  {label:8s} {lead['name']:30s} {A(lead['avg'])} on {lead['ab']:2d} AB  ({lead['team']})")
+
+
 # ---------------------------------------------------------------- main
 
 
@@ -1085,6 +1349,10 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("snapshot")
     ap.add_argument("--prev", help="older snapshot CSV for week-over-week comparison")
+    ap.add_argument(
+        "--prev2",
+        help="snapshot before --prev, for two-week arcs (streaks & slides)",
+    )
     ap.add_argument("--min-ab-sleeper", type=int, default=15)
     ap.add_argument("--min-ab-outlier", type=int, default=10)
     ap.add_argument("--prev-min-ab-sleeper", type=int, default=10)
@@ -1127,13 +1395,21 @@ def main():
         prev, fmt = load(args.prev)
         renames = canonicalize_prev_names(prev, cur) if fmt == "old" else []
 
+    prev2 = None
+    if args.prev2:
+        if not prev:
+            sys.exit("--prev2 requires --prev (it is the snapshot before --prev)")
+        prev2, fmt2 = load(args.prev2)
+        if fmt2 == "old":
+            canonicalize_prev_names(prev2, cur)
+
     st = load_standings(args.standings) if args.standings else None
     prev_st = load_standings(args.prev_standings) if args.prev_standings else None
 
     if args.html_tables:
         if st:
             html_standings(st, cur, prev_st)
-        html_tables(cur, prev)
+        html_tables(cur, prev, prev2)
         return
 
     digest(cur, args.snapshot, args.min_ab_sleeper, args.min_ab_outlier)
@@ -1147,6 +1423,8 @@ def main():
             args.prev_min_ab_outlier,
         )
         compare(prev, cur, renames, min_dab=args.min_ab_period)
+    if prev2:
+        arcs(prev2, prev, cur)
 
 
 if __name__ == "__main__":

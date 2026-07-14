@@ -1,15 +1,19 @@
 # CP Softball — Weekly Stats Site
 
 Editorial stats site for a church softball league, published on **GitHub Pages** from
-`curtisknudson/claude-cp-softball-analysis` (remote `origin`, SSH). Curtis uploads a fresh
-stats CSV roughly weekly; each upload becomes a new "edition" of the site.
+`curtisknudson/claude-cp-softball-analysis` (remote `origin`, SSH). Roughly weekly Curtis says
+the new numbers are up; Claude harvests them from cpsoftball.com into a fresh stats CSV (see
+**Harvesting stats** below), and each snapshot becomes a new "edition" of the site.
 
 - **No build step, no JS** (single exception: the GoatCounter analytics snippet before `</body>`
   on every page — `https://cp-softball.goatcounter.com/count`; keep it when creating archives).
   Every page is hand-authored static HTML with inline CSS.
 - **Project Pages URL prefix:** the site is served under `/claude-cp-softball-analysis/`,
   so every internal link must be **relative** (`2026-06-12.html`), never root-absolute (`/foo.html`).
-- **Commits: plain messages, no Claude co-author or attribution lines** (owner's explicit rule).
+- **Claude NEVER commits or pushes — no `git commit`, no `git push`, ever. Curtis handles all
+  git operations himself** (owner's explicit rule, 2026-07-13). Leave finished work in the
+  working tree and stop. If Curtis ever asks for a suggested commit message: plain text, no
+  Claude co-author or attribution lines.
 
 ## Files
 
@@ -43,6 +47,36 @@ Facts that hold for every snapshot so far (the script asserts them and dies loud
   the script recovers the split by joining to a comma-schema snapshot on (team, pick).
 - Team names carry a "The " prefix except "Youre Saying Theres A Chance". Pages drop the "The "
   in tables but keep full names in prose.
+
+## Harvesting stats (source: https://cpsoftball.com/stats.php)
+
+The weekly numbers are read off the league's live **Complete Batting Statistics** table (all 144
+players), not emailed as a file. To produce `MMDD-stats.csv`:
+
+- **Ask Curtis for the name of the file before querying.** He gives the `MMDD` (e.g.
+  `0710-stats.csv`); that `MMDD` is the data-snapshot date and his "go" that the week is posted.
+  Never guess the date or assume today's — wait for the filename.
+- The page's columns `# · Player · Team · Pick# · AB · H · CO · AVG` map **exactly** onto CSV
+  **schema 1**: `rank,player,team,draft_pick,at_bats,hits,caused_outs,adjusted_avg`. Names already
+  read `"Last, First"` — keep the comma (it forces CSV quoting, so quote every name field). This
+  is the schema to emit; don't reshape to the no-comma schema 2.
+- **Match the existing `-stats.csv` files byte-for-byte in style:** averages 3-decimal padded
+  (`0.700`, `0.500`, `0.091`, never `0.7`), and **CRLF** line endings including a trailing CRLF.
+  (Existing files are CRLF; the Write tool emits LF, so convert — e.g. write with
+  `open(dst,'w',newline='').write('\r\n'.join(lines)+'\r\n')`.)
+- Fetch with **WebFetch** (curl is blocked in this sandbox). Its extractor is a small model, so
+  **validate before trusting the numbers** — do not skip this:
+  - Formula holds for every row: `adjusted_avg == round((H − CO) / AB, 3)`. The site rounds half
+    **up**, so exact-half cases (0.5625→`.563`, 0.3125→`.313`) look like a 0.001 "mismatch" under
+    Python's round-half-to-even. Keep the **site's** value; these are not transcription errors.
+  - **Totals must equal the page's own Season Summary footer** (Σ AB / Σ H / Σ CO / league avg) —
+    the strongest end-to-end check that no row was dropped or misread. (0710: 4,003 AB · 2,364 H ·
+    136 CO · league adj .557.)
+  - `(team, draft_pick)` unique across a 12×12 grid; every team holds picks 1–12; ranks 1–144
+    contiguous; 12 teams. Then run `python3 analysis.py MMDD-stats.csv` — it must **exit 0 with no
+    WARN lines** (it independently re-asserts schema, formula, and join keys).
+- Grab the standings the same day too: https://cpsoftball.com/standings.php → `MMDD-standings.csv`
+  (columns per the Files table / weekly procedure step 3).
 
 ## Captains (source: https://cpsoftball.com/teams.php — fetched 2026-07-06, no need to refetch)
 
@@ -115,7 +149,8 @@ Curtis; never guess a gender into print.
 - **Team/league averages are aggregate**: Σ(H−CO)/ΣAB — *not* the mean of player averages.
   **Family (dynasty) averages are the mean of player averages.** Don't mix these up.
 - **Dynasty ledger**: single-word surnames with ≥ 3 players (9 families). Compound surnames are
-  excluded from family grouping.
+  excluded from family grouping. **Sorted best-to-worst by family average** (owner's rule,
+  2026-07-13 — not by family size); the digest prints it in that order.
 - **Report card** = Σ z across a roster. Bar widths = |z| ÷ scale × 50%; scale = max(6, ⌈max|z|⌉),
   stated in each page's legend. Letter grades are editorial, assigned monotonically.
 - **Meter bars** (round averages): width = avg × 100%. Histogram bars: width = count ÷ max × 100%.
@@ -170,8 +205,10 @@ analyst "offers no further comment" on Curtis Knudson's stats (he's the site own
 
 ## Weekly update procedure
 
-1. **Save the new upload** as `MMDD-stats.csv`. Run `python3 analysis.py NEW.csv` alone first —
-   it validates schema, formula, and join keys, and will exit with an error on format drift.
+1. **Harvest the new snapshot** into `MMDD-stats.csv` per **Harvesting stats** above (ask Curtis
+   for the filename first; pull stats.php via WebFetch; validate formula + totals-vs-Season-Summary
+   + join keys; match CRLF/3-decimal style). Run `python3 analysis.py NEW.csv` alone — it validates
+   schema, formula, and join keys, and will exit with an error on format drift.
    Also fetch https://cpsoftball.com/standings.php and save it as `MMDD-standings.csv` (same
    columns as 0706-standings.csv; the loader asserts W+L+T=GP, PF/PA balance, win% = (W+T/2)/GP).
 2. **Archive the current edition**: copy `index.html` to `YYYY-MM-DD.html` named for **its** data
@@ -194,8 +231,9 @@ analyst "offers no further comment" on Curtis Knudson's stats (he's the site own
    nav and the footnote's Editions list (add the new archive link; keep old ones).
 5. **Transcribe, don't compute.** Every number on a page must appear in script output. If a number
    you want isn't printed, extend `analysis.py` rather than doing arithmetic by hand.
-6. **Verify** (checklist below), then commit everything (new CSV + new archive + index + any script
-   changes) with a plain message like `Publish July 10 edition` and push to `main`.
+6. **Verify** (checklist below), then STOP and hand off — **do not commit, do not push.**
+   Tell Curtis what changed (new CSV + new archive + index + any script changes) and leave
+   everything in the working tree; he commits and pushes himself.
 
 ## Verification checklist
 
@@ -207,4 +245,5 @@ analyst "offers no further comment" on Curtis Knudson's stats (he's the site own
 - `python3 -m http.server` from the repo root and eyeball both pages, light and dark
   (`prefers-color-scheme`), plus the ≤560px mobile breakpoint.
 - Archive page: masthead shows its snapshot date; no references to data newer than that date.
-- `git status` — nothing intended left untracked; **no Claude attribution in the commit message**.
+- `git status` — nothing intended left untracked, then hand off. **Never run `git commit` or
+  `git push` — Curtis handles all git operations himself.**

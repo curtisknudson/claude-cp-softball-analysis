@@ -487,7 +487,10 @@ def digest(players, label, min_ab_sleeper, min_ab_outlier):
     print(
         f"\n--- DYNASTY LEDGER ({len(fams)} families cover {covered}/{len(players)}; avg = mean of player avgs) ---"
     )
-    for s, ps in sorted(fams.items(), key=lambda kv: -len(kv[1])):
+    def famavg(ps):
+        return statistics.mean(p["avg"] for p in ps if p["ab"] > 0)
+
+    for s, ps in sorted(fams.items(), key=lambda kv: -famavg(kv[1])):
         live = [p for p in ps if p["ab"] > 0]
         best = max(live, key=lambda p: (p["avg"], p["ab"]))
         print(
@@ -566,9 +569,11 @@ def digest(players, label, min_ab_sleeper, min_ab_outlier):
         )
     team, swapped = dream_team(players)
     n_f = sum(1 for p in team.values() if is_female(p))
+    total_value = sum(p["value"] for p in team.values())
     print(
         f"DREAM TEAM (best value per round; coed rule: {n_f} women"
-        f"{', legal as-is' if not swapped else f', swapped rounds {sorted(swapped)}'}):"
+        f"{', legal as-is' if not swapped else f', swapped rounds {sorted(swapped)}'}; "
+        f"total value {total_value:+.1f}):"
     )
     for rd in range(1, ROUNDS + 1):
         p = team[rd]
@@ -1085,6 +1090,12 @@ def main():
     ap.add_argument("--prev-min-ab-sleeper", type=int, default=10)
     ap.add_argument("--prev-min-ab-outlier", type=int, default=6)
     ap.add_argument(
+        "--min-ab-period",
+        type=int,
+        default=10,
+        help="minimum period at-bats for the hot/cold period-bats lists",
+    )
+    ap.add_argument(
         "--html-tables",
         action="store_true",
         help="emit page-ready HTML for Team Sheets / Round Rooms instead of digests",
@@ -1135,7 +1146,7 @@ def main():
             args.prev_min_ab_sleeper,
             args.prev_min_ab_outlier,
         )
-        compare(prev, cur, renames)
+        compare(prev, cur, renames, min_dab=args.min_ab_period)
 
 
 if __name__ == "__main__":

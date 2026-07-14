@@ -94,11 +94,23 @@ standings PF/PA exactly.
 
 ## Captains (source: https://cpsoftball.com/teams.php — fetched 2026-07-06, no need to refetch)
 
-**Every displayed team name carries the captain in parentheses**: `Good Guys (Gideon's team)`.
-The rule applies everywhere a team is named — tables, bars, prose, tooltips — EXCEPT possessive
-forms ("the Good Guys' 15 caused outs" stays unannotated; the grammar breaks otherwise).
-`team_label()` in analysis.py implements this for generated tables and warns if a team is missing
-from `CAPTAINS` (i.e., a roster change — refetch teams.php only then).
+**RULE CHANGED 2026-07-14 (owner): the league's team names are NOT used on the page at all.
+Every club is named by its captain — `Gideon's team`, `Horatio's team` — and nothing else.**
+Curtis doesn't like the team names ("I hate the usage of the team name anyway"), and the old form
+(`Good Guys (Gideon's team)`) made every sentence in the week prose open with a six-word noun
+phrase. So: no `Good Guys`, no `Pliggas`, no `Youre Saying Theres A Chance` anywhere in a page —
+not in tables, bars, prose, captions or tooltips. `team_label()` in analysis.py is the single
+implementation (it warns if a team is missing from `CAPTAINS`, i.e. a roster change — refetch
+teams.php only then). **Verify with a grep**: no stripped team name may survive in `index.html`.
+
+The raw names still key every join and still print in the **text digest**, where they match the
+CSVs — that's the author's tool, not the page. Archives stay frozen in the old style; don't
+retro-edit them.
+
+**Possessives:** the old "possessive forms are exempt" carve-out is retired along with the team
+names — there's no suffix left to omit. Just avoid the double possessive: write "the six caused
+outs on Gideon's team" or "the regret seat on Ephraims Daniel's team", not
+"Gideon's team's six caused outs". `team_label()`'s output is a noun phrase; treat it like one.
 
 | Team | Captain | Label |
 |---|---|---|
@@ -174,8 +186,29 @@ Curtis; never guess a gender into print.
 - **Meter bars** (round averages): width = avg × 100%. Histogram bars: width = count ÷ max × 100%.
 - **Min-AB filters** (stated in each page's footnote): current-edition sleepers 15 AB / outliers
   10 AB; early-season editions used 10 / 6. Movers: 8+ AB at the old snapshot AND 15+ at the new.
-  Period bats: 10+ period ABs. Scale these sensibly as the season accumulates at-bats.
+  Scale these sensibly as the season accumulates at-bats.
+  **Period tables (rescaled 2026-07-14):** perfect weeks and week swings **4+ ΔAB**
+  (`--min-ab-perfect`, `--min-ab-swing`); the hot/cold period-rate digest list **6+**
+  (`--min-ab-period`, default changed 10 → 6); the **Records Board keeps its stricter 10+**.
+  Justification: in a two-game week ΔABs run 3–17, median 7, and nobody takes 1 or 2 — a 10-AB
+  gate left **6 of 121 batters**, which also made the digest print the same six players as both
+  HOT and COLD (fixed 2026-07-14; `k = min(10, len(pq) // 2)`).
 - **Period rate** ("what did they hit between snapshots") = (ΔH − ΔCO) ÷ ΔAB.
+- **Week swing** (added 2026-07-14) = period rate − the player's/team's **own season average at
+  the previous snapshot**. This is the front of book's governing statistic — the Collapse, the
+  Surge and the Team Temperature bars all draw it. It is **not** Δ season average:
+  `Δ season avg = swing × (ΔAB ÷ total AB)` — the same signal damped by how small the week is
+  next to the season (0.21 on July 10, and shrinking every edition).
+  **Never put Δ season average on a chart: it measures the calendar as much as the softball.**
+  Δ season average belongs in `#movers`, where the season line is the subject.
+- **Team Temperature bars** (rule changed 2026-07-14): width = |swing| ÷ scale × 50%;
+  scale = `max(.200, next .05 above max|swing|)`, stated in the legend (mirrors the Report Card's
+  `max(6, ⌈max|z|⌉)` idiom). The old Δ-season-average scoping is **retired** — it put the biggest
+  bar at 11% of its track and got *less* sensitive every week. `temp_scale()` in analysis.py.
+- **Week-line notation** (added 2026-07-14): a week is written as a line — `7-for-7`, or
+  `2-for-5 · 2 CO` when caused outs erased hits. **The hits are raw; the rate is net.** That is
+  why a 2-for-5 week with two caused outs is worth .000 — any table that can show this **must**
+  explain it in its caption. `week_line()` in analysis.py.
 - **League rank**: the file's `rank` column when present, else avg desc → AB desc → name asc.
 - **Pyth / Luck** (standings, added 2026-07-13): Pyth = PF² ÷ (PF² + PA²) — the win% a team's
   points profile "earns"; **Luck = actual win% − Pyth** (positive: out-running the points;
@@ -210,25 +243,72 @@ Curtis; never guess a gender into print.
 
 ## Page anatomy (index.html)
 
-Masthead (kicker · title · methodology sub · edition nav) → "Jump to" TOC nav → The Headlines →
-**Team Temperature** (unnumbered "This Week" section at the top — the week-over-week team
-diverging bars live HERE, not in What Changed; rebuild it each edition. **Thermal palette,
-owner's rule 2026-07-13: red = warmer, blue = cooler**, via the `.rc-card.temp` CSS override;
-its value text is plain ink, no zpos/zneg. The Report Card keeps the default mapping,
-blue = outperformed) → **The Batting Race**
-(unnumbered "The Chase" section, id `race` — top 3 by avg with "hits back"; note any lead
-change against the ARCS race history) → **The Standings** (unnumbered "Scoreboard" section,
-id `standings` — W-L-T/PF/PA/diff/**Pyth/Luck** joined to team batting, from the weekly
-standings snapshot; `--standings NEW.csv --prev-standings OLD.csv` prints the digest + emits the
-table rows, with movement arrows ▲▼ once a previous snapshot exists) → S1 League at a Glance (tiles) →
+**Restructured 2026-07-14, and this is now the template.** Readers said the July 10 edition read
+like the July 3 one; the cause was structural, not stylistic. The page opened with season-to-date
+content and buried the week two-thirds down, and every week fact on it was expressed as a *delta
+on a season aggregate* — a signal damped by ΔAB/total AB (0.21 and falling), which is why Team
+Temperature's range was ±.028 when the week's was ±.163. The paper now runs in **four movements**:
+
+| | Movement | Sections | Scope rule |
+|---|---|---|---|
+| **I** | **The Week** | `the-week` · `week-bats` · `temperature` · `standings` | Prose narrates **only this week's games** |
+| **II** | **The Season** | `glance` · `race` · `draft-board` · `sleepers` · `teams` · `second-look` · `missing-pages` | **Prose may not narrate the week.** May carry a This Week *column* |
+| **III** | **The Ledger** | `what-changed` | What the week *did to* the season lines |
+| **IV** | **The Book** | `team-sheets` · `verdict` · `round-rooms` · `dynasty` · `watch` | Reference |
+
+Movement II's scope rule is the biggest de-duplication lever on the page — enforce it.
+
+Masthead (kicker · title · methodology sub · edition nav) → "Jump to" TOC nav → The Headlines
+(**week-first**; write them LAST, and apply the same-y test in the procedure below) →
+
+**MOVEMENT I — THE WEEK.**
+**The Week** (id `the-week`, eyebrow names the games — "Games 9 and 10") — the week's own box
+score: `.tiles` (games · ABs · league avg this week · caused outs/season · perfect weeks · never
+batted), callouts, then h3 `week-co` (**the caused-out ledger for the week**, 12 rows, `hl` on the
+clean clubs / `lo` on the worst) and h3 `playing-time` (who played, who sat — notes only; the
+ΔAB=0 list and the rep-surge list are one story) →
+**The Week's Bats** (id `week-bats`) — h3 `perfect-weeks` (rate 1.000: no out made, none caused),
+h3 `cold-bats` = **The Collapse** and h3 `hot-bats` = **The Surge**. ⚠️ `hot-bats`/`cold-bats` kept
+their ids when they moved here from What Changed (people deep-link them) but **changed metric**:
+they now rank by **week swing**, not raw period rate. A .875 week from a .833 hitter is not news →
+**Team Temperature** (id `temperature`) — the diverging bars now draw **swing** (week rate − the
+club's own season line), NOT Δ season average; see Analysis conventions. **Thermal palette,
+owner's rule 2026-07-13: red = warmer, blue = cooler**, via the `.rc-card.temp` CSS override; its
+value text is plain ink, no zpos/zneg. (The Report Card keeps the default mapping,
+blue = outperformed.) Carries h3 `team-box` — the week team by team (ΔAB/ΔH/ΔCO, week avg, own
+season line, gap, week record, week run diff, rank move): the receipts under the bars, and the
+home of the bats-vs-points correlation →
+**The Standings** (id `standings`) — the 13-column season table (W-L-T/PF/PA/diff/**Pyth/Luck**
+joined to team batting; `--standings NEW.csv --prev-standings OLD.csv` prints the digest + emits
+the rows with ▲▼ movement arrows). **The table is the season; its notes are the week** — who
+moved, who took first, who finally won. The week's *records* do not go in this table; they live in
+`team-box`, which keeps the Standings at 13 columns.
+
+**MOVEMENT II — THE SEASON.** Opens with S1 League at a Glance (tiles; its lede marks the pivot —
+"That was the week. Here is the season."), then **The Batting Race** (id `race` — top 3 by avg
+with "hits back"; note any lead change against the ARCS race history). **`glance` and `race` are
+reference, not news** — the race's top three rarely change week to week, and leading with an
+unchanged leaderboard *is* the sameness problem. Then
 S2 Draft Board round averages → S3 Sleeper File → S4 Team breakdown +
 Draft-Day Report Card → S5 Draft Board Second Look (risk-only: spread/bust-rate/discipline +
 early-vs-late team split; re-pricing belongs to the Verdict) → S6 The Back Office (id
-`missing-pages` — caused-out ledger, **Clean Hands Club**, workload, distribution) → S7 What Changed
-(week-over-week, incl. **Streaks & Slides** (needs `--prev2`), Dynasty of the Week + **the
-Records Board** — weekly bests that future
-editions try to break; update it whenever a record falls) → S8 Team Sheets (best/worst pick per
-team by z; hot/cold bat of the week per team vs the round's period rate) → S9 The Verdict
+`missing-pages` — **season** caused-out ledger, **Clean Hands Club**, workload, distribution; the
+*week's* caused outs belong to `week-co`, not here) →
+
+**MOVEMENT III — THE LEDGER.** S7 What Changed (id `what-changed`, eyebrow "The Ledger", h2
+"What Changed: the Season Lines") — **what the week did to the season, not what the week was.**
+Its hot/cold period-bat tables moved to `week-bats` in 2026-07-14; **do not re-add them**, and do
+not restore its tiles strip or its "the league cooled" callouts (those facts belong to `the-week`).
+It keeps `movers` (Δ season avg — literally "how the season stats changed because of this week",
+which is exactly what belongs *here* and not up front; its lede should say so), **Streaks & Slides**
+(id `streaks`, needs `--prev2` — the only thing on the page that knows trajectory, and the sole
+home of the Sean Hammon gag), Dynasty of the Week, + **the Records Board** — weekly bests *and
+worsts* that future editions try to break; update it whenever a record falls →
+
+**MOVEMENT IV — THE BOOK.** S8 Team Sheets (best/worst pick per
+team by z; hot/cold bat of the week per team vs **the round's** period rate — this table is
+*round*-relative, and is NOT the same as `team-box`, which is *self*-relative. Don't conflate
+them) → S9 The Verdict
 (**value** = (avg − league adj) × ABs = net hits above a league-average bat, volume-weighted by
 design; "true round" = value rank dealt into rounds of 12; tables: Priced Exactly Right,
 Bargains/underdrafted, Didn't Justify/overdrafted, Dream Team = best value per round (rows tag
@@ -248,19 +328,55 @@ already-printed numbers) → methodology footnote.
 (The old S4 "Outliers per round" section was retired 2026-07-13 — its content lives in the
 Round Rooms' tinted rows and section notes. Don't reuse the `outliers` id.)
 
-**Anchors:** every section has a stable id (`temperature`, `race`, `standings`, `glance`,
-`draft-board`, `sleepers`, `teams`, `second-look`, `missing-pages`, `what-changed`,
-`team-sheets`, `verdict`, `round-rooms`, `dynasty`, `watch`) with a self-linking
+**Anchors:** every section has a stable id (`the-week`, `week-bats`, `temperature`, `standings`,
+`glance`, `race`, `draft-board`, `sleepers`, `teams`, `second-look`, `missing-pages`,
+`what-changed`, `team-sheets`, `verdict`, `round-rooms`, `dynasty`, `watch`) with a self-linking
 `<h2><a href="#id">`; each round-room h3 is
 `round-1`…`round-12` (the `--html-tables` emitter produces these). **Every table also has an
-h3 anchor** listed in the Jump-to nav (grouped into four lines): `tier-1`, `tier-2`,
+h3 anchor** listed in the Jump-to nav: `week-co`, `playing-time`, `perfect-weeks`, `cold-bats`,
+`hot-bats`, `team-box`, `tier-1`, `tier-2`,
 `report-card`, `mined-rounds`, `caused-outs`, `clean-hands`, `iron-horses`, `league-shape`,
-`hot-bats`, `cold-bats`, `movers`, `streaks`, `dynasty-week`, `records`, `team-picks`,
+`movers`, `streaks`, `dynasty-week`, `records`, `team-picks`,
 `team-week`, `priced-right`,
 `bargains`, `didnt-justify`, `dream-team`, `captains-mirror`, `full-docket`. New tables must
 get an id + nav entry. Keep ids stable across
 editions — people share deep links. The "Jump to" TOC after the masthead lists every section;
 add new sections to it.
+
+⚠️ **Ids that moved on 2026-07-14 and kept their names** (deep links must keep working):
+`hot-bats` and `cold-bats` moved from What Changed to **The Week's Bats** and changed metric
+(raw period rate → **week swing**); `playing-time` moved from What Changed to **The Week**.
+`team-week` (Team Sheets, round-relative) and `team-box` (Temperature, self-relative) are
+**different tables** — check which one you mean.
+
+**De-duplication rules (added 2026-07-14 — this is what actually fixes "it reads the same").**
+The July 10 edition narrated Cuervo's 6-for-6 in six separate prose blocks, the Diamonds' .667
+team week in six, and the Good Guys' .421 in five. Readers don't hear a motif; they hear filler.
+So:
+1. **A number is narrated in prose exactly once.** Tables may echo what prose owns; two prose
+   blocks (`.callouts` / `ul.notes` / `.lede`) may never narrate the same number. A two-period
+   *arc* may restate an endpoint (`.591 → .421`) — that's a different claim from "they hit .421."
+2. **The Headlines are the one licensed exception**, but a headline states a fact in one line and
+   its section must then *develop* it with material the headline doesn't have.
+3. **Movement II sections may not narrate the week.** They may carry a This Week *column* (the
+   Round Rooms do). Their prose stays on the season.
+4. **Break the mould.** Ban `**Bolded subject + verdict:** number, number, wry aside` from
+   Movement I — the July 10 edition used it in nearly every paragraph and the eye learns it in
+   thirty seconds. Rotate: bare declarative ("Lorenzo Cawley batted seven times in two games and
+   did not reach base."), the reversal ("The Lefty Looseys went 2-0. They also hit seventy-two
+   points below their own season line."), the list-as-indictment ("Rounds one, five, seven, nine,
+   eleven. Five players, six caused outs, two games."), the withheld subject.
+5. **Week prose is reportorial, season prose is judicial.** Week verbs: *went, hit, fell, sat,
+   caused* — short, declarative, past tense, reporting events. Season verbs: *is, ranks, holds,
+   prices*. Keep the season sections exactly as they are; they're right for what they do.
+6. **Anchor every week fact to what it replaced** — `.765 → .675`, `#17 → #63`, `1st → 2nd`.
+   A .333 week means nothing until you know the man was a .708 hitter.
+7. **Say the games, not "the period."** "Games 9 and 10", never "between snapshots" /
+   "week-over-week", in Movement I. It turns an abstraction into a thing that happened on a field.
+8. **Name clubs by their captain, never by the team name** (owner's rule, 2026-07-14 — see
+   Captains above). "Gideon's team hit .421 in games 9 and 10. Their season line is .584." Two
+   words, not six. Lean on pronouns and possessives for the second reference; avoid the double
+   possessive ("Gideon's team's six caused outs" → "the six caused outs on Gideon's team").
 
 Archive pages mirror the above minus anything weekly (2026-06-12.html has S1–S5, S6 Team Sheets
 season-only, S7 Round Rooms without the week column, + Appendix) — **no week-over-week content
@@ -276,6 +392,12 @@ comment" on Curtis Knudson (site owner) — at most twice per edition, vary the 
 track it down, not up; the round-6 bump; Becky Wood (pick #144) "still technically a bargain";
 the Fellowship's luck is "an invoice in the mail" (opened 2026-07-13 at +.243 — pay it off or
 double it next edition).
+
+A gag that only works as a *season* observation stays in the season sections: Sean Hammon's
+deflating fairy tale is narrated in `streaks` (its two-period arc is the joke) and nowhere else —
+the Collapse table carries his row with no joke attached. The Curtis Knudson bit has to *earn* a
+front-of-book mention with an actual week; if he doesn't make a week table, the gag stays in
+`race` and `dynasty-week` and that's the whole budget.
 
 ## Weekly update procedure
 
@@ -296,21 +418,39 @@ double it next edition).
    Digests print for both snapshots, the comparison (incl. CO WATCH), the standings join
    (movement, Pyth/Luck, bat-rank deltas, win%↔batting correlation), and the ARCS digest
    (streaks & slides, team arcs, race history).
-   Then generate the bulk tables: the same command with `--html-tables` emits page-ready HTML for
-   the Standings table (with ▲▼ movement arrows and Pyth/Luck), the Batting Race, Clean Hands,
+   The compare digest leads with the week — THE WEEK (league box score), PERFECT WEEKS, HITLESS
+   WEEKS, WEEK SWINGS (the Collapse/the Surge + biggest rank climb & fall), PERIOD BATS, CO WATCH
+   (incl. the ERASED list), WHO SAT, TEAM WEEK — and only then the ledger (SEASON-AVG MOVERS,
+   TRUE-ROUND MOVERS, DREAM TEAM CHANGES). The standings digest adds STANDINGS WEEK (ΔW/ΔL, ΔPF/ΔPA,
+   rank move, **bat-rank move**) and the week's bats↔points correlation.
+   Then generate the bulk tables: the same command with `--html-tables` emits page-ready HTML,
+   **in page order**, for the front of book (Week CO by team, Perfect Weeks, the Collapse, the
+   Surge, the **whole Team Temperature `.rc-card`** including bar widths and legend scale, the
+   Team Box), then the Standings (with ▲▼ arrows and Pyth/Luck), the Batting Race, Clean Hands,
    Team Sheets A/B, the Verdict tables, all 12
    Round Rooms (with This Week column, nicknames, hl/lo tinted rows), Dynasty-of-the-Week rows,
    and Streaks & Slides rows —
-   splice these into the page wholesale instead of hand-typing the tables.
+   splice these into the page wholesale instead of hand-typing the tables. **Nothing in the front
+   of book is hand-typed.** (Before 2026-07-14 the hot/cold tables and the Temperature bars *were*
+   hand-typed, because the digest was unusable at its own default gate — that is how the rule got
+   broken and how a wrong "hottest bat of the week" reached print.)
    (`--names-from COMMA_FORMAT.csv` canonicalizes names when the target file is the no-comma schema.)
-4. **Rewrite `index.html`** from the current-snapshot digest: headlines, tiles, every table,
-   report card, dynasty ledger, the Back Office, Second Look. Write a **fresh What Changed** from
-   the comparison + ARCS digests against the
-   just-archived edition (check the Records Board — update any record that fell, including the
-   CO categories). Replace the Team Sheets / Verdict / Round Rooms
-   table bodies with the freshly emitted HTML and rewrite their editorial notes. Rewrite
+4. **Rewrite `index.html` in movement order — the week FIRST.** Write The Week, The Week's Bats,
+   Team Temperature and the Standings notes from the compare digest, while the week is the only
+   thing in your head. Then the season sections (tiles, report card, dynasty ledger, the Back
+   Office, Second Look). Then the ledger: a **fresh What Changed** from the comparison + ARCS
+   digests against the just-archived edition (check the Records Board — update any record that
+   fell). Replace the Team Sheets / Verdict / Round Rooms table bodies with the freshly emitted
+   HTML and rewrite their editorial notes. Rewrite
    **What to Watch** with next edition's stakes (only already-printed numbers). Update the masthead
    nav and the footnote's Editions list (add the new archive link; keep old ones).
+   **Write the Headlines LAST** — they are an index of the week sections, not a preview of the
+   season.
+4b. **The same-y test.** Put the new headlines beside the previous edition's. **If any headline
+   could be turned into last edition's by changing only the digits, cut it and go find a week
+   fact.** (The July 3 and July 10 editions both opened on the draft-correlation r — a cumulative
+   statistic over 4,000 at-bats. It *cannot* say anything new, ever.) Then run the de-dup grep in
+   the checklist: if two prose blocks narrate the same number, one of them is wrong.
 5. **Transcribe, don't compute.** Every number on a page must appear in script output. If a number
    you want isn't printed, extend `analysis.py` rather than doing arithmetic by hand.
 6. **Verify** (checklist below), then STOP and hand off — **do not commit, do not push.**
@@ -319,12 +459,22 @@ double it next edition).
 
 ## Verification checklist
 
-- Re-run both script modes; spot-check each page section against the printed digest.
+- Re-run both script modes; **exit 0 with no WARN lines**; spot-check each page section against
+  the printed digest. Confirm PERIOD BATS doesn't print anyone as both HOT and COLD (if it does,
+  the gate is too high for the week — see Min-AB filters).
+- **De-dup grep.** For each marquee number of the week, confirm it appears in **at most one**
+  prose block (`.callouts` / `ul.notes` / `.lede`), plus optionally once in the Headlines. Tables
+  don't count. A script that maps prose blocks → owning section id and greps each number across
+  them takes two minutes and catches exactly the failure readers complained about.
+- **Same-y test** (procedure step 4b): diff the new headlines against the previous edition's.
+  No shared skeleton, no shared first fact.
 - `python3 -c "import html.parser, pathlib; ..."` — parse every HTML page (index + all
   archives) for tag balance (or any HTML validator available). Void/self-closing tags
   (`<meta/>`, `<link/>`) need a parser that handles `handle_startendtag`, or they false-alarm.
 - `grep -n 'href=' *.html` — every internal link relative; new archive reachable from index
-  (masthead + footnote) and index reachable from the archive.
+  (masthead + footnote) and index reachable from the archive. Every `href="#id"` resolves, and
+  no id is defined twice (`hot-bats` / `cold-bats` / `playing-time` moved once already — make
+  sure a rewrite didn't leave a copy behind in What Changed).
 - `python3 -m http.server` from the repo root and eyeball index and the newest archive, light
   and dark (`prefers-color-scheme`), plus the ≤560px mobile breakpoint. Wide tables (the
   13-column Standings, the Full Docket) must scroll inside `.table-scroll`, not the page.

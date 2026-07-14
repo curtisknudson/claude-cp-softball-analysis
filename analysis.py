@@ -686,7 +686,15 @@ def team_batting(players):
     return bat, brank, ab
 
 
-def standings_digest(st, players, prev_st=None):
+def pearson(xs, ys):
+    """Pearson r between two equal-length, non-degenerate series."""
+    mx, my = statistics.mean(xs), statistics.mean(ys)
+    return sum((x - mx) * (y - my) for x, y in zip(xs, ys)) / math.sqrt(
+        sum((x - mx) ** 2 for x in xs) * sum((y - my) ** 2 for y in ys)
+    )
+
+
+def standings_digest(st, players, prev_st=None, prev_players=None):
     bat, brank, ab = team_batting(players)
     prev = {s["team"]: s for s in prev_st} if prev_st else None
     print(
@@ -705,13 +713,35 @@ def standings_digest(st, players, prev_st=None):
             f"bat {A(bat[s['team']])} rank {brank[s['team']]:2d} ({brank[s['team']] - s['rank']:+d}) | "
             f"PF/100AB {100 * s['pf'] / ab[s['team']]:.0f}{move}"
         )
-    xs = [s["win_pct"] for s in st]
-    ys = [bat[s["team"]] for s in st]
-    mx, my = statistics.mean(xs), statistics.mean(ys)
-    r = sum((x - mx) * (y - my) for x, y in zip(xs, ys)) / math.sqrt(
-        sum((x - mx) ** 2 for x in xs) * sum((y - my) ** 2 for y in ys)
+    print(
+        f"win% vs team adj avg: r = "
+        f"{pearson([s['win_pct'] for s in st], [bat[s['team']] for s in st]):+.2f}"
     )
-    print(f"win% vs team adj avg: r = {r:+.2f}")
+
+    if not (prev_st and prev_players):
+        return
+
+    # The week's own table: what each club did in the games between the two
+    # standings snapshots, joined to what its bats did over the same stretch.
+    tw = {r["team"]: r for r in team_week_rows(prev_players, players, st, prev_st)}
+    gp = {r["dgp"] for r in tw.values()}
+    label = f"{next(iter(gp))} games each" if len(gp) == 1 else "uneven games played"
+    print(f"\n--- STANDINGS WEEK ({label}) ---")
+    for s in st:
+        r = tw[s["team"]]
+        rec = f"{r['dw']}-{r['dl']}" + (f"-{r['dt']}" if r["dt"] else "")
+        print(
+            f"{s['rank']:2d} {s['team']:32s} {rec:5s} "
+            f"PF {r['dpf']:+3d} PA {r['dpa']:+3d} diff {r['ddiff']:+4d} | "
+            f"rank #{prev[s['team']]['rank']} -> #{s['rank']} ({r['move']:+d}) | "
+            f"week bat {A(r['rate'])} (line {A(r['line'])}, gap {r['gap']:+.3f}) | "
+            f"bat rank #{r['obrank']} -> #{r['brank']}"
+        )
+    rate = [tw[s["team"]]["rate"] for s in st]
+    print(
+        f"week bat rate vs week points scored: r = {pearson(rate, [tw[s['team']]['dpf'] for s in st]):+.3f}\n"
+        f"week bat rate vs week wins:          r = {pearson(rate, [tw[s['team']]['dw'] for s in st]):+.3f}"
+    )
 
 
 def html_standings(st, players, prev_st=None):
@@ -735,7 +765,7 @@ def html_standings(st, players, prev_st=None):
         print(
             f'        <tr><td class="ctr num">{s["rank"]}</td>{move}<td class="player">{team_label(s["team"])}</td>'
             f'<td class="num">{s["w"]}-{s["l"]}-{s["t"]}</td><td class="num big">{A(s["win_pct"])}</td>'
-            f'<td><span class="meter" title="{strip_the(s["team"])}: win% {A(s["win_pct"])}"><span style="width:{s["win_pct"] * 100:.1f}%"></span></span></td>'
+            f'<td><span class="meter" title="{team_label(s["team"])}: win% {A(s["win_pct"])}"><span style="width:{s["win_pct"] * 100:.1f}%"></span></span></td>'
             f'<td class="num">{s["pf"]}</td><td class="num">{s["pa"]}</td><td class="num">{dcell}</td>'
             f'<td class="num">{A(py)}</td><td class="num">{lcell}</td>'
             f'<td class="num">{A(bat[s["team"]])}</td><td class="ctr num">{brank[s["team"]]}</td></tr>'
@@ -750,7 +780,14 @@ def strip_the(team):
 
 
 def team_label(team):
-    """Display form for a team name: 'Good Guys (Gideon's team)'."""
+    """Display form for a team: "Gideon's team".
+
+    Owner's rule, 2026-07-14: the league's own team names are NOT used on the
+    page — every club is named by its captain. (They used to be carried as
+    "Good Guys (Gideon's team)", which made every sentence in the week prose
+    open with a six-word noun phrase.) The raw names still key every join and
+    still print in the text digest, where they match the CSVs.
+    """
     cap = CAPTAINS.get(team)
     if cap is None:
         print(
@@ -758,7 +795,7 @@ def team_label(team):
             file=sys.stderr,
         )
         return strip_the(team)
-    return f"{strip_the(team)} ({cap}'s team)"
+    return f"{cap}'s team"
 
 
 def period_map(prev, cur):
@@ -773,15 +810,280 @@ def period_map(prev, cur):
     return out
 
 
-def html_tables(cur, prev=None, prev2=None):
-    """Emit page-ready HTML for the Team Sheets and Round Rooms tables.
+def period_rows(prev, cur):
+    """Per-player week record, joined on (team, pick).
 
-    With prev: weekly variants included (This Week columns, hot/cold sheet,
-    dynasty-week rows). With prev2 as well: the Streaks & Slides rows.
-    Without prev: season-only variants for archive pages.
+    The single source of truth for "what happened this period" — the compare
+    digest and every front-of-book HTML emitter read from this. Note that dh
+    and dco are kept, not just their net: a week is reported as a *line*
+    ("7-for-7"), where the hits are raw and only the rate is net of caused
+    outs. That is why a 2-for-5 week with two caused outs is worth .000.
+    """
+    po = {(p["team"], p["pick"]): p for p in prev}
+    pn = {(p["team"], p["pick"]): p for p in cur}
+    if set(po) != set(pn):
+        sys.exit(
+            f"join failure: only-prev {set(po) - set(pn)} only-cur {set(pn) - set(po)}"
+        )
+    rows = []
+    for n in cur:
+        o = po[(n["team"], n["pick"])]
+        dab, dh, dco = n["ab"] - o["ab"], n["h"] - o["h"], n["co"] - o["co"]
+        if dab < 0:
+            print(
+                f"WARNING: {n['name']} AB decreased {o['ab']} -> {n['ab']} (data revision?)"
+            )
+        rate = (dh - dco) / dab if dab > 0 else None
+        rows.append(
+            dict(
+                name=n["name"],
+                team=n["team"],
+                pick=n["pick"],
+                o=o,
+                n=n,
+                dab=dab,
+                dh=dh,
+                dco=dco,
+                rate=rate,
+                # swing: the week against the player's OWN season line — the
+                # front-of-book statistic. NOT the same as dseason, which is the
+                # same signal damped by dAB/total AB (see CLAUDE.md).
+                swing=(rate - o["avg"]) if rate is not None and o["ab"] else None,
+                dseason=n["avg"] - o["avg"],
+                drank=o["rank"] - n["rank"],  # positive = climbed toward #1
+            )
+        )
+    return rows
+
+
+def week_line(r, html=False):
+    """A week as a line: '7-for-7', or '2-for-5 · 2 CO' when caused outs erased hits."""
+    s = f"{r['dh']}-for-{r['dab']}"
+    if not r["dco"]:
+        return s
+    return (
+        f'{s} <span class="muted">· {r["dco"]} CO</span>'
+        if html
+        else f"{s} · {r['dco']} CO"
+    )
+
+
+def team_week_rows(prev, cur, st=None, prev_st=None):
+    """Per-team week aggregate, sorted best-to-worst by week rate.
+
+    gap = week rate − the team's own season average at the previous snapshot:
+    how far a club played from its own normal. This is what the Team
+    Temperature bars draw. With both standings snapshots, each row also
+    carries the week's record, points, run differential and rank move.
+    """
+    po = {(p["team"], p["pick"]): p for p in prev}
+    agg = {}
+    for p in cur:
+        o = po[(p["team"], p["pick"])]
+        a = agg.setdefault(p["team"], dict(dab=0, dh=0, dco=0, onet=0, oab=0))
+        a["dab"] += p["ab"] - o["ab"]
+        a["dh"] += p["h"] - o["h"]
+        a["dco"] += p["co"] - o["co"]
+        a["onet"] += o["h"] - o["co"]
+        a["oab"] += o["ab"]
+
+    sn = {s["team"]: s for s in st} if st else {}
+    so = {s["team"]: s for s in prev_st} if prev_st else {}
+    _, brank, _ = team_batting(cur)
+    _, obrank, _ = team_batting(prev)
+
+    rows = []
+    for t, a in agg.items():
+        rate = (a["dh"] - a["dco"]) / a["dab"] if a["dab"] else None
+        line = a["onet"] / a["oab"] if a["oab"] else None
+        r = dict(
+            team=t,
+            dab=a["dab"],
+            dh=a["dh"],
+            dco=a["dco"],
+            rate=rate,
+            line=line,
+            gap=None if rate is None or line is None else rate - line,
+            brank=brank[t],
+            obrank=obrank[t],
+        )
+        if t in sn and t in so:
+            n, o = sn[t], so[t]
+            r.update(
+                dw=n["w"] - o["w"],
+                dl=n["l"] - o["l"],
+                dt=n["t"] - o["t"],
+                dgp=n["gp"] - o["gp"],
+                dpf=n["pf"] - o["pf"],
+                dpa=n["pa"] - o["pa"],
+                ddiff=(n["pf"] - o["pf"]) - (n["pa"] - o["pa"]),
+                rank=n["rank"],
+                move=o["rank"] - n["rank"],
+            )
+        rows.append(r)
+    rows.sort(key=lambda r: -(r["rate"] if r["rate"] is not None else -9))
+    return rows
+
+
+def temp_scale(tw):
+    """Team Temperature bar scale: the next .05 above the biggest |gap|, floored
+    at .200. Mirrors the Report Card's max(6, ceil(max|z|)) idiom."""
+    m = max((abs(r["gap"]) for r in tw if r["gap"] is not None), default=0.0)
+    return max(0.200, math.ceil(m * 20) / 20)
+
+
+def html_tables(cur, prev=None, prev2=None, st=None, prev_st=None):
+    """Emit page-ready HTML for every table on the page, in page order.
+
+    With prev: the whole front of book (the week's caused-out ledger, the
+    perfect weeks, the Collapse and the Surge, the Team Temperature card and
+    the Team Box) plus the weekly variants further down (This Week columns,
+    hot/cold sheet, dynasty-week rows). With prev2 as well: Streaks & Slides.
+    Without prev: season-only variants, for archive pages.
     """
     add_z(cur)
     per = period_map(prev, cur) if prev else {}
+
+    def G(v):
+        """A signed three-decimal delta, leading zero stripped: '+.060', '−.163'."""
+        return f"{v:+.3f}".replace("-", "−").replace("0.", ".", 1)
+
+    def signed(v, text):
+        return f'<span class="{"zpos" if v >= 0 else "zneg"}">{text}</span>'
+
+    def rankcell(r):
+        return f'#{r["o"]["rank"]} <span class="muted">→</span> #{r["n"]["rank"]}'
+
+    # ---- the front of book: the week (needs prev)
+    if prev:
+        wk = period_rows(prev, cur)
+        wkt = team_week_rows(prev, cur, st, prev_st)
+        scale = temp_scale(wkt)
+        season_co = {}
+        for p in cur:
+            season_co[p["team"]] = season_co.get(p["team"], 0) + p["co"]
+
+        print("<!-- WEEK CO BY TEAM: caused outs committed in the period, worst first -->")
+        worst = max(r["dco"] for r in wkt)
+        for r in sorted(wkt, key=lambda r: (-r["dco"], r["team"])):
+            cls = (
+                ' class="lo"'
+                if r["dco"] == worst
+                else (' class="hl"' if r["dco"] == 0 else "")
+            )
+            print(
+                f'        <tr{cls}><td class="player">{team_label(r["team"])}</td>'
+                f'<td class="num">{r["dco"]}</td><td class="num">{r["dab"]}</td>'
+                f'<td class="num">{100 * r["dco"] / r["dab"]:.1f}</td>'
+                f'<td class="num"><span class="muted">{season_co[r["team"]]}</span></td></tr>'
+            )
+
+        print("\n<!-- PERFECT WEEKS: rate 1.000 — no out made, none caused (min 4 period AB) -->")
+        for r in sorted(
+            (r for r in wk if r["dab"] >= 4 and r["rate"] == 1.0), key=lambda r: -r["dab"]
+        ):
+            print(
+                f'        <tr class="hl"><td class="player">{r["name"]}</td>'
+                f'<td class="team-name">{team_label(r["team"])}</td>'
+                f'<td class="num">{week_line(r, html=True)}</td>'
+                f'<td class="num big">{A(r["rate"])}</td>'
+                f'<td class="num">{A(r["o"]["avg"])}</td><td class="num">{A(r["n"]["avg"])}</td>'
+                f'<td class="ctr num">{rankcell(r)}</td></tr>'
+            )
+
+        sw = sorted(
+            (r for r in wk if r["dab"] >= 4 and r["swing"] is not None),
+            key=lambda r: r["swing"],
+        )
+
+        def swingrow(r, lead):
+            cls = ""
+            if lead:
+                cls = ' class="lo"' if r["swing"] < 0 else ' class="hl"'
+            return (
+                f'        <tr{cls}><td class="player">{r["name"]}</td>'
+                f'<td class="team-name">{team_label(r["team"])}</td>'
+                f'<td class="num">{week_line(r, html=True)}</td>'
+                f'<td class="num{" big" if lead else ""}">{A(r["rate"])}</td>'
+                f'<td class="num">{A(r["o"]["avg"])}</td>'
+                f'<td class="num">{signed(r["swing"], G(r["swing"]))}</td>'
+                f'<td class="num">{A(r["n"]["avg"])}</td>'
+                f'<td class="ctr num">{rankcell(r)}</td></tr>'
+            )
+
+        print("\n<!-- THE COLLAPSE: biggest drops below a player's own season line -->")
+        for i, r in enumerate(sw[:10]):
+            print(swingrow(r, i == 0))
+
+        print("\n<!-- THE SURGE: biggest jumps above a player's own season line -->")
+        for i, r in enumerate(sw[:-11:-1]):
+            print(swingrow(r, i == 0))
+
+        print(
+            f"\n<!-- TEAM TEMPERATURE: week rate − own season line, bars scaled to ±{A(scale)} -->"
+        )
+        print('                <div class="rc-card temp">')
+        for r in wkt:
+            tip = (
+                f'{team_label(r["team"])}: hit {A(r["rate"])} this week against a '
+                f'{A(r["line"])} season line'
+            )
+            print(
+                f'                    <div class="rc-row">\n'
+                f'                        <div class="rc-team">{team_label(r["team"])}</div>\n'
+                f'                        <div class="rc-track" title="{tip}">\n'
+                f'                            <div class="rc-bar {"pos" if r["gap"] >= 0 else "neg"}"'
+                f' style="width: {abs(r["gap"]) / scale * 50:.1f}%"></div>\n'
+                f"                        </div>\n"
+                f'                        <div class="rc-val">{G(r["gap"])}</div>\n'
+                f"                    </div>"
+            )
+        print(
+            f'                    <div class="rc-legend">Each team\'s week rate minus its own'
+            f" season average at the previous edition, scaled to ±{A(scale)}."
+            f'<span class="swatch swatch-pos"></span>hit above their own line'
+            f'<span class="swatch swatch-neg"></span>below</div>'
+        )
+        print("                </div>")
+
+        print(
+            "\n<!-- TEAM BOX: the week team by team — week line, own season line, gap, week record -->"
+        )
+        for i, r in enumerate(wkt):
+            cls = (
+                ' class="hl"'
+                if i == 0
+                else (' class="lo"' if i == len(wkt) - 1 else "")
+            )
+            if "dw" in r:
+                rec = f"{r['dw']}-{r['dl']}" + (f"-{r['dt']}" if r["dt"] else "")
+                arrow = (
+                    "="
+                    if r["move"] == 0
+                    else (f"▲{r['move']}" if r["move"] > 0 else f"▼{-r['move']}")
+                )
+                acls = "zpos" if r["move"] > 0 else ("zneg" if r["move"] < 0 else "muted")
+                diff = f"{r['ddiff']:+d}".replace("-", "−")
+                tail = (
+                    f'<td class="ctr num">{rec}</td>'
+                    f'<td class="num">{signed(r["ddiff"], diff)}</td>'
+                    f'<td class="ctr num">#{r["rank"]} <span class="{acls}">{arrow}</span></td>'
+                )
+            else:
+                tail = '<td class="ctr num"><span class="muted">—</span></td>' * 3
+            print(
+                f'        <tr{cls}><td class="player">{team_label(r["team"])}</td>'
+                f'<td class="num">{r["dab"]}</td><td class="num">{r["dh"]}</td>'
+                f'<td class="num">{r["dco"]}</td>'
+                f'<td class="num big">{A(r["rate"])}</td>'
+                f'<td class="num"><span class="muted">{A(r["line"])}</span></td>'
+                f'<td class="num">{signed(r["gap"], G(r["gap"]))}</td>{tail}</tr>'
+            )
+        print()
+
+    if st:
+        html_standings(st, cur, prev_st)
+        print()
 
     print("<!-- BATTING RACE: top 3 by avg (min 15 AB); back = (leader avg - avg) * own AB -->")
     racers = sorted((p for p in cur if p["ab"] >= 15), key=lambda p: (-p["avg"], -p["ab"]))[:3]
@@ -1101,13 +1403,19 @@ def html_tables(cur, prev=None, prev2=None):
 # ---------------------------------------------------------------- compare
 
 
-def compare(prev, cur, renames, min_old_ab=8, min_new_ab=15, min_dab=10):
+def compare(
+    prev,
+    cur,
+    renames,
+    min_old_ab=8,
+    min_new_ab=15,
+    min_dab=6,
+    min_perfect=4,
+    min_swing=4,
+):
+    rows = period_rows(prev, cur)
     po = {(p["team"], p["pick"]): p for p in prev}
     pn = {(p["team"], p["pick"]): p for p in cur}
-    if set(po) != set(pn):
-        sys.exit(
-            f"join failure: only-prev {set(po) - set(pn)} only-cur {set(pn) - set(po)}"
-        )
     print(f"\n{'=' * 72}\n=== COMPARISON: prev -> current ===\n{'=' * 72}")
     print(f"join OK: {len(po)}/{len(pn)} matched on (team, pick)")
     for old, new, team, pick in renames:
@@ -1115,49 +1423,223 @@ def compare(prev, cur, renames, min_old_ab=8, min_new_ab=15, min_dab=10):
             f"RENAME: '{old}' -> '{new}' ({team}, pick {pick}) — same player, name corrected"
         )
 
-    rows = []
-    for k, o in po.items():
-        n = pn[k]
-        dab, dh, dco = n["ab"] - o["ab"], n["h"] - o["h"], n["co"] - o["co"]
-        if dab < 0:
-            print(
-                f"WARNING: {n['name']} AB decreased {o['ab']} -> {n['ab']} (data revision?)"
-            )
-        rows.append(
-            dict(
-                name=n["name"],
-                team=k[0],
-                pick=k[1],
-                o=o,
-                n=n,
-                dab=dab,
-                d=n["avg"] - o["avg"],
-                prate=(dh - dco) / dab if dab > 0 else None,
-            )
-        )
-
+    # ---- the week as its own box score (the front of book reads from here)
     oab = sum(r["o"]["ab"] for r in rows)
     nab = sum(r["n"]["ab"] for r in rows)
-    onet = sum(r["o"]["h"] - r["o"]["co"] for r in rows)
-    nnet = sum(r["n"]["h"] - r["n"]["co"] for r in rows)
+    oh = sum(r["o"]["h"] for r in rows)
+    nh = sum(r["n"]["h"] for r in rows)
+    oco = sum(r["o"]["co"] for r in rows)
+    nco = sum(r["n"]["co"] for r in rows)
+    dab, dh, dco = nab - oab, nh - oh, nco - oco
+    wrate = (dh - dco) / dab
+    played = [r for r in rows if r["dab"] > 0]
+    sat = [r for r in rows if r["dab"] == 0]
+    dabs = sorted(r["dab"] for r in played)
+    ocorate, ncorate = oco / oab, dco / dab
+    print("\n--- THE WEEK (league box score) ---")
     print(
-        f"\nleague AB {oab:,} -> {nab:,} (+{nab - oab:,}) | adj avg {A(onet / oab)} -> {A(nnet / nab)}"
-        f" | period rate {A((nnet - onet) / (nab - oab))}"
+        f"  AB {dab:,} | H {dh:,} | CO {dco} | raw {A(dh / dab)} | adjusted {A(wrate)}"
+    )
+    print(
+        f"  season adj {A((oh - oco) / oab)} -> {A((nh - nco) / nab)}  "
+        f"(league AB {oab:,} -> {nab:,})"
+    )
+    print(
+        f"  CO rate {ncorate:.3f}/AB this week vs {ocorate:.3f} season-to-date "
+        f"({(ncorate / ocorate - 1) * 100:+.0f}%)"
+    )
+    print(
+        f"  {dco} of {nco} season caused outs ({dco / nco:.0%}) on {dab:,} of "
+        f"{nab:,} at-bats ({dab / nab:.0%})"
+    )
+    print(
+        f"  batted {len(played)}/{len(rows)} | sat {len(sat)} | period AB median "
+        f"{statistics.median(dabs):.0f}, range {dabs[0]}–{dabs[-1]}"
+    )
+    print(
+        f"  beat the week's league rate: {sum(1 for r in played if r['rate'] > wrate)}/{len(played)}"
     )
 
+    perfect = sorted(
+        (r for r in rows if r["dab"] >= min_perfect and r["rate"] == 1.0),
+        key=lambda r: -r["dab"],
+    )
+    print(f"\n--- PERFECT WEEKS (rate 1.000, dAB >= {min_perfect}; {len(perfect)}) ---")
+    for r in perfect:
+        print(
+            f"  {r['name']:30s} {week_line(r):14s} season {A(r['o']['avg'])} -> {A(r['n']['avg'])}"
+            f"  rank #{r['o']['rank']} -> #{r['n']['rank']}  ({r['team']})"
+        )
+
+    hitless = sorted(
+        (
+            r
+            for r in rows
+            if r["dab"] >= min_perfect and r["rate"] is not None and r["rate"] <= 0
+        ),
+        key=lambda r: (r["rate"], -r["dab"]),
+    )
+    print(
+        f"\n--- HITLESS WEEKS (rate <= .000, dAB >= {min_perfect}; {len(hitless)}) ---"
+    )
+    for r in hitless:
+        print(
+            f"  {r['name']:30s} {week_line(r):14s} season {A(r['o']['avg'])} -> {A(r['n']['avg'])}"
+            f"  rank #{r['o']['rank']} -> #{r['n']['rank']}  ({r['team']})"
+        )
+
+    sw = sorted(
+        (r for r in rows if r["dab"] >= min_swing and r["swing"] is not None),
+        key=lambda r: r["swing"],
+    )
+
+    def swingline(r):
+        return (
+            f"{r['name']:30s} {week_line(r):14s} {A(r['rate'])}  was {A(r['o']['avg'])} "
+            f"on {r['o']['ab']:2d} AB  swing {r['swing']:+.3f}  now {A(r['n']['avg'])}  "
+            f"#{r['o']['rank']} -> #{r['n']['rank']}  ({r['team']})"
+        )
+
+    print(
+        f"\n--- WEEK SWINGS (week rate − own season line at the prev snapshot; "
+        f"dAB >= {min_swing}; {len(sw)} qualify; "
+        f"{sum(1 for r in sw if r['swing'] <= -0.300)} fell 300+ points, "
+        f"{sum(1 for r in sw if r['swing'] >= 0.300)} rose 300+; top 12 each) ---"
+    )
+    for r in sw[:12]:
+        print(f"  FELL {swingline(r)}")
+    for r in sw[:-13:-1]:
+        print(f"  ROSE {swingline(r)}")
+    climb, fall = max(rows, key=lambda r: r["drank"]), min(rows, key=lambda r: r["drank"])
+    print(
+        f"  biggest rank climb: {climb['name']} #{climb['o']['rank']} -> #{climb['n']['rank']} "
+        f"(▲{climb['drank']})  |  biggest rank fall: {fall['name']} #{fall['o']['rank']} -> "
+        f"#{fall['n']['rank']} (▼{-fall['drank']})"
+    )
+
+    pq = sorted((r for r in rows if r["dab"] >= min_dab), key=lambda r: -r["rate"])
+    k = min(10, len(pq) // 2)  # never print the same player as both HOT and COLD
+    print(
+        f"\n--- PERIOD BATS ((dH-dCO)/dAB, dAB >= {min_dab}; {len(pq)} of {len(played)} "
+        f"batters qualify; top {k} each) ---"
+    )
+    for r in pq[:k]:
+        print(
+            f"  HOT  {r['name']:30s} {A(r['rate'])} on {r['dab']:2d} period AB  "
+            f"season {A(r['o']['avg'])} -> {A(r['n']['avg'])}  ({r['team']})"
+        )
+    for r in reversed(pq[-k:]):
+        print(
+            f"  COLD {r['name']:30s} {A(r['rate'])} on {r['dab']:2d} period AB  "
+            f"season {A(r['o']['avg'])} -> {A(r['n']['avg'])}  ({r['team']})"
+        )
+    rq = sorted((r for r in rows if r["dab"] >= 10), key=lambda r: -r["rate"])
+    if rq:
+        print(
+            f"  records gate (dAB >= 10; {len(rq)} qualify): "
+            f"hottest {rq[0]['name']} {A(rq[0]['rate'])} ({rq[0]['dab']}) | "
+            f"coldest {rq[-1]['name']} {A(rq[-1]['rate'])} ({rq[-1]['dab']})"
+        )
+
+    co_up = sorted((r for r in rows if r["dco"] > 0), key=lambda r: (-r["dco"], -r["dab"]))
+    tco, tdab = {}, {}
+    for r in rows:
+        tco[r["team"]] = tco.get(r["team"], 0) + r["dco"]
+        tdab[r["team"]] = tdab.get(r["team"], 0) + r["dab"]
+    print(
+        f"\n--- CO WATCH (+{dco} league-wide from {len(co_up)} players; {ncorate:.3f}/AB "
+        f"vs {ocorate:.3f} season-to-date, {(ncorate / ocorate - 1) * 100:+.0f}%) ---"
+    )
+    for r in co_up:
+        if r["dco"] < 2:
+            break
+        print(
+            f"  {r['name']:30s} +{r['dco']} (CO {r['o']['co']} -> {r['n']['co']})  "
+            f"{week_line(r):14s} ({r['team']})"
+        )
+    erased = [r for r in rows if r["dh"] > 0 and r["dh"] - r["dco"] <= 0]
+    print(
+        f"  ERASED (every hit cancelled; {len(erased)}): "
+        + (
+            " | ".join(
+                f"{r['name']} {week_line(r)} -> {A(r['rate'])} ({strip_the(r['team'])})"
+                for r in erased
+            )
+            or "none"
+        )
+    )
+    print(
+        "  by team (worst first): "
+        + " | ".join(
+            f"{strip_the(t)} +{d} ({100 * d / tdab[t]:.1f}/100 AB)"
+            for t, d in sorted(tco.items(), key=lambda kv: (-kv[1], kv[0]))
+        )
+    )
+
+    print(f"\n--- WHO SAT (dAB == 0; {len(sat)} players) ---")
+    byteam = {}
+    for r in sat:
+        byteam.setdefault(r["team"], []).append(r)
+    for t in sorted(byteam, key=lambda t: (-len(byteam[t]), t)):
+        who = sorted(byteam[t], key=lambda r: r["n"]["rank"])
+        print(
+            f"  {strip_the(t):32s} {len(who)}  "
+            + ", ".join(f"{r['name']} (#{r['n']['rank']})" for r in who)
+        )
+    notable = sorted((r for r in sat if r["n"]["rank"] <= 30), key=lambda r: r["n"]["rank"])
+    print(
+        "  notable (season rank <= 30): "
+        + (
+            " | ".join(
+                f"{r['name']} #{r['n']['rank']} {A(r['n']['avg'])} on {r['n']['ab']} AB "
+                f"({strip_the(r['team'])})"
+                for r in notable
+            )
+            or "none"
+        )
+    )
+
+    print("\n--- PLAYING-TIME SURGES (top 8 dAB) ---")
+    for r in sorted(rows, key=lambda r: -r["dab"])[:8]:
+        print(
+            f"  {r['name']:30s} +{r['dab']} AB ({r['o']['ab']} -> {r['n']['ab']})  "
+            f"week {A(r['rate']) if r['rate'] is not None else '—'}  ({r['team']})"
+        )
+
+    deb = [r for r in rows if r["o"]["ab"] == 0 and r["n"]["ab"] > 0]
+    print(f"\n--- DEBUTS ({len(deb)} first appeared this period) ---")
+    for r in sorted(deb, key=lambda r: -r["n"]["avg"]):
+        print(
+            f"  {r['name']:30s} {A(r['n']['avg'])} on {r['n']['ab']:2d} AB  "
+            f"({r['team']}, rd{r['pick']})"
+        )
+
+    tw = team_week_rows(prev, cur)
+    scale = temp_scale(tw)
+    print(
+        f"\n--- TEAM WEEK (sorted by week rate; temperature bars scaled to ±{scale:.3f}) ---"
+    )
+    for r in tw:
+        print(
+            f"  {strip_the(r['team']):30s} {r['dh']:3d}-for-{r['dab']:<3d} CO {r['dco']}  "
+            f"week {A(r['rate'])}  line {A(r['line'])}  gap {r['gap']:+.3f}  "
+            f"width {abs(r['gap']) / scale * 50:.1f}%  bat rank #{r['obrank']} -> #{r['brank']}"
+        )
+
+    # ---- the ledger: what the week did to the season lines
     q = [r for r in rows if r["o"]["ab"] >= min_old_ab and r["n"]["ab"] >= min_new_ab]
-    q.sort(key=lambda r: -r["d"])
+    q.sort(key=lambda r: -r["dseason"])
     print(
         f"\n--- SEASON-AVG MOVERS (AB >= {min_old_ab} then and >= {min_new_ab} now; top 10 each) ---"
     )
     for r in q[:10]:
         print(
-            f"  UP   {r['name']:30s} {A(r['o']['avg'])} -> {A(r['n']['avg'])} ({r['d']:+.3f})  "
+            f"  UP   {r['name']:30s} {A(r['o']['avg'])} -> {A(r['n']['avg'])} ({r['dseason']:+.3f})  "
             f"AB {r['o']['ab']}->{r['n']['ab']}  ({r['team']}, rd{r['pick']})"
         )
     for r in q[:-11:-1]:
         print(
-            f"  DOWN {r['name']:30s} {A(r['o']['avg'])} -> {A(r['n']['avg'])} ({r['d']:+.3f})  "
+            f"  DOWN {r['name']:30s} {A(r['o']['avg'])} -> {A(r['n']['avg'])} ({r['dseason']:+.3f})  "
             f"AB {r['o']['ab']}->{r['n']['ab']}  ({r['team']}, rd{r['pick']})"
         )
 
@@ -1199,68 +1681,6 @@ def compare(prev, cur, renames, min_old_ab=8, min_new_ab=15, min_dab=10):
         print(
             f"  R{rd:<2d} IN  {n['name']:28s} value {n['value']:+5.1f}  "
             f"OUT {o['name']:28s} (value {o['value']:+5.1f} at the prev snapshot)"
-        )
-
-    pq = sorted((r for r in rows if r["dab"] >= min_dab), key=lambda r: -r["prate"])
-    print(
-        f"\n--- PERIOD BATS ((dH-dCO)/dAB, dAB >= {min_dab}; {len(pq)} qualify; top 10 each) ---"
-    )
-    for r in pq[:10]:
-        print(
-            f"  HOT  {r['name']:30s} {A(r['prate'])} on {r['dab']:2d} period AB  "
-            f"season {A(r['o']['avg'])} -> {A(r['n']['avg'])}  ({r['team']})"
-        )
-    for r in pq[:-11:-1]:
-        print(
-            f"  COLD {r['name']:30s} {A(r['prate'])} on {r['dab']:2d} period AB  "
-            f"season {A(r['o']['avg'])} -> {A(r['n']['avg'])}  ({r['team']})"
-        )
-
-    deb = [r for r in rows if r["o"]["ab"] == 0 and r["n"]["ab"] > 0]
-    print(f"\n--- DEBUTS ({len(deb)} first appeared this period) ---")
-    for r in sorted(deb, key=lambda r: -r["n"]["avg"]):
-        print(
-            f"  {r['name']:30s} {A(r['n']['avg'])} on {r['n']['ab']:2d} AB  ({r['team']}, rd{r['pick']})"
-        )
-
-    print("\n--- PLAYING-TIME SURGES (top 8 dAB) ---")
-    for r in sorted(rows, key=lambda r: -r["dab"])[:8]:
-        print(
-            f"  {r['name']:30s} +{r['dab']} AB ({r['o']['ab']} -> {r['n']['ab']})  "
-            f"period {A(r['prate'])}  ({r['team']})"
-        )
-
-    co_up = sorted(
-        (r for r in rows if r["n"]["co"] > r["o"]["co"]),
-        key=lambda r: (-(r["n"]["co"] - r["o"]["co"]), -r["dab"]),
-    )
-    tco = {}
-    for r in rows:
-        tco[r["team"]] = tco.get(r["team"], 0) + r["n"]["co"] - r["o"]["co"]
-    print(f"\n--- CO WATCH (+{sum(tco.values())} league-wide this period) ---")
-    for r in co_up[:8]:
-        print(
-            f"  {r['name']:30s} +{r['n']['co'] - r['o']['co']} (CO {r['o']['co']} -> {r['n']['co']})  ({r['team']})"
-        )
-    print("  by team (worst first): " + " | ".join(
-        f"{strip_the(t)} +{d}" for t, d in sorted(tco.items(), key=lambda kv: (-kv[1], kv[0]))
-    ))
-
-    print("\n--- TEAM SHIFTS (delta adj avg; bar width % = |delta|/0.125*50) ---")
-    tt = {}
-    for r in rows:
-        a = tt.setdefault(r["team"], [0, 0, 0, 0])
-        a[0] += r["o"]["h"] - r["o"]["co"]
-        a[1] += r["o"]["ab"]
-        a[2] += r["n"]["h"] - r["n"]["co"]
-        a[3] += r["n"]["ab"]
-    for t, (on, oa, nn_, na) in sorted(
-        tt.items(), key=lambda kv: -(kv[1][2] / kv[1][3] - kv[1][0] / kv[1][1])
-    ):
-        d = nn_ / na - on / oa
-        print(
-            f"  {t:32s} {A(on / oa)} -> {A(nn_ / na)}  ({d:+.3f})  width {abs(d) / 0.125 * 50:.1f}%  "
-            f"period {A((nn_ - on) / (na - oa))}"
         )
 
 
@@ -1361,8 +1781,20 @@ def main():
     ap.add_argument(
         "--min-ab-period",
         type=int,
-        default=10,
+        default=6,
         help="minimum period at-bats for the hot/cold period-bats lists",
+    )
+    ap.add_argument(
+        "--min-ab-perfect",
+        type=int,
+        default=4,
+        help="minimum period at-bats for the perfect / hitless week lists",
+    )
+    ap.add_argument(
+        "--min-ab-swing",
+        type=int,
+        default=4,
+        help="minimum period at-bats for the week-swing lists (the Collapse, the Surge)",
     )
     ap.add_argument(
         "--html-tables",
@@ -1408,14 +1840,12 @@ def main():
     prev_st = load_standings(args.prev_standings) if args.prev_standings else None
 
     if args.html_tables:
-        if st:
-            html_standings(st, cur, prev_st)
-        html_tables(cur, prev, prev2)
+        html_tables(cur, prev, prev2, st, prev_st)
         return
 
     digest(cur, args.snapshot, args.min_ab_sleeper, args.min_ab_outlier)
     if st:
-        standings_digest(st, cur, prev_st)
+        standings_digest(st, cur, prev_st, prev)
     if prev:
         digest(
             prev,
@@ -1423,7 +1853,14 @@ def main():
             args.prev_min_ab_sleeper,
             args.prev_min_ab_outlier,
         )
-        compare(prev, cur, renames, min_dab=args.min_ab_period)
+        compare(
+            prev,
+            cur,
+            renames,
+            min_dab=args.min_ab_period,
+            min_perfect=args.min_ab_perfect,
+            min_swing=args.min_ab_swing,
+        )
     if prev2:
         arcs(prev2, prev, cur)
 

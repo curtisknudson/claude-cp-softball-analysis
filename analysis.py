@@ -730,7 +730,7 @@ def html_standings(st, players, prev_st=None):
         if prev:
             m = prev[s["team"]]["rank"] - s["rank"]
             arrow = "=" if m == 0 else (f"▲{m}" if m > 0 else f"▼{-m}")
-            cls = "zpos" if m > 0 else ("zneg" if m < 0 else "")
+            cls = "zpos" if m > 0 else ("zneg" if m < 0 else "muted")
             move = f'<td class="ctr num"><span class="{cls}">{arrow}</span></td>'
         print(
             f'        <tr><td class="ctr num">{s["rank"]}</td>{move}<td class="player">{team_label(s["team"])}</td>'
@@ -788,7 +788,7 @@ def html_tables(cur, prev=None, prev2=None):
     lead = racers[0]
     for i, p in enumerate(racers, 1):
         back = (
-            '<span style="color:var(--muted)">—</span>'
+            '<span class="muted">—</span>'
             if p is lead
             else f"{(lead['avg'] - p['avg']) * p['ab']:.1f}"
         )
@@ -871,7 +871,7 @@ def html_tables(cur, prev=None, prev2=None):
                 assert rate is not None and rrate is not None
                 return (
                     f'<td class="team-name">{p["name"]} (R{p["pick"]})</td>'
-                    f'<td class="num">{A(rate)} <span style="color:var(--muted)">(rd {A(rrate)})</span></td>'
+                    f'<td class="num">{A(rate)} <span class="muted">(rd {A(rrate)})</span></td>'
                     f'<td class="num">{dab}</td>'
                 )
 
@@ -895,7 +895,7 @@ def html_tables(cur, prev=None, prev2=None):
             return ""
         m = vprev[(p["team"], p["pick"])] - p["vround"]
         if m == 0:
-            return '<td class="ctr num"><span style="color:var(--muted)">=</span></td>'
+            return '<td class="ctr num"><span class="muted">=</span></td>'
         arrow = f"▲{m}" if m > 0 else f"▼{-m}"
         return f'<td class="ctr num"><span class="{"zpos" if m > 0 else "zneg"}">{arrow}</span></td>'
 
@@ -904,7 +904,7 @@ def html_tables(cur, prev=None, prev2=None):
 
     def pname(p):
         return p["name"] + (
-            ' <span style="color:var(--muted)">· SS</span>' if is_ss(p) else ""
+            ' <span class="muted">· SS</span>' if is_ss(p) else ""
         )
 
     print(
@@ -916,14 +916,14 @@ def html_tables(cur, prev=None, prev2=None):
     for rd in range(1, ROUNDS + 1):
         p = dteam[rd]
         coed = (
-            ' <span style="color:var(--muted)">· coed</span>' if rd in dswapped else ""
+            ' <span class="muted">· coed</span>' if rd in dswapped else ""
         )
         change = ""
         if dprev is not None:
             o = dprev[rd]
             if (o["team"], o["pick"]) != (p["team"], p["pick"]):
                 change = (
-                    f' <span style="color:var(--muted)">· in for {o["name"]}</span>'
+                    f' <span class="muted">· in for {o["name"]}</span>'
                 )
         print(
             f'        <tr><td class="ctr num">{rd}</td><td class="player">{pname(p)}{coed}{change}</td>'
@@ -978,7 +978,7 @@ def html_tables(cur, prev=None, prev2=None):
             return f'<span class="zpos">+{gap}</span>'
         if gap < 0:
             return f'<span class="zneg">−{-gap}</span>'
-        return '<span style="color:var(--muted)">=</span>'
+        return '<span class="muted">=</span>'
 
     print(
         "\n<!-- CAPTAINS MIRROR: where each captain drafted themselves vs their true round -->"
@@ -1018,7 +1018,7 @@ def html_tables(cur, prev=None, prev2=None):
             key=lambda p: (-p["avg"], -p["ab"], p["name"]),
         )
         print(
-            f'  <h3 id="round-{rd}" style="margin-top:28px">Round {rd} — {ROUND_NICKNAMES[rd]}</h3>'
+            f'  <h3 id="round-{rd}"><a href="#round-{rd}">Round {rd} — {ROUND_NICKNAMES[rd]}</a></h3>'
         )
         print('  <div class="table-scroll">\n    <table>\n      <thead>')
         week_th = '<th class="num">This Week (ABs)</th>' if prev else ""

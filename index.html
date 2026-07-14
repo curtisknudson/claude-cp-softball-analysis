@@ -13,12 +13,12 @@
         <link rel="apple-touch-icon" href="apple-touch-icon.png" />
         <meta
             name="theme-color"
-            content="#f9f9f7"
+            content="#f4f4f1"
             media="(prefers-color-scheme: light)"
         />
         <meta
             name="theme-color"
-            content="#0d0d0d"
+            content="#131412"
             media="(prefers-color-scheme: dark)"
         />
         <!-- Open Graph / Facebook / iMessage / Slack / Discord -->
@@ -58,38 +58,78 @@
             content="CP Softball — An AI Analysis of Centennial Park Softball"
         />
         <style>
+            /* ── Field & Chalk ────────────────────────────────────────────────
+               A scorer's sheet: chalk rules, ruled tables, muted field colors.
+               Prose is set in a serif, data in a sans, metadata in a mono.
+               Colour is load-bearing — the prose names it. Blue = cool/outperformed,
+               red = warm/underperformed, green = positive delta. Retune the values,
+               never rename the tokens (the emitter and archives depend on them). */
             :root {
-                --page: #f9f9f7;
-                --surface: #fcfcfb;
-                --ink: #0b0b0b;
-                --ink-2: #52514e;
-                --muted: #898781;
-                --grid: #e1e0d9;
-                --baseline: #c3c2b7;
-                --border: rgba(11, 11, 11, 0.1);
-                --data: #2a78d6;
-                --data-neg: #e34948;
-                --delta-up: #006300;
-                --delta-down: #d03b3b;
-                --highlight: rgba(42, 120, 214, 0.07);
-                --lowlight: rgba(227, 73, 72, 0.06);
+                color-scheme: light;
+
+                --page: #f4f4f1;
+                --surface: #fbfbf8;
+                --ink: #191a16;
+                --ink-2: #4e4f48;
+                --muted: #6f6d67;
+                --grid: #e0dfd8;
+                --baseline: #c6c5bc;
+                --border: rgba(25, 26, 22, 0.1);
+                --data: #3b6491;
+                --data-neg: #a94f39;
+                --delta-up: #3f6b4a;
+                --delta-down: #a94f39;
+                --highlight: rgba(59, 100, 145, 0.07);
+                --lowlight: rgba(169, 79, 57, 0.06);
+                --row-hover: rgba(25, 26, 22, 0.035);
+                --edge: rgba(25, 26, 22, 0.13);
+
+                /* the chalk line — the page's one decorative motif */
+                --chalk: repeating-linear-gradient(
+                    90deg,
+                    var(--baseline) 0 3px,
+                    transparent 3px 7px
+                );
+
+                --font-prose:
+                    Charter, "Bitstream Charter", "Sitka Text", Cambria, "Iowan Old Style",
+                    ui-serif, Georgia, serif;
+                --font-data:
+                    system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+                --font-label:
+                    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+                --sp-1: 4px;
+                --sp-2: 8px;
+                --sp-3: 12px;
+                --sp-4: 16px;
+                --sp-5: 24px;
+                --sp-6: 32px;
+                --sp-7: 48px;
+                --sp-8: 64px;
+                --radius: 3px;
+                --measure: 68ch;
             }
             @media (prefers-color-scheme: dark) {
                 :root {
-                    --page: #0d0d0d;
-                    --surface: #1a1a19;
-                    --ink: #ffffff;
-                    --ink-2: #c3c2b7;
-                    --muted: #898781;
-                    --grid: #2c2c2a;
-                    --baseline: #383835;
-                    --border: rgba(255, 255, 255, 0.1);
-                    --data: #3987e5;
-                    --data-neg: #e66767;
-                    --delta-up: #0ca30c;
-                    --delta-down: #e66767;
-                    --highlight: rgba(57, 135, 229, 0.12);
-                    --lowlight: rgba(230, 103, 103, 0.1);
+                    color-scheme: dark;
+
+                    --page: #131412;
+                    --surface: #1c1d1a;
+                    --ink: #e9e8e1;
+                    --ink-2: #b3b2a8;
+                    --muted: #8e8c84;
+                    --grid: #2c2d2a;
+                    --baseline: #3a3b37;
+                    --border: rgba(233, 232, 225, 0.1);
+                    --data: #7fa8d4;
+                    --data-neg: #d98368;
+                    --delta-up: #79b085;
+                    --delta-down: #d98368;
+                    --highlight: rgba(127, 168, 212, 0.12);
+                    --lowlight: rgba(217, 131, 104, 0.1);
+                    --row-hover: rgba(233, 232, 225, 0.05);
+                    --edge: rgba(0, 0, 0, 0.45);
                 }
             }
 
@@ -102,34 +142,58 @@
             body {
                 background: var(--page);
                 color: var(--ink);
-                font-family:
-                    system-ui,
-                    -apple-system,
-                    "Segoe UI",
-                    sans-serif;
-                font-size: 15px;
-                line-height: 1.55;
+                font-family: var(--font-prose);
+                font-size: 1.0625rem;
+                line-height: 1.6;
+                -webkit-font-smoothing: antialiased;
             }
 
             .wrap {
-                max-width: 1280px;
+                max-width: 1200px;
                 margin: 0 auto;
-                padding: 48px 24px 80px;
+                padding: var(--sp-7) var(--sp-5) var(--sp-8);
             }
 
             a {
                 color: var(--data);
                 text-underline-offset: 2px;
+                text-decoration-thickness: 1px;
+            }
+            a:hover {
+                text-decoration-thickness: 2px;
+            }
+            :focus-visible {
+                outline: 2px solid var(--data);
+                outline-offset: 2px;
+                border-radius: var(--radius);
+            }
+            ::selection {
+                background: var(--highlight);
             }
 
-            .toc {
-                font-size: 0.85rem;
-                color: var(--ink-2);
-                line-height: 2;
-                margin: -8px 0 40px;
+            /* ── Type ──────────────────────────────────────────────────────── */
+            h1,
+            h2,
+            h3 {
+                font-family: var(--font-prose);
+                text-wrap: balance;
+                line-height: 1.15;
             }
-            .toc a {
-                white-space: nowrap;
+            h1 {
+                font-size: clamp(2.1rem, 1.5rem + 2vw, 2.75rem);
+                font-weight: 700;
+                letter-spacing: -0.015em;
+            }
+            h2 {
+                font-size: 1.7rem;
+                font-weight: 700;
+                letter-spacing: -0.01em;
+                margin: 0 0 var(--sp-1);
+            }
+            h3 {
+                font-size: 1.1rem;
+                font-weight: 700;
+                margin: var(--sp-6) 0 var(--sp-1);
             }
             h2 a,
             h3 a {
@@ -140,172 +204,273 @@
             h3 a:hover {
                 text-decoration: underline;
                 text-decoration-color: var(--baseline);
+                text-underline-offset: 4px;
             }
             section[id],
             h3[id] {
-                scroll-margin-top: 16px;
+                scroll-margin-top: var(--sp-4);
             }
 
-            h1,
-            h2,
-            h3 {
-                font-family:
-                    "Iowan Old Style", "Palatino Linotype", Palatino, Georgia,
-                    serif;
-                text-wrap: balance;
-                line-height: 1.15;
+            /* metadata voice: mono, tracked, quiet — a typed note on a scorecard */
+            .eyebrow,
+            .masthead .kicker,
+            .tile .label,
+            caption,
+            .rc-legend {
+                font-family: var(--font-label);
+                font-size: 0.68rem;
+                text-transform: uppercase;
+                letter-spacing: 0.12em;
+                color: var(--muted);
             }
-            h1 {
-                font-size: 2.4rem;
-                font-weight: 700;
-                letter-spacing: -0.01em;
-            }
-            h2 {
-                font-size: 1.55rem;
-                margin: 0 0 4px;
-            }
-            h3 {
-                font-size: 1.15rem;
-                margin: 0 0 4px;
-            }
-
-            header.masthead {
-                border-bottom: 3px double var(--baseline);
-                padding-bottom: 20px;
-                margin-bottom: 32px;
-            }
+            .eyebrow,
             .masthead .kicker {
-                font-size: 0.72rem;
-                text-transform: uppercase;
-                letter-spacing: 0.14em;
-                color: var(--muted);
-                margin-bottom: 10px;
-            }
-            .masthead .sub {
-                margin-top: 10px;
-                color: var(--ink-2);
-                font-size: 1.02rem;
-                max-width: 72ch;
-            }
-            .masthead .sub code {
-                font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-                font-size: 0.88em;
-                background: var(--surface);
-                border: 1px solid var(--border);
-                border-radius: 4px;
-                padding: 1px 5px;
-            }
-
-            section {
-                margin-bottom: 48px;
-            }
-
-            .eyebrow {
-                font-size: 0.7rem;
-                text-transform: uppercase;
-                letter-spacing: 0.14em;
-                color: var(--muted);
-                margin-bottom: 6px;
+                margin-bottom: var(--sp-2);
             }
             .lede {
                 color: var(--ink-2);
-                max-width: 72ch;
-                margin: 6px 0 18px;
+                max-width: var(--measure);
+                margin: var(--sp-2) 0 var(--sp-5);
+            }
+            .muted {
+                color: var(--muted);
+            }
+            .nocaps {
+                text-transform: none;
             }
 
-            .headlines {
+            /* ── Masthead ──────────────────────────────────────────────────── */
+            header.masthead {
+                padding-bottom: var(--sp-5);
+                margin-bottom: var(--sp-6);
+            }
+            header.masthead::after {
+                content: "";
+                display: block;
+                height: 1px;
+                background: var(--chalk);
+                margin-top: var(--sp-5);
+            }
+            .masthead .sub {
+                margin-top: var(--sp-3);
+                color: var(--ink-2);
+                max-width: var(--measure);
+            }
+            .masthead .sub code,
+            code {
+                font-family: var(--font-label);
+                font-size: 0.85em;
                 background: var(--surface);
                 border: 1px solid var(--border);
-                border-left: 3px solid var(--data);
-                border-radius: 6px;
-                padding: 18px 22px;
-                margin-bottom: 48px;
+                border-radius: var(--radius);
+                padding: 1px 5px;
+            }
+            .editions {
+                font-family: var(--font-label);
+                font-size: 0.72rem;
+                letter-spacing: 0.06em;
+                margin-top: var(--sp-4);
+                color: var(--muted);
+            }
+            .editions a {
+                text-decoration: none;
+                border-bottom: 1px solid var(--baseline);
+                padding-bottom: 1px;
+            }
+            .editions a:hover {
+                border-bottom-color: var(--data);
+            }
+            .editions .sep {
+                margin: 0 var(--sp-2);
+                color: var(--baseline);
+            }
+            .editions .here {
+                color: var(--ink);
+                border-bottom: 1px solid var(--ink);
+            }
+
+            /* ── Contents ──────────────────────────────────────────────────── */
+            .contents {
+                margin: 0 0 var(--sp-8);
+            }
+            .contents .cols {
+                columns: 4 190px;
+                column-gap: var(--sp-6);
+                margin-top: var(--sp-3);
+            }
+            .contents .col {
+                break-inside: avoid;
+                margin-bottom: var(--sp-5);
+            }
+            .contents .col-head {
+                font-family: var(--font-data);
+                font-size: 0.9rem;
+                font-weight: 600;
+                display: block;
+                color: var(--ink);
+                text-decoration: none;
+                border-bottom: 1px solid var(--grid);
+                padding-bottom: var(--sp-1);
+                margin-bottom: var(--sp-2);
+            }
+            .contents .col-head:hover {
+                border-bottom-color: var(--data);
+                color: var(--data);
+            }
+            .contents .col a:not(.col-head) {
+                display: block;
+                font-family: var(--font-data);
+                font-size: 0.82rem;
+                color: var(--ink-2);
+                text-decoration: none;
+                padding: 1px 0;
+            }
+            .contents .col a:not(.col-head):hover {
+                color: var(--data);
+                text-decoration: underline;
+            }
+
+            /* the old wall-of-links TOC — kept so archives still render if not upgraded */
+            .toc {
+                font-size: 0.85rem;
+                color: var(--ink-2);
+                line-height: 2;
+                margin: -8px 0 var(--sp-7);
+            }
+            .toc a {
+                white-space: nowrap;
+            }
+
+            /* ── Sections ──────────────────────────────────────────────────── */
+            section {
+                margin-bottom: var(--sp-8);
+            }
+            section::before {
+                content: "";
+                display: block;
+                height: 1px;
+                background: var(--chalk);
+                margin-bottom: var(--sp-6);
+            }
+
+            /* ── The Headlines (the hero) ──────────────────────────────────── */
+            .headlines {
+                margin-bottom: var(--sp-8);
             }
             .headlines .eyebrow {
-                margin-bottom: 10px;
+                margin-bottom: var(--sp-3);
             }
             .headlines ul {
                 list-style: none;
+                border-top: 1px solid var(--ink);
             }
             .headlines li {
-                padding: 6px 0 6px 18px;
-                position: relative;
+                padding: var(--sp-3) 0;
+                border-bottom: 1px solid var(--grid);
                 max-width: 76ch;
+                font-size: 1.1rem;
+                color: var(--ink-2);
             }
-            .headlines li::before {
-                content: "";
-                position: absolute;
-                left: 0;
-                top: 0.85em;
-                width: 7px;
-                height: 7px;
-                border-radius: 50%;
-                background: var(--data);
+            .headlines li strong,
+            .headlines li b {
+                color: var(--ink);
             }
 
+            /* ── Stat strip (was: tiles) ───────────────────────────────────── */
             .tiles {
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
-                gap: 10px;
+                grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+                gap: var(--sp-5);
             }
             .tile {
-                background: var(--surface);
-                border: 1px solid var(--border);
-                border-radius: 6px;
-                padding: 14px 16px;
+                border-top: 2px solid var(--ink);
+                padding-top: var(--sp-2);
             }
             .tile .value {
-                font-family:
-                    "Iowan Old Style", "Palatino Linotype", Palatino, Georgia,
-                    serif;
+                font-family: var(--font-data);
+                font-variant-numeric: tabular-nums;
                 font-size: 1.8rem;
-                font-weight: 700;
+                font-weight: 600;
+                letter-spacing: -0.02em;
                 line-height: 1.1;
             }
-            .tile .label {
-                font-size: 0.72rem;
-                text-transform: uppercase;
-                letter-spacing: 0.1em;
+            .tile-denom {
+                font-size: 0.52em;
+                font-weight: 400;
                 color: var(--muted);
-                margin-top: 4px;
+            }
+            .tile .label {
+                margin-top: var(--sp-1);
+                line-height: 1.4;
             }
 
+            /* ── Tables: the scorer's sheet ────────────────────────────────── */
             .table-scroll {
                 overflow-x: auto;
+                /* edge shadows that appear only when there is more table to see */
+                background:
+                    linear-gradient(to right, var(--page) 30%, rgba(0, 0, 0, 0)) left center,
+                    linear-gradient(to left, var(--page) 30%, rgba(0, 0, 0, 0)) right center,
+                    radial-gradient(farthest-side at 0 50%, var(--edge), rgba(0, 0, 0, 0))
+                        left center,
+                    radial-gradient(
+                            farthest-side at 100% 50%,
+                            var(--edge),
+                            rgba(0, 0, 0, 0)
+                        )
+                        right center;
+                background-repeat: no-repeat;
+                background-size:
+                    40px 100%,
+                    40px 100%,
+                    14px 100%,
+                    14px 100%;
+                background-attachment: local, local, scroll, scroll;
             }
             table {
                 border-collapse: collapse;
                 width: 100%;
-                background: var(--surface);
-                border: 1px solid var(--border);
-                border-top: 3px double var(--baseline);
+                background: transparent;
+                font-family: var(--font-data);
                 font-size: 0.9rem;
+                font-variant-numeric: tabular-nums;
             }
             caption {
                 caption-side: bottom;
                 text-align: left;
-                font-size: 0.78rem;
-                color: var(--muted);
-                padding: 8px 2px 0;
+                text-transform: none;
+                letter-spacing: 0.02em;
+                line-height: 1.5;
+                padding: var(--sp-2) 2px 0;
             }
             th {
-                font-size: 0.7rem;
-                text-transform: uppercase;
-                letter-spacing: 0.09em;
-                color: var(--muted);
                 font-weight: 600;
+                font-size: 0.68rem;
+                font-family: var(--font-data);
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                color: var(--muted);
                 text-align: left;
-                padding: 9px 12px;
-                border-bottom: 1px solid var(--grid);
+                padding: var(--sp-2) var(--sp-3) 7px;
                 white-space: nowrap;
+                background: var(--page);
+            }
+            thead th {
+                border-bottom: 1px solid var(--ink);
             }
             td {
-                padding: 8px 12px;
+                padding: 9px var(--sp-3);
                 border-bottom: 1px solid var(--grid);
                 vertical-align: middle;
             }
             tbody tr:last-child td {
-                border-bottom: none;
+                border-bottom: 1px solid var(--baseline);
+            }
+            tbody tr {
+                transition: background 90ms ease-out;
+            }
+            tbody tr:hover {
+                background: var(--row-hover);
             }
             .num {
                 text-align: right;
@@ -315,9 +480,7 @@
             th.num {
                 text-align: right;
             }
-            .ctr {
-                text-align: center;
-            }
+            .ctr,
             th.ctr {
                 text-align: center;
             }
@@ -336,12 +499,11 @@
                 background: var(--lowlight);
             }
             tr.rd-break td {
-                border-top: 2px solid var(--baseline);
+                border-top: 1px solid var(--baseline);
             }
             .big {
                 font-weight: 700;
             }
-
             .zpos {
                 color: var(--delta-up);
                 font-variant-numeric: tabular-nums;
@@ -353,10 +515,29 @@
                 white-space: nowrap;
             }
 
+            /* The Full Docket is 144 rows — the only table long enough to want a
+               sticky header. Sticky needs a height-capped pane: inside a wrapper
+               that only scrolls sideways, a sticky th resolves against the wrapper
+               (which never scrolls vertically) and so never sticks at all. */
+            .table-scroll.tall {
+                max-height: min(78vh, 900px);
+                overflow: auto;
+            }
+            .table-scroll.tall thead th {
+                position: sticky;
+                top: 0;
+                z-index: 2;
+                /* border-collapse hands borders to the table, not the cell, so a
+                   border-bottom would scroll away from under a sticky th. */
+                border-bottom: none;
+                box-shadow: inset 0 -1px 0 var(--ink);
+            }
+
+            /* ── Bars ──────────────────────────────────────────────────────── */
             .meter {
                 display: inline-block;
-                width: 140px;
-                height: 10px;
+                width: 130px;
+                height: 9px;
                 background: transparent;
                 border-left: 1px solid var(--baseline);
                 vertical-align: middle;
@@ -365,22 +546,22 @@
                 display: block;
                 height: 100%;
                 background: var(--data);
-                border-radius: 0 4px 4px 0;
             }
 
             .rc-row {
                 display: grid;
                 grid-template-columns: minmax(150px, 340px) 1fr 64px;
                 align-items: center;
-                gap: 12px;
-                padding: 7px 0;
+                gap: var(--sp-3);
+                padding: var(--sp-2) 0;
                 border-bottom: 1px solid var(--grid);
             }
             .rc-row:last-child {
                 border-bottom: none;
             }
             .rc-team {
-                font-size: 0.88rem;
+                font-family: var(--font-data);
+                font-size: 0.86rem;
                 font-weight: 600;
                 white-space: nowrap;
                 overflow: hidden;
@@ -390,7 +571,7 @@
                 color: var(--muted);
                 font-weight: 400;
                 font-size: 0.78rem;
-                margin-left: 6px;
+                margin-left: var(--sp-1);
             }
             .rc-track {
                 position: relative;
@@ -400,8 +581,8 @@
                 content: "";
                 position: absolute;
                 left: 50%;
-                top: -2px;
-                bottom: -2px;
+                top: -3px;
+                bottom: -3px;
                 width: 1px;
                 background: var(--baseline);
             }
@@ -410,69 +591,70 @@
                 top: 1px;
                 height: 10px;
             }
+            /* Scoped so the palette flips in one place. Team Temperature is thermal
+               (red = warmer); the Report Card keeps blue = outperformed. */
             .rc-bar.pos {
                 left: 50%;
-                background: var(--data);
-                border-radius: 0 4px 4px 0;
+                background: var(--bar-pos, var(--data));
             }
             .rc-bar.neg {
                 right: 50%;
-                background: var(--data-neg);
-                border-radius: 4px 0 0 4px;
+                background: var(--bar-neg, var(--data-neg));
+            }
+            .rc-card.temp {
+                --bar-pos: var(--data-neg);
+                --bar-neg: var(--data);
             }
             .rc-val {
+                font-family: var(--font-data);
                 font-size: 0.85rem;
                 font-variant-numeric: tabular-nums;
                 text-align: right;
             }
-            /* Team Temperature only: thermal palette (red = warmer, blue =
-               cooler). The Report Card keeps the default good/bad mapping. */
-            .rc-card.temp .rc-bar.pos {
-                background: var(--data-neg);
-            }
-            .rc-card.temp .rc-bar.neg {
-                background: var(--data);
-            }
             .rc-card {
-                background: var(--surface);
-                border: 1px solid var(--border);
-                border-radius: 6px;
-                padding: 14px 20px 10px;
+                border-top: 1px solid var(--ink);
+                padding-top: var(--sp-2);
             }
             .rc-legend {
-                font-size: 0.78rem;
-                color: var(--muted);
-                margin-top: 10px;
-                padding-bottom: 6px;
+                margin-top: var(--sp-3);
+                line-height: 1.6;
             }
             .rc-legend .swatch {
                 display: inline-block;
                 width: 9px;
                 height: 9px;
-                border-radius: 2px;
                 vertical-align: baseline;
-                margin: 0 4px 0 10px;
+                margin: 0 var(--sp-1) 0 var(--sp-3);
+            }
+            .rc-legend .swatch-pos {
+                background: var(--bar-pos, var(--data));
+            }
+            .rc-legend .swatch-neg {
+                background: var(--bar-neg, var(--data-neg));
             }
 
+            /* ── Prose blocks ──────────────────────────────────────────────── */
             .notes {
-                margin-top: 18px;
-                max-width: 78ch;
+                margin-top: var(--sp-5);
+                max-width: var(--measure);
             }
             .notes li {
-                margin: 8px 0 8px 20px;
+                margin: var(--sp-2) 0 var(--sp-2) var(--sp-5);
                 color: var(--ink-2);
+            }
+            .notes li::marker {
+                color: var(--baseline);
             }
             .notes li strong,
             .notes li b {
                 color: var(--ink);
             }
-
             .callouts {
-                margin-top: 16px;
-                max-width: 78ch;
+                margin-top: var(--sp-4);
+                max-width: var(--measure);
             }
             .callouts p {
-                margin: 10px 0;
+                margin: var(--sp-3) 0;
                 color: var(--ink-2);
             }
             .callouts p strong {
@@ -481,23 +663,113 @@
 
             .footnote {
                 border-top: 1px solid var(--grid);
-                margin-top: 56px;
-                padding-top: 16px;
-                font-size: 0.8rem;
+                margin-top: var(--sp-8);
+                padding-top: var(--sp-4);
+                font-size: 0.85rem;
                 color: var(--muted);
-                max-width: 78ch;
+                max-width: var(--measure);
             }
 
+            /* ── Responsive ────────────────────────────────────────────────── */
+            @media (max-width: 900px) {
+                .wrap {
+                    padding: var(--sp-6) var(--sp-4) var(--sp-7);
+                }
+                section {
+                    margin-bottom: var(--sp-7);
+                }
+            }
             @media (max-width: 560px) {
-                h1 {
-                    font-size: 1.8rem;
+                body {
+                    font-size: 1rem;
+                }
+                h2 {
+                    font-size: 1.4rem;
+                }
+                h3 {
+                    font-size: 1.02rem;
+                }
+                .headlines li {
+                    font-size: 1.02rem;
+                }
+                .tiles {
+                    grid-template-columns: repeat(auto-fit, minmax(108px, 1fr));
+                    gap: var(--sp-4);
+                }
+                .tile .value {
+                    font-size: 1.5rem;
+                }
+                table {
+                    font-size: 0.85rem;
+                }
+                td {
+                    padding: 8px var(--sp-2);
+                }
+                th {
+                    padding: var(--sp-2) var(--sp-2) 6px;
                 }
                 .meter {
-                    width: 90px;
+                    width: 84px;
                 }
                 .rc-row {
-                    grid-template-columns: minmax(110px, 150px) 1fr 56px;
-                    gap: 8px;
+                    grid-template-columns: minmax(104px, 150px) 1fr 56px;
+                    gap: var(--sp-2);
+                }
+                .contents .cols {
+                    gap: var(--sp-4);
+                }
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                *,
+                *::before,
+                *::after {
+                    transition: none !important;
+                    animation: none !important;
+                    scroll-behavior: auto !important;
+                }
+            }
+
+            @media print {
+                :root {
+                    color-scheme: light;
+                }
+                body {
+                    background: #fff;
+                    color: #000;
+                    font-size: 10pt;
+                }
+                .wrap {
+                    max-width: none;
+                    padding: 0;
+                }
+                /* an overflow container clips in print — un-clip both axes */
+                .table-scroll,
+                .table-scroll.tall {
+                    overflow: visible;
+                    max-height: none;
+                    background: none;
+                }
+                .contents,
+                .toc,
+                .editions {
+                    display: none;
+                }
+                a {
+                    color: inherit;
+                    text-decoration: none;
+                }
+                section,
+                table {
+                    break-inside: auto;
+                }
+                tr,
+                .rc-row {
+                    break-inside: avoid;
+                }
+                h2,
+                h3 {
+                    break-after: avoid;
                 }
             }
         </style>
@@ -506,7 +778,8 @@
         <div class="wrap">
             <header class="masthead">
                 <div class="kicker">
-                    cpsoftball.com · Current Season · Compiled July 13, 2026
+                    cpsoftball.com · Data through July 10, 2026 · Compiled July
+                    13
                 </div>
                 <h1>CP Softball — Season Stats Deep Dive</h1>
                 <p class="sub">
@@ -519,61 +792,97 @@
                     <em>for that draft round</em> — it separates "good player"
                     from "good pick."
                 </p>
-                <p class="sub">
-                    Data through <strong>July 10</strong>. Previous editions:
-                    <a href="2026-07-03.html">July 3 →</a> ·
-                    <a href="2026-06-12.html">June 12 →</a>
-                </p>
+                <nav class="editions" aria-label="Editions">
+                    <span class="here">July 10 — reading now</span>
+                    <span class="sep">·</span>
+                    <a href="2026-07-03.html">July 3</a>
+                    <span class="sep">·</span>
+                    <a href="2026-06-12.html">June 12</a>
+                </nav>
             </header>
 
-            <nav class="toc">
-                <div class="eyebrow">Jump to</div>
-                <div>
-                    <a href="#temperature">Team Temperature</a> ·
-                    <a href="#race">The Batting Race</a> ·
-                    <a href="#standings">The Standings</a> ·
-                    <a href="#glance">League at a Glance</a> ·
-                    <a href="#draft-board">Draft Board</a> ·
-                    <a href="#sleepers">Sleeper File</a> (<a href="#tier-1"
-                        >Tier 1</a
-                    >
-                    · <a href="#tier-2">Tier 2</a>)
-                </div>
-                <div>
-                    <a href="#teams">Teams</a> ·
-                    <a href="#report-card">Report Card</a> ·
-                    <a href="#second-look">Second Look</a> ·
-                    <a href="#mined-rounds">Who Mined Which Rounds</a> ·
-                    <a href="#caused-outs">Caused-Out Ledger</a> ·
-                    <a href="#clean-hands">Clean Hands</a> ·
-                    <a href="#iron-horses">Iron Horses</a> ·
-                    <a href="#league-shape">Shape of the League</a>
-                </div>
-                <div>
-                    <a href="#what-changed">What Changed</a> ·
-                    <a href="#hot-bats">Hot Bats</a> ·
-                    <a href="#cold-bats">Cold Bats</a> ·
-                    <a href="#movers">Movers</a> ·
-                    <a href="#streaks">Streaks &amp; Slides</a> ·
-                    <a href="#dynasty-week">Dynasty of the Week</a> ·
-                    <a href="#records">Records Board</a> ·
-                    <a href="#team-sheets">Team Sheets</a> (<a
-                        href="#team-picks"
-                        >Picks</a
-                    >
-                    · <a href="#team-week">This Week</a>)
-                </div>
-                <div>
-                    <a href="#verdict">The Verdict</a> ·
-                    <a href="#priced-right">Priced Right</a> ·
-                    <a href="#bargains">Bargains</a> ·
-                    <a href="#didnt-justify">Didn't Justify</a> ·
-                    <a href="#dream-team">Dream Team</a> ·
-                    <a href="#captains-mirror">Captain's Mirror</a> ·
-                    <a href="#full-docket">Full Docket</a> ·
-                    <a href="#round-rooms">Round Rooms</a> ·
-                    <a href="#dynasty">Dynasty Ledger</a> ·
-                    <a href="#watch">What to Watch</a>
+            <nav class="contents" aria-label="Contents">
+                <div class="eyebrow">Contents</div>
+                <div class="cols">
+                    <div class="col">
+                        <a class="col-head" href="#temperature"
+                            >Team Temperature</a
+                        >
+                    </div>
+                    <div class="col">
+                        <a class="col-head" href="#race">The Batting Race</a>
+                    </div>
+                    <div class="col">
+                        <a class="col-head" href="#standings">The Standings</a>
+                    </div>
+                    <div class="col">
+                        <a class="col-head" href="#glance"
+                            >League at a Glance</a
+                        >
+                    </div>
+                    <div class="col">
+                        <a class="col-head" href="#draft-board">Draft Board</a>
+                    </div>
+                    <div class="col">
+                        <a class="col-head" href="#sleepers">Sleeper File</a>
+                        <a href="#tier-1">Tier 1</a>
+                        <a href="#tier-2">Tier 2</a>
+                    </div>
+                    <div class="col">
+                        <a class="col-head" href="#teams">Teams</a>
+                        <a href="#report-card">Draft-Day Report Card</a>
+                    </div>
+                    <div class="col">
+                        <a class="col-head" href="#second-look">Second Look</a>
+                        <a href="#mined-rounds">Who Mined Which Rounds</a>
+                    </div>
+                    <div class="col">
+                        <a class="col-head" href="#missing-pages"
+                            >The Back Office</a
+                        >
+                        <a href="#caused-outs">Caused-Out Ledger</a>
+                        <a href="#clean-hands">Clean Hands</a>
+                        <a href="#iron-horses">Iron Horses</a>
+                        <a href="#league-shape">Shape of the League</a>
+                    </div>
+                    <div class="col">
+                        <a class="col-head" href="#what-changed"
+                            >What Changed</a
+                        >
+                        <a href="#hot-bats">Hot Bats</a>
+                        <a href="#cold-bats">Cold Bats</a>
+                        <a href="#movers">Movers</a>
+                        <a href="#streaks">Streaks &amp; Slides</a>
+                        <a href="#dynasty-week">Dynasty of the Week</a>
+                        <a href="#records">Records Board</a>
+                    </div>
+                    <div class="col">
+                        <a class="col-head" href="#team-sheets">Team Sheets</a>
+                        <a href="#team-picks">Best &amp; Worst Picks</a>
+                        <a href="#team-week">This Week</a>
+                    </div>
+                    <div class="col">
+                        <a class="col-head" href="#verdict">The Verdict</a>
+                        <a href="#priced-right">Priced Right</a>
+                        <a href="#bargains">Bargains</a>
+                        <a href="#didnt-justify">Didn't Justify</a>
+                        <a href="#dream-team">Dream Team</a>
+                        <a href="#captains-mirror">Captain's Mirror</a>
+                        <a href="#full-docket">Full Docket</a>
+                    </div>
+                    <div class="col">
+                        <a class="col-head" href="#round-rooms"
+                            >The Round Rooms</a
+                        >
+                    </div>
+                    <div class="col">
+                        <a class="col-head" href="#dynasty"
+                            >The Dynasty Ledger</a
+                        >
+                    </div>
+                    <div class="col">
+                        <a class="col-head" href="#watch">What to Watch</a>
+                    </div>
                 </div>
             </nav>
 
@@ -733,12 +1042,10 @@
                     </div>
                     <div class="rc-legend">
                         Bars scaled to ±.125 around the center line.<span
-                            class="swatch"
-                            style="background: var(--data-neg)"
+                            class="swatch swatch-pos"
                         ></span
                         >warmer than July 3<span
-                            class="swatch"
-                            style="background: var(--data)"
+                            class="swatch swatch-neg"
                         ></span
                         >cooler
                     </div>
@@ -801,7 +1108,7 @@
                             </tr>
                         </thead>
                         <tbody>
-        <tr class="hl"><td class="ctr num">1</td><td class="player">Timpson, Cuervo</td><td class="team-name">Stars and Strikes (Seth's team)</td><td class="num big">.864</td><td class="num">44</td><td class="num"><span style="color:var(--muted)">—</span></td></tr>
+        <tr class="hl"><td class="ctr num">1</td><td class="player">Timpson, Cuervo</td><td class="team-name">Stars and Strikes (Seth's team)</td><td class="num big">.864</td><td class="num">44</td><td class="num"><span class="muted">—</span></td></tr>
         <tr><td class="ctr num">2</td><td class="player">Dockstader, Sefton</td><td class="team-name">Lefty Looseys (Sefton's team)</td><td class="num">.833</td><td class="num">30</td><td class="num">0.9</td></tr>
         <tr><td class="ctr num">3</td><td class="player">Knudson, Curtis</td><td class="team-name">Youre Saying Theres A Chance (Horatio's team)</td><td class="num">.806</td><td class="num">36</td><td class="num">2.1</td></tr>
                         </tbody>
@@ -977,7 +1284,7 @@
             </section>
 
             <section id="glance">
-                <div class="eyebrow">Section 1</div>
+                <div class="eyebrow">The League</div>
                 <h2><a href="#glance">League at a Glance</a></h2>
                 <p class="lede">
                     A perfectly balanced league: 12 teams, 12 players each,
@@ -1006,7 +1313,7 @@
                     </div>
                     <div class="tile">
                         <div class="value">
-                            65<span style="font-size: 1rem; color: var(--muted)"
+                            65<span class="tile-denom"
                                 >/144</span
                             >
                         </div>
@@ -1016,7 +1323,7 @@
             </section>
 
             <section id="draft-board">
-                <div class="eyebrow">Section 2</div>
+                <div class="eyebrow">The Draft</div>
                 <h2>
                     <a href="#draft-board"
                         >The Draft Board — Round-by-Round Averages</a
@@ -1098,7 +1405,7 @@
             </section>
 
             <section id="sleepers">
-                <div class="eyebrow">Section 3</div>
+                <div class="eyebrow">Scouting</div>
                 <h2><a href="#sleepers">The Sleeper File</a></h2>
                 <p class="lede">
                     Everyone drafted in <strong>round 6 or later</strong> who
@@ -1163,7 +1470,7 @@
                     </p>
                 </div>
 
-                <h3 id="tier-2" style="margin-top: 28px">
+                <h3 id="tier-2">
                     <a href="#tier-2">Tier 2 — Deep cuts (rounds 8–12)</a>
                 </h3>
                 <div class="table-scroll">
@@ -1224,7 +1531,7 @@
             </section>
 
             <section id="teams">
-                <div class="eyebrow">Section 4</div>
+                <div class="eyebrow">The Clubhouse</div>
                 <h2><a href="#teams">Team-by-Team Breakdown</a></h2>
                 <p class="lede">
                     Sorted by team adjusted average.
@@ -1263,8 +1570,10 @@
                     </table>
                 </div>
 
-                <h3 style="margin-top: 28px">
-                    One thing that jumps out about every team
+                <h3 id="team-notes">
+                    <a href="#team-notes"
+                        >One thing that jumps out about every team</a
+                    >
                 </h3>
                 <ul class="notes">
                     <li>
@@ -1360,7 +1669,7 @@
                     </li>
                 </ul>
 
-                <h3 id="report-card" style="margin-top: 28px">
+                <h3 id="report-card">
                     <a href="#report-card">Draft-Day Report Card</a>
                 </h3>
                 <p class="lede">
@@ -1481,12 +1790,10 @@
                     </div>
                     <div class="rc-legend">
                         Bars scaled to ±9 z around the center line.<span
-                            class="swatch"
-                            style="background: var(--data)"
+                            class="swatch swatch-pos"
                         ></span
                         >outperformed draft slots<span
-                            class="swatch"
-                            style="background: var(--data-neg)"
+                            class="swatch swatch-neg"
                         ></span
                         >underperformed
                     </div>
@@ -1507,7 +1814,7 @@
             </section>
 
             <section id="second-look">
-                <div class="eyebrow">Section 5</div>
+                <div class="eyebrow">Risk</div>
                 <h2><a href="#second-look">The Draft Board, Second Look</a></h2>
                 <p class="lede">
                     Averages only tell you what a round <em>returns</em>. This
@@ -1524,7 +1831,7 @@
                             <tr>
                                 <th class="ctr">Round</th>
                                 <th class="num">
-                                    Spread (<span style="text-transform: none"
+                                    Spread (<span class="nocaps"
                                         >σ</span
                                     >)
                                 </th>
@@ -1594,7 +1901,7 @@
                     </li>
                 </ul>
 
-                <h3 id="mined-rounds" style="margin-top: 28px">
+                <h3 id="mined-rounds">
                     <a href="#mined-rounds">Who mined which rounds</a>
                 </h3>
                 <p class="lede">
@@ -1656,7 +1963,7 @@
             </section>
 
             <section id="missing-pages">
-                <div class="eyebrow">Section 6</div>
+                <div class="eyebrow">Bookkeeping</div>
                 <h2><a href="#missing-pages">The Back Office</a></h2>
                 <p class="lede">
                     The accounting department: who's giving averages back at
@@ -1732,7 +2039,7 @@
                     </li>
                 </ul>
 
-                <h3 id="clean-hands" style="margin-top: 28px">
+                <h3 id="clean-hands">
                     <a href="#clean-hands">The Clean Hands Club</a>
                 </h3>
                 <p class="lede">
@@ -1789,7 +2096,7 @@
                     </li>
                 </ul>
 
-                <h3 id="iron-horses" style="margin-top: 28px">
+                <h3 id="iron-horses">
                     <a href="#iron-horses">The iron horses</a>
                 </h3>
                 <div class="table-scroll">
@@ -1843,7 +2150,7 @@
                     </li>
                 </ul>
 
-                <h3 id="league-shape" style="margin-top: 28px">
+                <h3 id="league-shape">
                     <a href="#league-shape">The shape of the league</a>
                 </h3>
                 <div class="table-scroll">
@@ -1900,7 +2207,7 @@
             </section>
 
             <section id="what-changed">
-                <div class="eyebrow">Section 7</div>
+                <div class="eyebrow">Week over Week</div>
                 <h2>
                     <a href="#what-changed">What Changed: July 3 → July 10</a>
                 </h2>
@@ -1952,7 +2259,7 @@
                     </p>
                 </div>
 
-                <h3 id="hot-bats" style="margin-top: 28px">
+                <h3 id="hot-bats">
                     <a href="#hot-bats">Hottest bats of the period</a>
                 </h3>
                 <div class="table-scroll">
@@ -1997,7 +2304,7 @@
                     </p>
                 </div>
 
-                <h3 id="cold-bats" style="margin-top: 28px">
+                <h3 id="cold-bats">
                     <a href="#cold-bats">Coldest bats of the period</a>
                 </h3>
                 <div class="table-scroll">
@@ -2037,7 +2344,7 @@
                     </p>
                 </div>
 
-                <h3 id="movers" style="margin-top: 28px">
+                <h3 id="movers">
                     <a href="#movers">Biggest season-average movers</a>
                 </h3>
                 <p class="lede">
@@ -2102,7 +2409,7 @@
                     </li>
                 </ul>
 
-                <h3 id="streaks" style="margin-top: 28px">
+                <h3 id="streaks">
                     <a href="#streaks">Streaks &amp; Slides</a>
                 </h3>
                 <p class="lede">
@@ -2177,7 +2484,7 @@
                     </li>
                 </ul>
 
-                <h3 style="margin-top: 28px">Playing time</h3>
+                <h3 id="playing-time"><a href="#playing-time">Playing time</a></h3>
                 <ul class="notes">
                     <li>
                         <strong>Noah Dockstader +17 at-bats</strong> (23 → 40),
@@ -2188,7 +2495,7 @@
                         <strong>Lewis Hammon +14 at-bats</strong> (26 → 40) at a
                         .714 period clip, the hottest qualifying bat of the week
                         — reps earned, sleeper file entered
-                        (<a href="#sleepers">Section 3</a>).
+                        (<a href="#sleepers">the Sleeper File</a>).
                     </li>
                     <li>
                         <strong>Zero debuts.</strong> All 144 players had batted
@@ -2198,7 +2505,7 @@
                     </li>
                 </ul>
 
-                <h3 id="dynasty-week" style="margin-top: 28px">
+                <h3 id="dynasty-week">
                     <a href="#dynasty-week">Dynasty of the week</a>
                 </h3>
                 <p class="lede">
@@ -2246,7 +2553,7 @@
                     </p>
                 </div>
 
-                <h3 id="records" style="margin-top: 28px">
+                <h3 id="records">
                     <a href="#records">The records board</a>
                 </h3>
                 <p class="lede">
@@ -2295,7 +2602,7 @@
                     </li>
                 </ul>
 
-                <h3 style="margin-top: 28px">Bookkeeping</h3>
+                <h3 id="bookkeeping"><a href="#bookkeeping">Bookkeeping</a></h3>
                 <ul class="notes">
                     <li>
                         All 144 (team, draft pick) slots joined cleanly between
@@ -2313,7 +2620,7 @@
             </section>
 
             <section id="team-sheets">
-                <div class="eyebrow">Section 8</div>
+                <div class="eyebrow">The Dugout</div>
                 <h2><a href="#team-sheets">Team Sheets</a></h2>
                 <p class="lede">
                     The section readers commissioned last edition, now a
@@ -2390,7 +2697,7 @@
                     </li>
                 </ul>
 
-                <h3 id="team-week" style="margin-top: 28px">
+                <h3 id="team-week">
                     <a href="#team-week"
                         >Hot and cold bat of the week, per team</a
                     >
@@ -2409,18 +2716,18 @@
                             </tr>
                         </thead>
                         <tbody>
-        <tr><td class="player">Diamonds and Dirtbags (Jeremy's team)</td><td class="team-name">Dockstader Marvins, Jeremy (R3)</td><td class="num">.889 <span style="color:var(--muted)">(rd .584)</span></td><td class="num">9</td><td class="team-name">Monroy, Samantha (R12)</td><td class="num">.250 <span style="color:var(--muted)">(rd .224)</span></td><td class="num">8</td></tr>
-        <tr><td class="player">Youre Saying Theres A Chance (Horatio's team)</td><td class="team-name">Knudson, Curtis (R2)</td><td class="num">.857 <span style="color:var(--muted)">(rd .711)</span></td><td class="num">7</td><td class="team-name">Williams, Heather (R12)</td><td class="num">.167 <span style="color:var(--muted)">(rd .224)</span></td><td class="num">6</td></tr>
-        <tr><td class="player">Lefty Looseys (Sefton's team)</td><td class="team-name">Dockstader, Sefton (R1)</td><td class="num">.875 <span style="color:var(--muted)">(rd .682)</span></td><td class="num">8</td><td class="team-name">Barlow, Riley (R7)</td><td class="num">.250 <span style="color:var(--muted)">(rd .554)</span></td><td class="num">8</td></tr>
-        <tr><td class="player">Pure Breads (Caleb's team)</td><td class="team-name">Williams, Daniel (R1)</td><td class="num">.875 <span style="color:var(--muted)">(rd .682)</span></td><td class="num">8</td><td class="team-name">Dutson, Selena (R8)</td><td class="num">.333 <span style="color:var(--muted)">(rd .493)</span></td><td class="num">12</td></tr>
-        <tr><td class="player">Pliggas (Claude's team)</td><td class="team-name">Timpson Rays, Jonathan (R4)</td><td class="num">.857 <span style="color:var(--muted)">(rd .561)</span></td><td class="num">7</td><td class="team-name">Hammon, Sean (R12)</td><td class="num">.167 <span style="color:var(--muted)">(rd .224)</span></td><td class="num">6</td></tr>
-        <tr><td class="player">Fellowship of the Swing (Stafford's team)</td><td class="team-name">Dockstader, Adam (R1)</td><td class="num">.833 <span style="color:var(--muted)">(rd .682)</span></td><td class="num">6</td><td class="team-name">Timpson, Pauline (R12)</td><td class="num">.000 <span style="color:var(--muted)">(rd .224)</span></td><td class="num">6</td></tr>
-        <tr><td class="player">Good Guys (Gideon's team)</td><td class="team-name">Hammon, Gideon (R1)</td><td class="num">.667 <span style="color:var(--muted)">(rd .682)</span></td><td class="num">6</td><td class="team-name">Williams, Evan (R3)</td><td class="num">.167 <span style="color:var(--muted)">(rd .584)</span></td><td class="num">6</td></tr>
-        <tr><td class="player">Stars and Strikes (Seth's team)</td><td class="team-name">Timpson, Cuervo (R2)</td><td class="num">1.000 <span style="color:var(--muted)">(rd .711)</span></td><td class="num">6</td><td class="team-name">Timpson, Donald (R3)</td><td class="num">.333 <span style="color:var(--muted)">(rd .584)</span></td><td class="num">6</td></tr>
-        <tr><td class="player">Slamma Jammas (Boyds Daniel's team)</td><td class="team-name">Dockstader, Steven (R5)</td><td class="num">.833 <span style="color:var(--muted)">(rd .595)</span></td><td class="num">6</td><td class="team-name">Hammon, J Daunt (R9)</td><td class="num">.167 <span style="color:var(--muted)">(rd .340)</span></td><td class="num">6</td></tr>
-        <tr><td class="player">Danites (Ephraims Daniel's team)</td><td class="team-name">Williams, Heber (R1)</td><td class="num">.750 <span style="color:var(--muted)">(rd .682)</span></td><td class="num">8</td><td class="team-name">Cawley, Lorenzo (R10)</td><td class="num">.000 <span style="color:var(--muted)">(rd .426)</span></td><td class="num">7</td></tr>
-        <tr><td class="player">Ellites (Elliot's team)</td><td class="team-name">Timpson, Lonnie (R2)</td><td class="num">.875 <span style="color:var(--muted)">(rd .711)</span></td><td class="num">8</td><td class="team-name">Wood, Lincoln (R12)</td><td class="num">.000 <span style="color:var(--muted)">(rd .224)</span></td><td class="num">6</td></tr>
-        <tr><td class="player">Playas (Michael's team)</td><td class="team-name">Knudson, Nathan (R3)</td><td class="num">1.000 <span style="color:var(--muted)">(rd .584)</span></td><td class="num">7</td><td class="team-name">Hammon Hebers, Benjiman (R9)</td><td class="num">.167 <span style="color:var(--muted)">(rd .340)</span></td><td class="num">6</td></tr>
+        <tr><td class="player">Diamonds and Dirtbags (Jeremy's team)</td><td class="team-name">Dockstader Marvins, Jeremy (R3)</td><td class="num">.889 <span class="muted">(rd .584)</span></td><td class="num">9</td><td class="team-name">Monroy, Samantha (R12)</td><td class="num">.250 <span class="muted">(rd .224)</span></td><td class="num">8</td></tr>
+        <tr><td class="player">Youre Saying Theres A Chance (Horatio's team)</td><td class="team-name">Knudson, Curtis (R2)</td><td class="num">.857 <span class="muted">(rd .711)</span></td><td class="num">7</td><td class="team-name">Williams, Heather (R12)</td><td class="num">.167 <span class="muted">(rd .224)</span></td><td class="num">6</td></tr>
+        <tr><td class="player">Lefty Looseys (Sefton's team)</td><td class="team-name">Dockstader, Sefton (R1)</td><td class="num">.875 <span class="muted">(rd .682)</span></td><td class="num">8</td><td class="team-name">Barlow, Riley (R7)</td><td class="num">.250 <span class="muted">(rd .554)</span></td><td class="num">8</td></tr>
+        <tr><td class="player">Pure Breads (Caleb's team)</td><td class="team-name">Williams, Daniel (R1)</td><td class="num">.875 <span class="muted">(rd .682)</span></td><td class="num">8</td><td class="team-name">Dutson, Selena (R8)</td><td class="num">.333 <span class="muted">(rd .493)</span></td><td class="num">12</td></tr>
+        <tr><td class="player">Pliggas (Claude's team)</td><td class="team-name">Timpson Rays, Jonathan (R4)</td><td class="num">.857 <span class="muted">(rd .561)</span></td><td class="num">7</td><td class="team-name">Hammon, Sean (R12)</td><td class="num">.167 <span class="muted">(rd .224)</span></td><td class="num">6</td></tr>
+        <tr><td class="player">Fellowship of the Swing (Stafford's team)</td><td class="team-name">Dockstader, Adam (R1)</td><td class="num">.833 <span class="muted">(rd .682)</span></td><td class="num">6</td><td class="team-name">Timpson, Pauline (R12)</td><td class="num">.000 <span class="muted">(rd .224)</span></td><td class="num">6</td></tr>
+        <tr><td class="player">Good Guys (Gideon's team)</td><td class="team-name">Hammon, Gideon (R1)</td><td class="num">.667 <span class="muted">(rd .682)</span></td><td class="num">6</td><td class="team-name">Williams, Evan (R3)</td><td class="num">.167 <span class="muted">(rd .584)</span></td><td class="num">6</td></tr>
+        <tr><td class="player">Stars and Strikes (Seth's team)</td><td class="team-name">Timpson, Cuervo (R2)</td><td class="num">1.000 <span class="muted">(rd .711)</span></td><td class="num">6</td><td class="team-name">Timpson, Donald (R3)</td><td class="num">.333 <span class="muted">(rd .584)</span></td><td class="num">6</td></tr>
+        <tr><td class="player">Slamma Jammas (Boyds Daniel's team)</td><td class="team-name">Dockstader, Steven (R5)</td><td class="num">.833 <span class="muted">(rd .595)</span></td><td class="num">6</td><td class="team-name">Hammon, J Daunt (R9)</td><td class="num">.167 <span class="muted">(rd .340)</span></td><td class="num">6</td></tr>
+        <tr><td class="player">Danites (Ephraims Daniel's team)</td><td class="team-name">Williams, Heber (R1)</td><td class="num">.750 <span class="muted">(rd .682)</span></td><td class="num">8</td><td class="team-name">Cawley, Lorenzo (R10)</td><td class="num">.000 <span class="muted">(rd .426)</span></td><td class="num">7</td></tr>
+        <tr><td class="player">Ellites (Elliot's team)</td><td class="team-name">Timpson, Lonnie (R2)</td><td class="num">.875 <span class="muted">(rd .711)</span></td><td class="num">8</td><td class="team-name">Wood, Lincoln (R12)</td><td class="num">.000 <span class="muted">(rd .224)</span></td><td class="num">6</td></tr>
+        <tr><td class="player">Playas (Michael's team)</td><td class="team-name">Knudson, Nathan (R3)</td><td class="num">1.000 <span class="muted">(rd .584)</span></td><td class="num">7</td><td class="team-name">Hammon Hebers, Benjiman (R9)</td><td class="num">.167 <span class="muted">(rd .340)</span></td><td class="num">6</td></tr>
                         </tbody>
                         <caption>
                             At-bats between July 3 and July 10 only, minimum 6
@@ -2461,7 +2768,7 @@
             </section>
 
             <section id="verdict">
-                <div class="eyebrow">Section 9</div>
+                <div class="eyebrow">Draft Value</div>
                 <h2>
                     <a href="#verdict"
                         >The Verdict — Who Justified Their Pick</a
@@ -2487,7 +2794,7 @@
                     <strong>90 of 144 players changed true round this
                     week</strong>. Shortstops — the
                     league's premium defensive position — are tagged
-                    <span style="color: var(--muted)">· SS</span>: their price
+                    <span class="muted">· SS</span>: their price
                     bought a glove this ledger can't see.
                 </p>
 
@@ -2514,17 +2821,17 @@
                             </tr>
                         </thead>
                         <tbody>
-        <tr><td class="ctr num">1</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="player">Timpson, Claude <span style="color:var(--muted)">· SS</span></td><td class="team-name">Pliggas (Claude's team)</td><td class="num">.760</td><td class="num">50</td><td class="num"><span class="zpos">+10.2</span></td></tr>
-        <tr><td class="ctr num">1</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="player">Hammon, Gideon <span style="color:var(--muted)">· SS</span></td><td class="team-name">Good Guys (Gideon's team)</td><td class="num">.791</td><td class="num">43</td><td class="num"><span class="zpos">+10.1</span></td></tr>
-        <tr><td class="ctr num">1</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="player">Dockstader, Sefton <span style="color:var(--muted)">· SS</span></td><td class="team-name">Lefty Looseys (Sefton's team)</td><td class="num">.833</td><td class="num">30</td><td class="num"><span class="zpos">+8.3</span></td></tr>
-        <tr><td class="ctr num">1</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="player">Williams, Horatio <span style="color:var(--muted)">· SS</span></td><td class="team-name">Youre Saying Theres A Chance (Horatio's team)</td><td class="num">.778</td><td class="num">36</td><td class="num"><span class="zpos">+8.0</span></td></tr>
-        <tr><td class="ctr num">1</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="player">Williams, Daniel <span style="color:var(--muted)">· SS</span></td><td class="team-name">Pure Breads (Caleb's team)</td><td class="num">.757</td><td class="num">37</td><td class="num"><span class="zpos">+7.4</span></td></tr>
+        <tr><td class="ctr num">1</td><td class="ctr num"><span class="muted">=</span></td><td class="player">Timpson, Claude <span class="muted">· SS</span></td><td class="team-name">Pliggas (Claude's team)</td><td class="num">.760</td><td class="num">50</td><td class="num"><span class="zpos">+10.2</span></td></tr>
+        <tr><td class="ctr num">1</td><td class="ctr num"><span class="muted">=</span></td><td class="player">Hammon, Gideon <span class="muted">· SS</span></td><td class="team-name">Good Guys (Gideon's team)</td><td class="num">.791</td><td class="num">43</td><td class="num"><span class="zpos">+10.1</span></td></tr>
+        <tr><td class="ctr num">1</td><td class="ctr num"><span class="muted">=</span></td><td class="player">Dockstader, Sefton <span class="muted">· SS</span></td><td class="team-name">Lefty Looseys (Sefton's team)</td><td class="num">.833</td><td class="num">30</td><td class="num"><span class="zpos">+8.3</span></td></tr>
+        <tr><td class="ctr num">1</td><td class="ctr num"><span class="muted">=</span></td><td class="player">Williams, Horatio <span class="muted">· SS</span></td><td class="team-name">Youre Saying Theres A Chance (Horatio's team)</td><td class="num">.778</td><td class="num">36</td><td class="num"><span class="zpos">+8.0</span></td></tr>
+        <tr><td class="ctr num">1</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="player">Williams, Daniel <span class="muted">· SS</span></td><td class="team-name">Pure Breads (Caleb's team)</td><td class="num">.757</td><td class="num">37</td><td class="num"><span class="zpos">+7.4</span></td></tr>
         <tr><td class="ctr num">2</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="player">Timpson, William</td><td class="team-name">Diamonds and Dirtbags (Jeremy's team)</td><td class="num">.800</td><td class="num">25</td><td class="num"><span class="zpos">+6.1</span></td></tr>
-        <tr><td class="ctr num">2</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="player">Knudson, Derrick</td><td class="team-name">Slamma Jammas (Boyds Daniel's team)</td><td class="num">.703</td><td class="num">37</td><td class="num"><span class="zpos">+5.4</span></td></tr>
+        <tr><td class="ctr num">2</td><td class="ctr num"><span class="muted">=</span></td><td class="player">Knudson, Derrick</td><td class="team-name">Slamma Jammas (Boyds Daniel's team)</td><td class="num">.703</td><td class="num">37</td><td class="num"><span class="zpos">+5.4</span></td></tr>
         <tr><td class="ctr num">2</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="player">Timpson, Lonnie</td><td class="team-name">Ellites (Elliot's team)</td><td class="num">.724</td><td class="num">29</td><td class="num"><span class="zpos">+4.9</span></td></tr>
         <tr><td class="ctr num">3</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="player">Hammon, Stafford</td><td class="team-name">Fellowship of the Swing (Stafford's team)</td><td class="num">.633</td><td class="num">30</td><td class="num"><span class="zpos">+2.3</span></td></tr>
         <tr><td class="ctr num">5</td><td class="ctr num"><span class="zpos">▲2</span></td><td class="player">Dockstader, Steven</td><td class="team-name">Slamma Jammas (Boyds Daniel's team)</td><td class="num">.643</td><td class="num">14</td><td class="num"><span class="zpos">+1.2</span></td></tr>
-        <tr><td class="ctr num">5</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="player">Barlow Jr, John</td><td class="team-name">Playas (Michael's team)</td><td class="num">.600</td><td class="num">20</td><td class="num"><span class="zpos">+0.9</span></td></tr>
+        <tr><td class="ctr num">5</td><td class="ctr num"><span class="muted">=</span></td><td class="player">Barlow Jr, John</td><td class="team-name">Playas (Michael's team)</td><td class="num">.600</td><td class="num">20</td><td class="num"><span class="zpos">+0.9</span></td></tr>
         <tr><td class="ctr num">5</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="player">Cawley, Seth</td><td class="team-name">Stars and Strikes (Seth's team)</td><td class="num">.583</td><td class="num">24</td><td class="num"><span class="zpos">+0.6</span></td></tr>
         <tr><td class="ctr num">5</td><td class="ctr num"><span class="zpos">▲2</span></td><td class="player">Hammon Legrands, Benjiman</td><td class="team-name">Youre Saying Theres A Chance (Horatio's team)</td><td class="num">.576</td><td class="num">33</td><td class="num"><span class="zpos">+0.6</span></td></tr>
         <tr><td class="ctr num">6</td><td class="ctr num"><span class="zneg">▼2</span></td><td class="player">Timpson, Justin</td><td class="team-name">Good Guys (Gideon's team)</td><td class="num">.579</td><td class="num">19</td><td class="num"><span class="zpos">+0.4</span></td></tr>
@@ -2532,14 +2839,14 @@
         <tr><td class="ctr num">7</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="player">Barlow, Benjiman</td><td class="team-name">Good Guys (Gideon's team)</td><td class="num">.541</td><td class="num">37</td><td class="num"><span class="zneg">−0.6</span></td></tr>
         <tr><td class="ctr num">8</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="player">Timpson, Ammon</td><td class="team-name">Stars and Strikes (Seth's team)</td><td class="num">.474</td><td class="num">19</td><td class="num"><span class="zneg">−1.6</span></td></tr>
         <tr><td class="ctr num">8</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="player">Timpson, Michael</td><td class="team-name">Ellites (Elliot's team)</td><td class="num">.200</td><td class="num">5</td><td class="num"><span class="zneg">−1.8</span></td></tr>
-        <tr><td class="ctr num">10</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="player">Hammon, Kyle</td><td class="team-name">Pure Breads (Caleb's team)</td><td class="num">.455</td><td class="num">33</td><td class="num"><span class="zneg">−3.4</span></td></tr>
-        <tr><td class="ctr num">11</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="player">Dockstader, Jarom</td><td class="team-name">Ellites (Elliot's team)</td><td class="num">.364</td><td class="num">22</td><td class="num"><span class="zneg">−4.2</span></td></tr>
-        <tr><td class="ctr num">11</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="player">Hammon, Douglas</td><td class="team-name">Good Guys (Gideon's team)</td><td class="num">.370</td><td class="num">27</td><td class="num"><span class="zneg">−5.0</span></td></tr>
+        <tr><td class="ctr num">10</td><td class="ctr num"><span class="muted">=</span></td><td class="player">Hammon, Kyle</td><td class="team-name">Pure Breads (Caleb's team)</td><td class="num">.455</td><td class="num">33</td><td class="num"><span class="zneg">−3.4</span></td></tr>
+        <tr><td class="ctr num">11</td><td class="ctr num"><span class="muted">=</span></td><td class="player">Dockstader, Jarom</td><td class="team-name">Ellites (Elliot's team)</td><td class="num">.364</td><td class="num">22</td><td class="num"><span class="zneg">−4.2</span></td></tr>
+        <tr><td class="ctr num">11</td><td class="ctr num"><span class="muted">=</span></td><td class="player">Hammon, Douglas</td><td class="team-name">Good Guys (Gideon's team)</td><td class="num">.370</td><td class="num">27</td><td class="num"><span class="zneg">−5.0</span></td></tr>
         <tr><td class="ctr num">12</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="player">Zitting, Alyssa</td><td class="team-name">Slamma Jammas (Boyds Daniel's team)</td><td class="num">.304</td><td class="num">23</td><td class="num"><span class="zneg">−5.8</span></td></tr>
-        <tr><td class="ctr num">12</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="player">Hammon, Bowen</td><td class="team-name">Danites (Ephraims Daniel's team)</td><td class="num">.345</td><td class="num">29</td><td class="num"><span class="zneg">−6.1</span></td></tr>
-        <tr><td class="ctr num">12</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="player">Dockstader, Isabel</td><td class="team-name">Lefty Looseys (Sefton's team)</td><td class="num">.273</td><td class="num">22</td><td class="num"><span class="zneg">−6.2</span></td></tr>
-        <tr><td class="ctr num">12</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="player">Williams, Heather</td><td class="team-name">Youre Saying Theres A Chance (Horatio's team)</td><td class="num">.310</td><td class="num">29</td><td class="num"><span class="zneg">−7.1</span></td></tr>
-        <tr><td class="ctr num">12</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="player">Timpson, Pauline</td><td class="team-name">Fellowship of the Swing (Stafford's team)</td><td class="num">.240</td><td class="num">25</td><td class="num"><span class="zneg">−7.9</span></td></tr>
+        <tr><td class="ctr num">12</td><td class="ctr num"><span class="muted">=</span></td><td class="player">Hammon, Bowen</td><td class="team-name">Danites (Ephraims Daniel's team)</td><td class="num">.345</td><td class="num">29</td><td class="num"><span class="zneg">−6.1</span></td></tr>
+        <tr><td class="ctr num">12</td><td class="ctr num"><span class="muted">=</span></td><td class="player">Dockstader, Isabel</td><td class="team-name">Lefty Looseys (Sefton's team)</td><td class="num">.273</td><td class="num">22</td><td class="num"><span class="zneg">−6.2</span></td></tr>
+        <tr><td class="ctr num">12</td><td class="ctr num"><span class="muted">=</span></td><td class="player">Williams, Heather</td><td class="team-name">Youre Saying Theres A Chance (Horatio's team)</td><td class="num">.310</td><td class="num">29</td><td class="num"><span class="zneg">−7.1</span></td></tr>
+        <tr><td class="ctr num">12</td><td class="ctr num"><span class="muted">=</span></td><td class="player">Timpson, Pauline</td><td class="team-name">Fellowship of the Swing (Stafford's team)</td><td class="num">.240</td><td class="num">25</td><td class="num"><span class="zneg">−7.9</span></td></tr>
                         </tbody>
                         <caption>
                             Value = net hits above a league-average bat given
@@ -2575,7 +2882,7 @@
                     </li>
                 </ul>
 
-                <h3 id="bargains" style="margin-top: 28px">
+                <h3 id="bargains">
                     <a href="#bargains"
                         >The bargains — justified it and then some</a
                     >
@@ -2603,12 +2910,12 @@
                         <tbody>
         <tr><td class="player">Williams, Maureen</td><td class="team-name">Slamma Jammas (Boyds Daniel's team)</td><td class="ctr num">R11</td><td class="ctr num big">R4</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zpos">7 early</span></td><td class="num">.640</td><td class="num">25</td><td class="num"><span class="zpos">+2.1</span></td></tr>
         <tr><td class="player">Barlow, Violet</td><td class="team-name">Pliggas (Claude's team)</td><td class="ctr num">R11</td><td class="ctr num big">R5</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zpos">6 early</span></td><td class="num">.609</td><td class="num">23</td><td class="num"><span class="zpos">+1.2</span></td></tr>
-        <tr><td class="player">Timpson, Seth</td><td class="team-name">Lefty Looseys (Sefton's team)</td><td class="ctr num">R6</td><td class="ctr num big">R1</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zpos">5 early</span></td><td class="num">.750</td><td class="num">36</td><td class="num"><span class="zpos">+7.0</span></td></tr>
-        <tr><td class="player">Williams, Wesley</td><td class="team-name">Diamonds and Dirtbags (Jeremy's team)</td><td class="ctr num">R6</td><td class="ctr num big">R1</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zpos">5 early</span></td><td class="num">.786</td><td class="num">28</td><td class="num"><span class="zpos">+6.4</span></td></tr>
+        <tr><td class="player">Timpson, Seth</td><td class="team-name">Lefty Looseys (Sefton's team)</td><td class="ctr num">R6</td><td class="ctr num big">R1</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">5 early</span></td><td class="num">.750</td><td class="num">36</td><td class="num"><span class="zpos">+7.0</span></td></tr>
+        <tr><td class="player">Williams, Wesley</td><td class="team-name">Diamonds and Dirtbags (Jeremy's team)</td><td class="ctr num">R6</td><td class="ctr num big">R1</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">5 early</span></td><td class="num">.786</td><td class="num">28</td><td class="num"><span class="zpos">+6.4</span></td></tr>
         <tr><td class="player">Hammon, Lewis</td><td class="team-name">Youre Saying Theres A Chance (Horatio's team)</td><td class="ctr num">R8</td><td class="ctr num big">R3</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">5 early</span></td><td class="num">.650</td><td class="num">40</td><td class="num"><span class="zpos">+3.7</span></td></tr>
         <tr><td class="player">Hammon, Paul</td><td class="team-name">Diamonds and Dirtbags (Jeremy's team)</td><td class="ctr num">R8</td><td class="ctr num big">R3</td><td class="ctr num"><span class="zpos">▲2</span></td><td class="num"><span class="zpos">5 early</span></td><td class="num">.800</td><td class="num">10</td><td class="num"><span class="zpos">+2.4</span></td></tr>
         <tr><td class="player">Johnson, Anson</td><td class="team-name">Pure Breads (Caleb's team)</td><td class="ctr num">R9</td><td class="ctr num big">R4</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zpos">5 early</span></td><td class="num">.633</td><td class="num">30</td><td class="num"><span class="zpos">+2.3</span></td></tr>
-        <tr><td class="player">Naylor, Scott</td><td class="team-name">Danites (Ephraims Daniel's team)</td><td class="ctr num">R9</td><td class="ctr num big">R4</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zpos">5 early</span></td><td class="num">.700</td><td class="num">10</td><td class="num"><span class="zpos">+1.4</span></td></tr>
+        <tr><td class="player">Naylor, Scott</td><td class="team-name">Danites (Ephraims Daniel's team)</td><td class="ctr num">R9</td><td class="ctr num big">R4</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">5 early</span></td><td class="num">.700</td><td class="num">10</td><td class="num"><span class="zpos">+1.4</span></td></tr>
                         </tbody>
                         <caption>
                             Gap in rounds between where they went and where the
@@ -2641,7 +2948,7 @@
                     </li>
                 </ul>
 
-                <h3 id="didnt-justify" style="margin-top: 28px">
+                <h3 id="didnt-justify">
                     <a href="#didnt-justify"
                         >The bills that came due — didn't justify it</a
                     >
@@ -2671,10 +2978,10 @@
         <tr><td class="player">Timpson, Kayden</td><td class="team-name">Pliggas (Claude's team)</td><td class="ctr num">R3</td><td class="ctr num big">R10</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zneg">7 late</span></td><td class="num">.462</td><td class="num">39</td><td class="num"><span class="zneg">−3.7</span></td></tr>
         <tr><td class="player">Hammon, Roy</td><td class="team-name">Ellites (Elliot's team)</td><td class="ctr num">R4</td><td class="ctr num big">R10</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zneg">6 late</span></td><td class="num">.472</td><td class="num">36</td><td class="num"><span class="zneg">−3.0</span></td></tr>
         <tr><td class="player">Horsley, Dylan</td><td class="team-name">Stars and Strikes (Seth's team)</td><td class="ctr num">R4</td><td class="ctr num big">R10</td><td class="ctr num"><span class="zneg">▼2</span></td><td class="num"><span class="zneg">6 late</span></td><td class="num">.389</td><td class="num">18</td><td class="num"><span class="zneg">−3.0</span></td></tr>
-        <tr><td class="player">Timpson, Treyton</td><td class="team-name">Youre Saying Theres A Chance (Horatio's team)</td><td class="ctr num">R3</td><td class="ctr num big">R9</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zneg">6 late</span></td><td class="num">.500</td><td class="num">52</td><td class="num"><span class="zneg">−2.9</span></td></tr>
-        <tr><td class="player">Hammon, Jairus</td><td class="team-name">Good Guys (Gideon's team)</td><td class="ctr num">R2</td><td class="ctr num big">R8</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zneg">6 late</span></td><td class="num">.476</td><td class="num">21</td><td class="num"><span class="zneg">−1.7</span></td></tr>
+        <tr><td class="player">Timpson, Treyton</td><td class="team-name">Youre Saying Theres A Chance (Horatio's team)</td><td class="ctr num">R3</td><td class="ctr num big">R9</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">6 late</span></td><td class="num">.500</td><td class="num">52</td><td class="num"><span class="zneg">−2.9</span></td></tr>
+        <tr><td class="player">Hammon, Jairus</td><td class="team-name">Good Guys (Gideon's team)</td><td class="ctr num">R2</td><td class="ctr num big">R8</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">6 late</span></td><td class="num">.476</td><td class="num">21</td><td class="num"><span class="zneg">−1.7</span></td></tr>
         <tr><td class="player">Horsley, Lizzy</td><td class="team-name">Ellites (Elliot's team)</td><td class="ctr num">R6</td><td class="ctr num big">R11</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zneg">5 late</span></td><td class="num">.439</td><td class="num">41</td><td class="num"><span class="zneg">−4.8</span></td></tr>
-        <tr><td class="player">Dockstader Ephraims, Daniel <span style="color:var(--muted)">· SS</span></td><td class="team-name">Danites (Ephraims Daniel's team)</td><td class="ctr num">R4</td><td class="ctr num big">R9</td><td class="ctr num"><span class="zneg">▼2</span></td><td class="num"><span class="zneg">5 late</span></td><td class="num">.467</td><td class="num">30</td><td class="num"><span class="zneg">−2.7</span></td></tr>
+        <tr><td class="player">Dockstader Ephraims, Daniel <span class="muted">· SS</span></td><td class="team-name">Danites (Ephraims Daniel's team)</td><td class="ctr num">R4</td><td class="ctr num big">R9</td><td class="ctr num"><span class="zneg">▼2</span></td><td class="num"><span class="zneg">5 late</span></td><td class="num">.467</td><td class="num">30</td><td class="num"><span class="zneg">−2.7</span></td></tr>
         <tr><td class="player">Hammon, Brayden</td><td class="team-name">Lefty Looseys (Sefton's team)</td><td class="ctr num">R3</td><td class="ctr num big">R8</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zneg">5 late</span></td><td class="num">.516</td><td class="num">31</td><td class="num"><span class="zneg">−1.3</span></td></tr>
                         </tbody>
                         <caption>
@@ -2716,7 +3023,7 @@
                     </li>
                 </ul>
 
-                <h3 id="dream-team" style="margin-top: 28px">
+                <h3 id="dream-team">
                     <a href="#dream-team">The Dream Team</a>
                 </h3>
                 <p class="lede">
@@ -2738,13 +3045,13 @@
                             </tr>
                         </thead>
                         <tbody>
-        <tr><td class="ctr num">1</td><td class="player">Timpson, Claude <span style="color:var(--muted)">· SS</span></td><td class="team-name">Pliggas (Claude's team)</td><td class="num">.760</td><td class="num">50</td><td class="num"><span class="zpos">+10.2</span></td></tr>
+        <tr><td class="ctr num">1</td><td class="player">Timpson, Claude <span class="muted">· SS</span></td><td class="team-name">Pliggas (Claude's team)</td><td class="num">.760</td><td class="num">50</td><td class="num"><span class="zpos">+10.2</span></td></tr>
         <tr><td class="ctr num">2</td><td class="player">Timpson, Cuervo</td><td class="team-name">Stars and Strikes (Seth's team)</td><td class="num">.864</td><td class="num">44</td><td class="num"><span class="zpos">+13.5</span></td></tr>
-        <tr><td class="ctr num">3</td><td class="player">Hammon, Aryck <span style="color:var(--muted)">· in for Williams, Evan</span></td><td class="team-name">Pure Breads (Caleb's team)</td><td class="num">.737</td><td class="num">38</td><td class="num"><span class="zpos">+6.8</span></td></tr>
-        <tr><td class="ctr num">4</td><td class="player">White, Curt <span style="color:var(--muted)">· in for Timpson, Taylor</span></td><td class="team-name">Youre Saying Theres A Chance (Horatio's team)</td><td class="num">.743</td><td class="num">35</td><td class="num"><span class="zpos">+6.5</span></td></tr>
+        <tr><td class="ctr num">3</td><td class="player">Hammon, Aryck <span class="muted">· in for Williams, Evan</span></td><td class="team-name">Pure Breads (Caleb's team)</td><td class="num">.737</td><td class="num">38</td><td class="num"><span class="zpos">+6.8</span></td></tr>
+        <tr><td class="ctr num">4</td><td class="player">White, Curt <span class="muted">· in for Timpson, Taylor</span></td><td class="team-name">Youre Saying Theres A Chance (Horatio's team)</td><td class="num">.743</td><td class="num">35</td><td class="num"><span class="zpos">+6.5</span></td></tr>
         <tr><td class="ctr num">5</td><td class="player">Hammon, Ryan</td><td class="team-name">Pure Breads (Caleb's team)</td><td class="num">.694</td><td class="num">36</td><td class="num"><span class="zpos">+5.0</span></td></tr>
-        <tr><td class="ctr num">6</td><td class="player">Timpson, Seth <span style="color:var(--muted)">· in for Williams, Wesley</span></td><td class="team-name">Lefty Looseys (Sefton's team)</td><td class="num">.750</td><td class="num">36</td><td class="num"><span class="zpos">+7.0</span></td></tr>
-        <tr><td class="ctr num">7</td><td class="player">Williams, Anthony <span style="color:var(--muted)">· in for Barlow, Riley</span></td><td class="team-name">Youre Saying Theres A Chance (Horatio's team)</td><td class="num">.645</td><td class="num">31</td><td class="num"><span class="zpos">+2.7</span></td></tr>
+        <tr><td class="ctr num">6</td><td class="player">Timpson, Seth <span class="muted">· in for Williams, Wesley</span></td><td class="team-name">Lefty Looseys (Sefton's team)</td><td class="num">.750</td><td class="num">36</td><td class="num"><span class="zpos">+7.0</span></td></tr>
+        <tr><td class="ctr num">7</td><td class="player">Williams, Anthony <span class="muted">· in for Barlow, Riley</span></td><td class="team-name">Youre Saying Theres A Chance (Horatio's team)</td><td class="num">.645</td><td class="num">31</td><td class="num"><span class="zpos">+2.7</span></td></tr>
         <tr><td class="ctr num">8</td><td class="player">Hammon, Lewis</td><td class="team-name">Youre Saying Theres A Chance (Horatio's team)</td><td class="num">.650</td><td class="num">40</td><td class="num"><span class="zpos">+3.7</span></td></tr>
         <tr><td class="ctr num">9</td><td class="player">Johnson, Anson</td><td class="team-name">Pure Breads (Caleb's team)</td><td class="num">.633</td><td class="num">30</td><td class="num"><span class="zpos">+2.3</span></td></tr>
         <tr><td class="ctr num">10</td><td class="player">Dockstader, Jayla</td><td class="team-name">Lefty Looseys (Sefton's team)</td><td class="num">.600</td><td class="num">25</td><td class="num"><span class="zpos">+1.1</span></td></tr>
@@ -2753,7 +3060,7 @@
                         </tbody>
                         <caption>
                             Best value pick in every round. Value = (avg − .557)
-                            × ABs. <span style="color: var(--muted)">· in
+                            × ABs. <span class="muted">· in
                             for</span> marks this week's seat changes — the
                             named player held that round's spot on the
                             July 3 edition's Dream Team.
@@ -2813,7 +3120,7 @@
                     </li>
                 </ul>
 
-                <h3 id="captains-mirror" style="margin-top: 28px">
+                <h3 id="captains-mirror">
                     <a href="#captains-mirror">The Captain's Mirror</a>
                 </h3>
                 <p class="lede">
@@ -2840,17 +3147,17 @@
                             </tr>
                         </thead>
                         <tbody>
-        <tr><td class="player">Hammon, Gideon <span style="color:var(--muted)">· SS</span></td><td class="team-name">Good Guys (Gideon's team)</td><td class="ctr num">#1</td><td class="ctr num">R1</td><td class="ctr num">R1</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span style="color:var(--muted)">=</span></td><td class="num">.791</td><td class="num">43</td><td class="num"><span class="zpos">+10.1</span></td></tr>
-        <tr><td class="player">Williams, Horatio <span style="color:var(--muted)">· SS</span></td><td class="team-name">Youre Saying Theres A Chance (Horatio's team)</td><td class="ctr num">#2</td><td class="ctr num">R1</td><td class="ctr num">R1</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span style="color:var(--muted)">=</span></td><td class="num">.778</td><td class="num">36</td><td class="num"><span class="zpos">+8.0</span></td></tr>
-        <tr><td class="player">Dockstader, Sefton <span style="color:var(--muted)">· SS</span></td><td class="team-name">Lefty Looseys (Sefton's team)</td><td class="ctr num">#3</td><td class="ctr num">R1</td><td class="ctr num">R1</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span style="color:var(--muted)">=</span></td><td class="num">.833</td><td class="num">30</td><td class="num"><span class="zpos">+8.3</span></td></tr>
-        <tr><td class="player">Hammon, Elliot <span style="color:var(--muted)">· SS</span></td><td class="team-name">Ellites (Elliot's team)</td><td class="ctr num">#4</td><td class="ctr num">R1</td><td class="ctr num">R4</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zneg">−3</span></td><td class="num">.615</td><td class="num">26</td><td class="num"><span class="zpos">+1.5</span></td></tr>
-        <tr><td class="player">Timpson, Claude <span style="color:var(--muted)">· SS</span></td><td class="team-name">Pliggas (Claude's team)</td><td class="ctr num">#5</td><td class="ctr num">R1</td><td class="ctr num">R1</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span style="color:var(--muted)">=</span></td><td class="num">.760</td><td class="num">50</td><td class="num"><span class="zpos">+10.2</span></td></tr>
-        <tr><td class="player">Williams, Michael <span style="color:var(--muted)">· SS</span></td><td class="team-name">Playas (Michael's team)</td><td class="ctr num">#6</td><td class="ctr num">R1</td><td class="ctr num">R5</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zneg">−4</span></td><td class="num">.591</td><td class="num">22</td><td class="num"><span class="zpos">+0.8</span></td></tr>
-        <tr><td class="player">Cawley, Seth</td><td class="team-name">Stars and Strikes (Seth's team)</td><td class="ctr num">#55</td><td class="ctr num">R5</td><td class="ctr num">R5</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span style="color:var(--muted)">=</span></td><td class="num">.583</td><td class="num">24</td><td class="num"><span class="zpos">+0.6</span></td></tr>
-        <tr><td class="player">Dockstader Ephraims, Daniel <span style="color:var(--muted)">· SS</span></td><td class="team-name">Danites (Ephraims Daniel's team)</td><td class="ctr num">#41</td><td class="ctr num">R4</td><td class="ctr num">R9</td><td class="ctr num"><span class="zneg">▼2</span></td><td class="num"><span class="zneg">−5</span></td><td class="num">.467</td><td class="num">30</td><td class="num"><span class="zneg">−2.7</span></td></tr>
+        <tr><td class="player">Hammon, Gideon <span class="muted">· SS</span></td><td class="team-name">Good Guys (Gideon's team)</td><td class="ctr num">#1</td><td class="ctr num">R1</td><td class="ctr num">R1</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="muted">=</span></td><td class="num">.791</td><td class="num">43</td><td class="num"><span class="zpos">+10.1</span></td></tr>
+        <tr><td class="player">Williams, Horatio <span class="muted">· SS</span></td><td class="team-name">Youre Saying Theres A Chance (Horatio's team)</td><td class="ctr num">#2</td><td class="ctr num">R1</td><td class="ctr num">R1</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="muted">=</span></td><td class="num">.778</td><td class="num">36</td><td class="num"><span class="zpos">+8.0</span></td></tr>
+        <tr><td class="player">Dockstader, Sefton <span class="muted">· SS</span></td><td class="team-name">Lefty Looseys (Sefton's team)</td><td class="ctr num">#3</td><td class="ctr num">R1</td><td class="ctr num">R1</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="muted">=</span></td><td class="num">.833</td><td class="num">30</td><td class="num"><span class="zpos">+8.3</span></td></tr>
+        <tr><td class="player">Hammon, Elliot <span class="muted">· SS</span></td><td class="team-name">Ellites (Elliot's team)</td><td class="ctr num">#4</td><td class="ctr num">R1</td><td class="ctr num">R4</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zneg">−3</span></td><td class="num">.615</td><td class="num">26</td><td class="num"><span class="zpos">+1.5</span></td></tr>
+        <tr><td class="player">Timpson, Claude <span class="muted">· SS</span></td><td class="team-name">Pliggas (Claude's team)</td><td class="ctr num">#5</td><td class="ctr num">R1</td><td class="ctr num">R1</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="muted">=</span></td><td class="num">.760</td><td class="num">50</td><td class="num"><span class="zpos">+10.2</span></td></tr>
+        <tr><td class="player">Williams, Michael <span class="muted">· SS</span></td><td class="team-name">Playas (Michael's team)</td><td class="ctr num">#6</td><td class="ctr num">R1</td><td class="ctr num">R5</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−4</span></td><td class="num">.591</td><td class="num">22</td><td class="num"><span class="zpos">+0.8</span></td></tr>
+        <tr><td class="player">Cawley, Seth</td><td class="team-name">Stars and Strikes (Seth's team)</td><td class="ctr num">#55</td><td class="ctr num">R5</td><td class="ctr num">R5</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="muted">=</span></td><td class="num">.583</td><td class="num">24</td><td class="num"><span class="zpos">+0.6</span></td></tr>
+        <tr><td class="player">Dockstader Ephraims, Daniel <span class="muted">· SS</span></td><td class="team-name">Danites (Ephraims Daniel's team)</td><td class="ctr num">#41</td><td class="ctr num">R4</td><td class="ctr num">R9</td><td class="ctr num"><span class="zneg">▼2</span></td><td class="num"><span class="zneg">−5</span></td><td class="num">.467</td><td class="num">30</td><td class="num"><span class="zneg">−2.7</span></td></tr>
         <tr><td class="player">Barlow, Caleb</td><td class="team-name">Pure Breads (Caleb's team)</td><td class="ctr num">#16</td><td class="ctr num">R2</td><td class="ctr num">R6</td><td class="ctr num"><span class="zneg">▼2</span></td><td class="num"><span class="zneg">−4</span></td><td class="num">.565</td><td class="num">46</td><td class="num"><span class="zpos">+0.4</span></td></tr>
-        <tr><td class="player">Dockstader Boyds, Daniel</td><td class="team-name">Slamma Jammas (Boyds Daniel's team)</td><td class="ctr num">#34</td><td class="ctr num">R3</td><td class="ctr num">R6</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zneg">−3</span></td><td class="num">.571</td><td class="num">21</td><td class="num"><span class="zpos">+0.3</span></td></tr>
-        <tr><td class="player">Hammon, Stafford</td><td class="team-name">Fellowship of the Swing (Stafford's team)</td><td class="ctr num">#35</td><td class="ctr num">R3</td><td class="ctr num">R3</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span style="color:var(--muted)">=</span></td><td class="num">.633</td><td class="num">30</td><td class="num"><span class="zpos">+2.3</span></td></tr>
+        <tr><td class="player">Dockstader Boyds, Daniel</td><td class="team-name">Slamma Jammas (Boyds Daniel's team)</td><td class="ctr num">#34</td><td class="ctr num">R3</td><td class="ctr num">R6</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−3</span></td><td class="num">.571</td><td class="num">21</td><td class="num"><span class="zpos">+0.3</span></td></tr>
+        <tr><td class="player">Hammon, Stafford</td><td class="team-name">Fellowship of the Swing (Stafford's team)</td><td class="ctr num">#35</td><td class="ctr num">R3</td><td class="ctr num">R3</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="muted">=</span></td><td class="num">.633</td><td class="num">30</td><td class="num"><span class="zpos">+2.3</span></td></tr>
         <tr><td class="player">Dockstader Marvins, Jeremy</td><td class="team-name">Diamonds and Dirtbags (Jeremy's team)</td><td class="ctr num">#36</td><td class="ctr num">R3</td><td class="ctr num">R2</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">+1</span></td><td class="num">.800</td><td class="num">25</td><td class="num"><span class="zpos">+6.1</span></td></tr>
                         </tbody>
                         <caption>
@@ -2913,7 +3220,7 @@
                     </li>
                 </ul>
 
-                <h3 id="full-docket" style="margin-top: 28px">
+                <h3 id="full-docket">
                     <a href="#full-docket"
                         >The full docket — all 144 verdicts</a
                     >
@@ -2928,12 +3235,12 @@
                     <strong>Gap</strong> is the verdict —
                     <span class="zpos">green</span> justified the pick with
                     rounds to spare,
-                    <span style="color: var(--muted)">=</span> priced exactly
+                    <span class="muted">=</span> priced exactly
                     right, <span class="zneg">red</span> should have gone later
                     — and <strong>League #</strong> is your value rank out of
                     144. The heavier lines start a new round.
                 </p>
-                <div class="table-scroll">
+                <div class="table-scroll tall">
                     <table>
                         <thead>
                             <tr>
@@ -2951,149 +3258,149 @@
                             </tr>
                         </thead>
                         <tbody>
-        <tr><td class="ctr num">#1</td><td class="ctr num">1</td><td class="player">Hammon, Gideon <span style="color:var(--muted)">· SS</span></td><td class="team-name">Good Guys (Gideon's team)</td><td class="ctr num">R1</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span style="color:var(--muted)">=</span></td><td class="ctr num">#3</td><td class="num">.791</td><td class="num">43</td><td class="num"><span class="zpos">+10.1</span></td></tr>
-        <tr><td class="ctr num">#2</td><td class="ctr num">1</td><td class="player">Williams, Horatio <span style="color:var(--muted)">· SS</span></td><td class="team-name">Youre Saying Theres A Chance (Horatio's team)</td><td class="ctr num">R1</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span style="color:var(--muted)">=</span></td><td class="ctr num">#6</td><td class="num">.778</td><td class="num">36</td><td class="num"><span class="zpos">+8.0</span></td></tr>
-        <tr><td class="ctr num">#3</td><td class="ctr num">1</td><td class="player">Dockstader, Sefton <span style="color:var(--muted)">· SS</span></td><td class="team-name">Lefty Looseys (Sefton's team)</td><td class="ctr num">R1</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span style="color:var(--muted)">=</span></td><td class="ctr num">#5</td><td class="num">.833</td><td class="num">30</td><td class="num"><span class="zpos">+8.3</span></td></tr>
-        <tr><td class="ctr num">#4</td><td class="ctr num">1</td><td class="player">Hammon, Elliot <span style="color:var(--muted)">· SS</span></td><td class="team-name">Ellites (Elliot's team)</td><td class="ctr num">R4</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zneg">−3</span></td><td class="ctr num">#45</td><td class="num">.615</td><td class="num">26</td><td class="num"><span class="zpos">+1.5</span></td></tr>
-        <tr><td class="ctr num">#5</td><td class="ctr num">1</td><td class="player">Timpson, Claude <span style="color:var(--muted)">· SS</span></td><td class="team-name">Pliggas (Claude's team)</td><td class="ctr num">R1</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span style="color:var(--muted)">=</span></td><td class="ctr num">#2</td><td class="num">.760</td><td class="num">50</td><td class="num"><span class="zpos">+10.2</span></td></tr>
-        <tr><td class="ctr num">#6</td><td class="ctr num">1</td><td class="player">Williams, Michael <span style="color:var(--muted)">· SS</span></td><td class="team-name">Playas (Michael's team)</td><td class="ctr num">R5</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zneg">−4</span></td><td class="ctr num">#57</td><td class="num">.591</td><td class="num">22</td><td class="num"><span class="zpos">+0.8</span></td></tr>
-        <tr><td class="ctr num">#7</td><td class="ctr num">1</td><td class="player">Guy, Sam <span style="color:var(--muted)">· SS</span></td><td class="team-name">Stars and Strikes (Seth's team)</td><td class="ctr num">R3</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zneg">−2</span></td><td class="ctr num">#25</td><td class="num">.731</td><td class="num">26</td><td class="num"><span class="zpos">+4.5</span></td></tr>
+        <tr><td class="ctr num">#1</td><td class="ctr num">1</td><td class="player">Hammon, Gideon <span class="muted">· SS</span></td><td class="team-name">Good Guys (Gideon's team)</td><td class="ctr num">R1</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#3</td><td class="num">.791</td><td class="num">43</td><td class="num"><span class="zpos">+10.1</span></td></tr>
+        <tr><td class="ctr num">#2</td><td class="ctr num">1</td><td class="player">Williams, Horatio <span class="muted">· SS</span></td><td class="team-name">Youre Saying Theres A Chance (Horatio's team)</td><td class="ctr num">R1</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#6</td><td class="num">.778</td><td class="num">36</td><td class="num"><span class="zpos">+8.0</span></td></tr>
+        <tr><td class="ctr num">#3</td><td class="ctr num">1</td><td class="player">Dockstader, Sefton <span class="muted">· SS</span></td><td class="team-name">Lefty Looseys (Sefton's team)</td><td class="ctr num">R1</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#5</td><td class="num">.833</td><td class="num">30</td><td class="num"><span class="zpos">+8.3</span></td></tr>
+        <tr><td class="ctr num">#4</td><td class="ctr num">1</td><td class="player">Hammon, Elliot <span class="muted">· SS</span></td><td class="team-name">Ellites (Elliot's team)</td><td class="ctr num">R4</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zneg">−3</span></td><td class="ctr num">#45</td><td class="num">.615</td><td class="num">26</td><td class="num"><span class="zpos">+1.5</span></td></tr>
+        <tr><td class="ctr num">#5</td><td class="ctr num">1</td><td class="player">Timpson, Claude <span class="muted">· SS</span></td><td class="team-name">Pliggas (Claude's team)</td><td class="ctr num">R1</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#2</td><td class="num">.760</td><td class="num">50</td><td class="num"><span class="zpos">+10.2</span></td></tr>
+        <tr><td class="ctr num">#6</td><td class="ctr num">1</td><td class="player">Williams, Michael <span class="muted">· SS</span></td><td class="team-name">Playas (Michael's team)</td><td class="ctr num">R5</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−4</span></td><td class="ctr num">#57</td><td class="num">.591</td><td class="num">22</td><td class="num"><span class="zpos">+0.8</span></td></tr>
+        <tr><td class="ctr num">#7</td><td class="ctr num">1</td><td class="player">Guy, Sam <span class="muted">· SS</span></td><td class="team-name">Stars and Strikes (Seth's team)</td><td class="ctr num">R3</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zneg">−2</span></td><td class="ctr num">#25</td><td class="num">.731</td><td class="num">26</td><td class="num"><span class="zpos">+4.5</span></td></tr>
         <tr><td class="ctr num">#8</td><td class="ctr num">1</td><td class="player">Williams, Heber</td><td class="team-name">Danites (Ephraims Daniel's team)</td><td class="ctr num">R4</td><td class="ctr num"><span class="zpos">▲2</span></td><td class="num"><span class="zneg">−3</span></td><td class="ctr num">#42</td><td class="num">.618</td><td class="num">34</td><td class="num"><span class="zpos">+2.1</span></td></tr>
-        <tr><td class="ctr num">#9</td><td class="ctr num">1</td><td class="player">Williams, Daniel <span style="color:var(--muted)">· SS</span></td><td class="team-name">Pure Breads (Caleb's team)</td><td class="ctr num">R1</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span style="color:var(--muted)">=</span></td><td class="ctr num">#7</td><td class="num">.757</td><td class="num">37</td><td class="num"><span class="zpos">+7.4</span></td></tr>
-        <tr><td class="ctr num">#10</td><td class="ctr num">1</td><td class="player">Knudson, Levi <span style="color:var(--muted)">· SS</span></td><td class="team-name">Slamma Jammas (Boyds Daniel's team)</td><td class="ctr num">R2</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#18</td><td class="num">.692</td><td class="num">39</td><td class="num"><span class="zpos">+5.3</span></td></tr>
-        <tr><td class="ctr num">#11</td><td class="ctr num">1</td><td class="player">Dockstader, Adam <span style="color:var(--muted)">· SS</span></td><td class="team-name">Fellowship of the Swing (Stafford's team)</td><td class="ctr num">R2</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#15</td><td class="num">.703</td><td class="num">37</td><td class="num"><span class="zpos">+5.4</span></td></tr>
-        <tr><td class="ctr num">#12</td><td class="ctr num">1</td><td class="player">Dockstader Boyds, Jeremy <span style="color:var(--muted)">· SS</span></td><td class="team-name">Diamonds and Dirtbags (Jeremy's team)</td><td class="ctr num">R2</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#22</td><td class="num">.724</td><td class="num">29</td><td class="num"><span class="zpos">+4.9</span></td></tr>
-        <tr class="rd-break"><td class="ctr num">#13</td><td class="ctr num">2</td><td class="player">Timpson, William</td><td class="team-name">Diamonds and Dirtbags (Jeremy's team)</td><td class="ctr num">R2</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span style="color:var(--muted)">=</span></td><td class="ctr num">#14</td><td class="num">.800</td><td class="num">25</td><td class="num"><span class="zpos">+6.1</span></td></tr>
-        <tr><td class="ctr num">#14</td><td class="ctr num">2</td><td class="player">Hammon, Monte</td><td class="team-name">Fellowship of the Swing (Stafford's team)</td><td class="ctr num">R3</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#30</td><td class="num">.641</td><td class="num">39</td><td class="num"><span class="zpos">+3.3</span></td></tr>
-        <tr><td class="ctr num">#15</td><td class="ctr num">2</td><td class="player">Knudson, Derrick</td><td class="team-name">Slamma Jammas (Boyds Daniel's team)</td><td class="ctr num">R2</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span style="color:var(--muted)">=</span></td><td class="ctr num">#16</td><td class="num">.703</td><td class="num">37</td><td class="num"><span class="zpos">+5.4</span></td></tr>
+        <tr><td class="ctr num">#9</td><td class="ctr num">1</td><td class="player">Williams, Daniel <span class="muted">· SS</span></td><td class="team-name">Pure Breads (Caleb's team)</td><td class="ctr num">R1</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#7</td><td class="num">.757</td><td class="num">37</td><td class="num"><span class="zpos">+7.4</span></td></tr>
+        <tr><td class="ctr num">#10</td><td class="ctr num">1</td><td class="player">Knudson, Levi <span class="muted">· SS</span></td><td class="team-name">Slamma Jammas (Boyds Daniel's team)</td><td class="ctr num">R2</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#18</td><td class="num">.692</td><td class="num">39</td><td class="num"><span class="zpos">+5.3</span></td></tr>
+        <tr><td class="ctr num">#11</td><td class="ctr num">1</td><td class="player">Dockstader, Adam <span class="muted">· SS</span></td><td class="team-name">Fellowship of the Swing (Stafford's team)</td><td class="ctr num">R2</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#15</td><td class="num">.703</td><td class="num">37</td><td class="num"><span class="zpos">+5.4</span></td></tr>
+        <tr><td class="ctr num">#12</td><td class="ctr num">1</td><td class="player">Dockstader Boyds, Jeremy <span class="muted">· SS</span></td><td class="team-name">Diamonds and Dirtbags (Jeremy's team)</td><td class="ctr num">R2</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#22</td><td class="num">.724</td><td class="num">29</td><td class="num"><span class="zpos">+4.9</span></td></tr>
+        <tr class="rd-break"><td class="ctr num">#13</td><td class="ctr num">2</td><td class="player">Timpson, William</td><td class="team-name">Diamonds and Dirtbags (Jeremy's team)</td><td class="ctr num">R2</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#14</td><td class="num">.800</td><td class="num">25</td><td class="num"><span class="zpos">+6.1</span></td></tr>
+        <tr><td class="ctr num">#14</td><td class="ctr num">2</td><td class="player">Hammon, Monte</td><td class="team-name">Fellowship of the Swing (Stafford's team)</td><td class="ctr num">R3</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#30</td><td class="num">.641</td><td class="num">39</td><td class="num"><span class="zpos">+3.3</span></td></tr>
+        <tr><td class="ctr num">#15</td><td class="ctr num">2</td><td class="player">Knudson, Derrick</td><td class="team-name">Slamma Jammas (Boyds Daniel's team)</td><td class="ctr num">R2</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#16</td><td class="num">.703</td><td class="num">37</td><td class="num"><span class="zpos">+5.4</span></td></tr>
         <tr><td class="ctr num">#16</td><td class="ctr num">2</td><td class="player">Barlow, Caleb</td><td class="team-name">Pure Breads (Caleb's team)</td><td class="ctr num">R6</td><td class="ctr num"><span class="zneg">▼2</span></td><td class="num"><span class="zneg">−4</span></td><td class="ctr num">#64</td><td class="num">.565</td><td class="num">46</td><td class="num"><span class="zpos">+0.4</span></td></tr>
         <tr><td class="ctr num">#17</td><td class="ctr num">2</td><td class="player">Dockstader, Robert</td><td class="team-name">Danites (Ephraims Daniel's team)</td><td class="ctr num">R4</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zneg">−2</span></td><td class="ctr num">#44</td><td class="num">.606</td><td class="num">33</td><td class="num"><span class="zpos">+1.6</span></td></tr>
-        <tr><td class="ctr num">#18</td><td class="ctr num">2</td><td class="player">Timpson, Cuervo</td><td class="team-name">Stars and Strikes (Seth's team)</td><td class="ctr num">R1</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#1</td><td class="num">.864</td><td class="num">44</td><td class="num"><span class="zpos">+13.5</span></td></tr>
+        <tr><td class="ctr num">#18</td><td class="ctr num">2</td><td class="player">Timpson, Cuervo</td><td class="team-name">Stars and Strikes (Seth's team)</td><td class="ctr num">R1</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#1</td><td class="num">.864</td><td class="num">44</td><td class="num"><span class="zpos">+13.5</span></td></tr>
         <tr><td class="ctr num">#19</td><td class="ctr num">2</td><td class="player">Timpson, Jason W</td><td class="team-name">Playas (Michael's team)</td><td class="ctr num">R6</td><td class="ctr num"><span class="zpos">▲3</span></td><td class="num"><span class="zneg">−4</span></td><td class="ctr num">#72</td><td class="num">.542</td><td class="num">24</td><td class="num"><span class="zneg">−0.4</span></td></tr>
         <tr><td class="ctr num">#20</td><td class="ctr num">2</td><td class="player">Williams, Connor</td><td class="team-name">Pliggas (Claude's team)</td><td class="ctr num">R5</td><td class="ctr num"><span class="zpos">▲2</span></td><td class="num"><span class="zneg">−3</span></td><td class="ctr num">#54</td><td class="num">.581</td><td class="num">43</td><td class="num"><span class="zpos">+1.1</span></td></tr>
-        <tr><td class="ctr num">#21</td><td class="ctr num">2</td><td class="player">Timpson, Lonnie</td><td class="team-name">Ellites (Elliot's team)</td><td class="ctr num">R2</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span style="color:var(--muted)">=</span></td><td class="ctr num">#23</td><td class="num">.724</td><td class="num">29</td><td class="num"><span class="zpos">+4.9</span></td></tr>
+        <tr><td class="ctr num">#21</td><td class="ctr num">2</td><td class="player">Timpson, Lonnie</td><td class="team-name">Ellites (Elliot's team)</td><td class="ctr num">R2</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#23</td><td class="num">.724</td><td class="num">29</td><td class="num"><span class="zpos">+4.9</span></td></tr>
         <tr><td class="ctr num">#22</td><td class="ctr num">2</td><td class="player">Hammon, Kendall</td><td class="team-name">Lefty Looseys (Sefton's team)</td><td class="ctr num">R7</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zneg">−5</span></td><td class="ctr num">#73</td><td class="num">.545</td><td class="num">33</td><td class="num"><span class="zneg">−0.4</span></td></tr>
-        <tr><td class="ctr num">#23</td><td class="ctr num">2</td><td class="player">Knudson, Curtis</td><td class="team-name">Youre Saying Theres A Chance (Horatio's team)</td><td class="ctr num">R1</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#4</td><td class="num">.806</td><td class="num">36</td><td class="num"><span class="zpos">+9.0</span></td></tr>
-        <tr><td class="ctr num">#24</td><td class="ctr num">2</td><td class="player">Hammon, Jairus</td><td class="team-name">Good Guys (Gideon's team)</td><td class="ctr num">R8</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zneg">−6</span></td><td class="ctr num">#92</td><td class="num">.476</td><td class="num">21</td><td class="num"><span class="zneg">−1.7</span></td></tr>
+        <tr><td class="ctr num">#23</td><td class="ctr num">2</td><td class="player">Knudson, Curtis</td><td class="team-name">Youre Saying Theres A Chance (Horatio's team)</td><td class="ctr num">R1</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#4</td><td class="num">.806</td><td class="num">36</td><td class="num"><span class="zpos">+9.0</span></td></tr>
+        <tr><td class="ctr num">#24</td><td class="ctr num">2</td><td class="player">Hammon, Jairus</td><td class="team-name">Good Guys (Gideon's team)</td><td class="ctr num">R8</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−6</span></td><td class="ctr num">#92</td><td class="num">.476</td><td class="num">21</td><td class="num"><span class="zneg">−1.7</span></td></tr>
         <tr class="rd-break"><td class="ctr num">#25</td><td class="ctr num">3</td><td class="player">Williams, Evan</td><td class="team-name">Good Guys (Gideon's team)</td><td class="ctr num">R2</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#24</td><td class="num">.675</td><td class="num">40</td><td class="num"><span class="zpos">+4.7</span></td></tr>
-        <tr><td class="ctr num">#26</td><td class="ctr num">3</td><td class="player">Timpson, Treyton</td><td class="team-name">Youre Saying Theres A Chance (Horatio's team)</td><td class="ctr num">R9</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zneg">−6</span></td><td class="ctr num">#108</td><td class="num">.500</td><td class="num">52</td><td class="num"><span class="zneg">−2.9</span></td></tr>
+        <tr><td class="ctr num">#26</td><td class="ctr num">3</td><td class="player">Timpson, Treyton</td><td class="team-name">Youre Saying Theres A Chance (Horatio's team)</td><td class="ctr num">R9</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−6</span></td><td class="ctr num">#108</td><td class="num">.500</td><td class="num">52</td><td class="num"><span class="zneg">−2.9</span></td></tr>
         <tr><td class="ctr num">#27</td><td class="ctr num">3</td><td class="player">Hammon, Brayden</td><td class="team-name">Lefty Looseys (Sefton's team)</td><td class="ctr num">R8</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zneg">−5</span></td><td class="ctr num">#86</td><td class="num">.516</td><td class="num">31</td><td class="num"><span class="zneg">−1.3</span></td></tr>
         <tr><td class="ctr num">#28</td><td class="ctr num">3</td><td class="player">Dockstader, Bryan</td><td class="team-name">Ellites (Elliot's team)</td><td class="ctr num">R7</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zneg">−4</span></td><td class="ctr num">#83</td><td class="num">.529</td><td class="num">34</td><td class="num"><span class="zneg">−0.9</span></td></tr>
         <tr><td class="ctr num">#29</td><td class="ctr num">3</td><td class="player">Timpson, Kayden</td><td class="team-name">Pliggas (Claude's team)</td><td class="ctr num">R10</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zneg">−7</span></td><td class="ctr num">#116</td><td class="num">.462</td><td class="num">39</td><td class="num"><span class="zneg">−3.7</span></td></tr>
         <tr><td class="ctr num">#30</td><td class="ctr num">3</td><td class="player">Knudson, Nathan</td><td class="team-name">Playas (Michael's team)</td><td class="ctr num">R2</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#17</td><td class="num">.733</td><td class="num">30</td><td class="num"><span class="zpos">+5.3</span></td></tr>
         <tr><td class="ctr num">#31</td><td class="ctr num">3</td><td class="player">Timpson, Donald</td><td class="team-name">Stars and Strikes (Seth's team)</td><td class="ctr num">R7</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zneg">−4</span></td><td class="ctr num">#84</td><td class="num">.529</td><td class="num">34</td><td class="num"><span class="zneg">−0.9</span></td></tr>
-        <tr><td class="ctr num">#32</td><td class="ctr num">3</td><td class="player">Williams, Carl</td><td class="team-name">Danites (Ephraims Daniel's team)</td><td class="ctr num">R7</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zneg">−4</span></td><td class="ctr num">#79</td><td class="num">.533</td><td class="num">30</td><td class="num"><span class="zneg">−0.7</span></td></tr>
+        <tr><td class="ctr num">#32</td><td class="ctr num">3</td><td class="player">Williams, Carl</td><td class="team-name">Danites (Ephraims Daniel's team)</td><td class="ctr num">R7</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−4</span></td><td class="ctr num">#79</td><td class="num">.533</td><td class="num">30</td><td class="num"><span class="zneg">−0.7</span></td></tr>
         <tr><td class="ctr num">#33</td><td class="ctr num">3</td><td class="player">Hammon, Aryck</td><td class="team-name">Pure Breads (Caleb's team)</td><td class="ctr num">R1</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">+2</span></td><td class="ctr num">#9</td><td class="num">.737</td><td class="num">38</td><td class="num"><span class="zpos">+6.8</span></td></tr>
-        <tr><td class="ctr num">#34</td><td class="ctr num">3</td><td class="player">Dockstader Boyds, Daniel</td><td class="team-name">Slamma Jammas (Boyds Daniel's team)</td><td class="ctr num">R6</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zneg">−3</span></td><td class="ctr num">#66</td><td class="num">.571</td><td class="num">21</td><td class="num"><span class="zpos">+0.3</span></td></tr>
-        <tr><td class="ctr num">#35</td><td class="ctr num">3</td><td class="player">Hammon, Stafford</td><td class="team-name">Fellowship of the Swing (Stafford's team)</td><td class="ctr num">R3</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span style="color:var(--muted)">=</span></td><td class="ctr num">#36</td><td class="num">.633</td><td class="num">30</td><td class="num"><span class="zpos">+2.3</span></td></tr>
+        <tr><td class="ctr num">#34</td><td class="ctr num">3</td><td class="player">Dockstader Boyds, Daniel</td><td class="team-name">Slamma Jammas (Boyds Daniel's team)</td><td class="ctr num">R6</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−3</span></td><td class="ctr num">#66</td><td class="num">.571</td><td class="num">21</td><td class="num"><span class="zpos">+0.3</span></td></tr>
+        <tr><td class="ctr num">#35</td><td class="ctr num">3</td><td class="player">Hammon, Stafford</td><td class="team-name">Fellowship of the Swing (Stafford's team)</td><td class="ctr num">R3</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#36</td><td class="num">.633</td><td class="num">30</td><td class="num"><span class="zpos">+2.3</span></td></tr>
         <tr><td class="ctr num">#36</td><td class="ctr num">3</td><td class="player">Dockstader Marvins, Jeremy</td><td class="team-name">Diamonds and Dirtbags (Jeremy's team)</td><td class="ctr num">R2</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#13</td><td class="num">.800</td><td class="num">25</td><td class="num"><span class="zpos">+6.1</span></td></tr>
-        <tr class="rd-break"><td class="ctr num">#37</td><td class="ctr num">4</td><td class="player">Timpson, Taylor</td><td class="team-name">Diamonds and Dirtbags (Jeremy's team)</td><td class="ctr num">R1</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zpos">+3</span></td><td class="ctr num">#12</td><td class="num">.661</td><td class="num">59</td><td class="num"><span class="zpos">+6.2</span></td></tr>
+        <tr class="rd-break"><td class="ctr num">#37</td><td class="ctr num">4</td><td class="player">Timpson, Taylor</td><td class="team-name">Diamonds and Dirtbags (Jeremy's team)</td><td class="ctr num">R1</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+3</span></td><td class="ctr num">#12</td><td class="num">.661</td><td class="num">59</td><td class="num"><span class="zpos">+6.2</span></td></tr>
         <tr><td class="ctr num">#38</td><td class="ctr num">4</td><td class="player">Hammon, Bruce</td><td class="team-name">Fellowship of the Swing (Stafford's team)</td><td class="ctr num">R3</td><td class="ctr num"><span class="zpos">▲2</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#33</td><td class="num">.645</td><td class="num">31</td><td class="num"><span class="zpos">+2.7</span></td></tr>
         <tr><td class="ctr num">#39</td><td class="ctr num">4</td><td class="player">Williams, Ben</td><td class="team-name">Slamma Jammas (Boyds Daniel's team)</td><td class="ctr num">R3</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#32</td><td class="num">.667</td><td class="num">27</td><td class="num"><span class="zpos">+3.0</span></td></tr>
         <tr><td class="ctr num">#40</td><td class="ctr num">4</td><td class="player">Williams, Matt</td><td class="team-name">Pure Breads (Caleb's team)</td><td class="ctr num">R3</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#26</td><td class="num">.688</td><td class="num">32</td><td class="num"><span class="zpos">+4.2</span></td></tr>
-        <tr><td class="ctr num">#41</td><td class="ctr num">4</td><td class="player">Dockstader Ephraims, Daniel <span style="color:var(--muted)">· SS</span></td><td class="team-name">Danites (Ephraims Daniel's team)</td><td class="ctr num">R9</td><td class="ctr num"><span class="zneg">▼2</span></td><td class="num"><span class="zneg">−5</span></td><td class="ctr num">#103</td><td class="num">.467</td><td class="num">30</td><td class="num"><span class="zneg">−2.7</span></td></tr>
+        <tr><td class="ctr num">#41</td><td class="ctr num">4</td><td class="player">Dockstader Ephraims, Daniel <span class="muted">· SS</span></td><td class="team-name">Danites (Ephraims Daniel's team)</td><td class="ctr num">R9</td><td class="ctr num"><span class="zneg">▼2</span></td><td class="num"><span class="zneg">−5</span></td><td class="ctr num">#103</td><td class="num">.467</td><td class="num">30</td><td class="num"><span class="zneg">−2.7</span></td></tr>
         <tr><td class="ctr num">#42</td><td class="ctr num">4</td><td class="player">Horsley, Dylan</td><td class="team-name">Stars and Strikes (Seth's team)</td><td class="ctr num">R10</td><td class="ctr num"><span class="zneg">▼2</span></td><td class="num"><span class="zneg">−6</span></td><td class="ctr num">#109</td><td class="num">.389</td><td class="num">18</td><td class="num"><span class="zneg">−3.0</span></td></tr>
         <tr><td class="ctr num">#43</td><td class="ctr num">4</td><td class="player">Dockstader, Sidney</td><td class="team-name">Playas (Michael's team)</td><td class="ctr num">R7</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zneg">−3</span></td><td class="ctr num">#75</td><td class="num">.526</td><td class="num">19</td><td class="num"><span class="zneg">−0.6</span></td></tr>
         <tr><td class="ctr num">#44</td><td class="ctr num">4</td><td class="player">Timpson Rays, Jonathan</td><td class="team-name">Pliggas (Claude's team)</td><td class="ctr num">R2</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">+2</span></td><td class="ctr num">#21</td><td class="num">.694</td><td class="num">36</td><td class="num"><span class="zpos">+5.0</span></td></tr>
         <tr><td class="ctr num">#45</td><td class="ctr num">4</td><td class="player">Hammon, Roy</td><td class="team-name">Ellites (Elliot's team)</td><td class="ctr num">R10</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zneg">−6</span></td><td class="ctr num">#111</td><td class="num">.472</td><td class="num">36</td><td class="num"><span class="zneg">−3.0</span></td></tr>
         <tr><td class="ctr num">#46</td><td class="ctr num">4</td><td class="player">Knudson, Preston</td><td class="team-name">Lefty Looseys (Sefton's team)</td><td class="ctr num">R7</td><td class="ctr num"><span class="zneg">▼2</span></td><td class="num"><span class="zneg">−3</span></td><td class="ctr num">#77</td><td class="num">.536</td><td class="num">28</td><td class="num"><span class="zneg">−0.6</span></td></tr>
         <tr><td class="ctr num">#47</td><td class="ctr num">4</td><td class="player">White, Curt</td><td class="team-name">Youre Saying Theres A Chance (Horatio's team)</td><td class="ctr num">R1</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">+3</span></td><td class="ctr num">#10</td><td class="num">.743</td><td class="num">35</td><td class="num"><span class="zpos">+6.5</span></td></tr>
-        <tr><td class="ctr num">#48</td><td class="ctr num">4</td><td class="player">Hammon, Jason</td><td class="team-name">Good Guys (Gideon's team)</td><td class="ctr num">R6</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zneg">−2</span></td><td class="ctr num">#62</td><td class="num">.600</td><td class="num">10</td><td class="num"><span class="zpos">+0.4</span></td></tr>
+        <tr><td class="ctr num">#48</td><td class="ctr num">4</td><td class="player">Hammon, Jason</td><td class="team-name">Good Guys (Gideon's team)</td><td class="ctr num">R6</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−2</span></td><td class="ctr num">#62</td><td class="num">.600</td><td class="num">10</td><td class="num"><span class="zpos">+0.4</span></td></tr>
         <tr class="rd-break"><td class="ctr num">#49</td><td class="ctr num">5</td><td class="player">Dockstader, Kyle</td><td class="team-name">Good Guys (Gideon's team)</td><td class="ctr num">R8</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zneg">−3</span></td><td class="ctr num">#91</td><td class="num">.500</td><td class="num">28</td><td class="num"><span class="zneg">−1.6</span></td></tr>
-        <tr><td class="ctr num">#50</td><td class="ctr num">5</td><td class="player">Hammon Legrands, Benjiman</td><td class="team-name">Youre Saying Theres A Chance (Horatio's team)</td><td class="ctr num">R5</td><td class="ctr num"><span class="zpos">▲2</span></td><td class="num"><span style="color:var(--muted)">=</span></td><td class="ctr num">#59</td><td class="num">.576</td><td class="num">33</td><td class="num"><span class="zpos">+0.6</span></td></tr>
+        <tr><td class="ctr num">#50</td><td class="ctr num">5</td><td class="player">Hammon Legrands, Benjiman</td><td class="team-name">Youre Saying Theres A Chance (Horatio's team)</td><td class="ctr num">R5</td><td class="ctr num"><span class="zpos">▲2</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#59</td><td class="num">.576</td><td class="num">33</td><td class="num"><span class="zpos">+0.6</span></td></tr>
         <tr><td class="ctr num">#51</td><td class="ctr num">5</td><td class="player">Knudson, Daniel</td><td class="team-name">Lefty Looseys (Sefton's team)</td><td class="ctr num">R4</td><td class="ctr num"><span class="zneg">▼2</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#41</td><td class="num">.618</td><td class="num">34</td><td class="num"><span class="zpos">+2.1</span></td></tr>
-        <tr><td class="ctr num">#52</td><td class="ctr num">5</td><td class="player">Horsley, Max</td><td class="team-name">Ellites (Elliot's team)</td><td class="ctr num">R3</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zpos">+2</span></td><td class="ctr num">#31</td><td class="num">.656</td><td class="num">32</td><td class="num"><span class="zpos">+3.2</span></td></tr>
+        <tr><td class="ctr num">#52</td><td class="ctr num">5</td><td class="player">Horsley, Max</td><td class="team-name">Ellites (Elliot's team)</td><td class="ctr num">R3</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+2</span></td><td class="ctr num">#31</td><td class="num">.656</td><td class="num">32</td><td class="num"><span class="zpos">+3.2</span></td></tr>
         <tr><td class="ctr num">#53</td><td class="ctr num">5</td><td class="player">Hammon, Avery</td><td class="team-name">Pliggas (Claude's team)</td><td class="ctr num">R9</td><td class="ctr num"><span class="zpos">▲2</span></td><td class="num"><span class="zneg">−4</span></td><td class="ctr num">#101</td><td class="num">.464</td><td class="num">28</td><td class="num"><span class="zneg">−2.6</span></td></tr>
-        <tr><td class="ctr num">#54</td><td class="ctr num">5</td><td class="player">Barlow Jr, John</td><td class="team-name">Playas (Michael's team)</td><td class="ctr num">R5</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span style="color:var(--muted)">=</span></td><td class="ctr num">#55</td><td class="num">.600</td><td class="num">20</td><td class="num"><span class="zpos">+0.9</span></td></tr>
-        <tr><td class="ctr num">#55</td><td class="ctr num">5</td><td class="player">Cawley, Seth</td><td class="team-name">Stars and Strikes (Seth's team)</td><td class="ctr num">R5</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span style="color:var(--muted)">=</span></td><td class="ctr num">#58</td><td class="num">.583</td><td class="num">24</td><td class="num"><span class="zpos">+0.6</span></td></tr>
+        <tr><td class="ctr num">#54</td><td class="ctr num">5</td><td class="player">Barlow Jr, John</td><td class="team-name">Playas (Michael's team)</td><td class="ctr num">R5</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#55</td><td class="num">.600</td><td class="num">20</td><td class="num"><span class="zpos">+0.9</span></td></tr>
+        <tr><td class="ctr num">#55</td><td class="ctr num">5</td><td class="player">Cawley, Seth</td><td class="team-name">Stars and Strikes (Seth's team)</td><td class="ctr num">R5</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#58</td><td class="num">.583</td><td class="num">24</td><td class="num"><span class="zpos">+0.6</span></td></tr>
         <tr><td class="ctr num">#56</td><td class="ctr num">5</td><td class="player">Timpson, Teancum</td><td class="team-name">Danites (Ephraims Daniel's team)</td><td class="ctr num">R9</td><td class="ctr num"><span class="zpos">▲2</span></td><td class="num"><span class="zneg">−4</span></td><td class="ctr num">#106</td><td class="num">.488</td><td class="num">41</td><td class="num"><span class="zneg">−2.8</span></td></tr>
-        <tr><td class="ctr num">#57</td><td class="ctr num">5</td><td class="player">Hammon, Ryan</td><td class="team-name">Pure Breads (Caleb's team)</td><td class="ctr num">R2</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zpos">+3</span></td><td class="ctr num">#20</td><td class="num">.694</td><td class="num">36</td><td class="num"><span class="zpos">+5.0</span></td></tr>
-        <tr><td class="ctr num">#58</td><td class="ctr num">5</td><td class="player">Dockstader, Steven</td><td class="team-name">Slamma Jammas (Boyds Daniel's team)</td><td class="ctr num">R5</td><td class="ctr num"><span class="zpos">▲2</span></td><td class="num"><span style="color:var(--muted)">=</span></td><td class="ctr num">#49</td><td class="num">.643</td><td class="num">14</td><td class="num"><span class="zpos">+1.2</span></td></tr>
-        <tr><td class="ctr num">#59</td><td class="ctr num">5</td><td class="player">Hammon, Gerard</td><td class="team-name">Fellowship of the Swing (Stafford's team)</td><td class="ctr num">R8</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zneg">−3</span></td><td class="ctr num">#89</td><td class="num">.500</td><td class="num">26</td><td class="num"><span class="zneg">−1.5</span></td></tr>
+        <tr><td class="ctr num">#57</td><td class="ctr num">5</td><td class="player">Hammon, Ryan</td><td class="team-name">Pure Breads (Caleb's team)</td><td class="ctr num">R2</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+3</span></td><td class="ctr num">#20</td><td class="num">.694</td><td class="num">36</td><td class="num"><span class="zpos">+5.0</span></td></tr>
+        <tr><td class="ctr num">#58</td><td class="ctr num">5</td><td class="player">Dockstader, Steven</td><td class="team-name">Slamma Jammas (Boyds Daniel's team)</td><td class="ctr num">R5</td><td class="ctr num"><span class="zpos">▲2</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#49</td><td class="num">.643</td><td class="num">14</td><td class="num"><span class="zpos">+1.2</span></td></tr>
+        <tr><td class="ctr num">#59</td><td class="ctr num">5</td><td class="player">Hammon, Gerard</td><td class="team-name">Fellowship of the Swing (Stafford's team)</td><td class="ctr num">R8</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−3</span></td><td class="ctr num">#89</td><td class="num">.500</td><td class="num">26</td><td class="num"><span class="zneg">−1.5</span></td></tr>
         <tr><td class="ctr num">#60</td><td class="ctr num">5</td><td class="player">Hammon, Curtis</td><td class="team-name">Diamonds and Dirtbags (Jeremy's team)</td><td class="ctr num">R3</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">+2</span></td><td class="ctr num">#29</td><td class="num">.657</td><td class="num">35</td><td class="num"><span class="zpos">+3.5</span></td></tr>
-        <tr class="rd-break"><td class="ctr num">#61</td><td class="ctr num">6</td><td class="player">Williams, Wesley</td><td class="team-name">Diamonds and Dirtbags (Jeremy's team)</td><td class="ctr num">R1</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zpos">+5</span></td><td class="ctr num">#11</td><td class="num">.786</td><td class="num">28</td><td class="num"><span class="zpos">+6.4</span></td></tr>
+        <tr class="rd-break"><td class="ctr num">#61</td><td class="ctr num">6</td><td class="player">Williams, Wesley</td><td class="team-name">Diamonds and Dirtbags (Jeremy's team)</td><td class="ctr num">R1</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+5</span></td><td class="ctr num">#11</td><td class="num">.786</td><td class="num">28</td><td class="num"><span class="zpos">+6.4</span></td></tr>
         <tr><td class="ctr num">#62</td><td class="ctr num">6</td><td class="player">Williams, Charles</td><td class="team-name">Fellowship of the Swing (Stafford's team)</td><td class="ctr num">R2</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zpos">+4</span></td><td class="ctr num">#19</td><td class="num">.692</td><td class="num">39</td><td class="num"><span class="zpos">+5.3</span></td></tr>
         <tr><td class="ctr num">#63</td><td class="ctr num">6</td><td class="player">Williams, Seth</td><td class="team-name">Slamma Jammas (Boyds Daniel's team)</td><td class="ctr num">R10</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zneg">−4</span></td><td class="ctr num">#120</td><td class="num">.441</td><td class="num">34</td><td class="num"><span class="zneg">−3.9</span></td></tr>
         <tr><td class="ctr num">#64</td><td class="ctr num">6</td><td class="player">Timpson, Merlek</td><td class="team-name">Pure Breads (Caleb's team)</td><td class="ctr num">R9</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zneg">−3</span></td><td class="ctr num">#105</td><td class="num">.487</td><td class="num">39</td><td class="num"><span class="zneg">−2.7</span></td></tr>
         <tr><td class="ctr num">#65</td><td class="ctr num">6</td><td class="player">Dockstader, Noah</td><td class="team-name">Danites (Ephraims Daniel's team)</td><td class="ctr num">R3</td><td class="ctr num"><span class="zneg">▼2</span></td><td class="num"><span class="zpos">+3</span></td><td class="ctr num">#27</td><td class="num">.650</td><td class="num">40</td><td class="num"><span class="zpos">+3.7</span></td></tr>
-        <tr><td class="ctr num">#66</td><td class="ctr num">6</td><td class="player">Hammon, Porter</td><td class="team-name">Stars and Strikes (Seth's team)</td><td class="ctr num">R6</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span style="color:var(--muted)">=</span></td><td class="ctr num">#67</td><td class="num">.567</td><td class="num">30</td><td class="num"><span class="zpos">+0.3</span></td></tr>
+        <tr><td class="ctr num">#66</td><td class="ctr num">6</td><td class="player">Hammon, Porter</td><td class="team-name">Stars and Strikes (Seth's team)</td><td class="ctr num">R6</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#67</td><td class="num">.567</td><td class="num">30</td><td class="num"><span class="zpos">+0.3</span></td></tr>
         <tr><td class="ctr num">#67</td><td class="ctr num">6</td><td class="player">Williams, Leslie</td><td class="team-name">Playas (Michael's team)</td><td class="ctr num">R4</td><td class="ctr num"><span class="zpos">▲2</span></td><td class="num"><span class="zpos">+2</span></td><td class="ctr num">#39</td><td class="num">.640</td><td class="num">25</td><td class="num"><span class="zpos">+2.1</span></td></tr>
-        <tr><td class="ctr num">#68</td><td class="ctr num">6</td><td class="player">Musser, Moroni</td><td class="team-name">Pliggas (Claude's team)</td><td class="ctr num">R5</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#56</td><td class="num">.586</td><td class="num">29</td><td class="num"><span class="zpos">+0.9</span></td></tr>
+        <tr><td class="ctr num">#68</td><td class="ctr num">6</td><td class="player">Musser, Moroni</td><td class="team-name">Pliggas (Claude's team)</td><td class="ctr num">R5</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#56</td><td class="num">.586</td><td class="num">29</td><td class="num"><span class="zpos">+0.9</span></td></tr>
         <tr><td class="ctr num">#69</td><td class="ctr num">6</td><td class="player">Horsley, Lizzy</td><td class="team-name">Ellites (Elliot's team)</td><td class="ctr num">R11</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zneg">−5</span></td><td class="ctr num">#129</td><td class="num">.439</td><td class="num">41</td><td class="num"><span class="zneg">−4.8</span></td></tr>
-        <tr><td class="ctr num">#70</td><td class="ctr num">6</td><td class="player">Timpson, Seth</td><td class="team-name">Lefty Looseys (Sefton's team)</td><td class="ctr num">R1</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zpos">+5</span></td><td class="ctr num">#8</td><td class="num">.750</td><td class="num">36</td><td class="num"><span class="zpos">+7.0</span></td></tr>
+        <tr><td class="ctr num">#70</td><td class="ctr num">6</td><td class="player">Timpson, Seth</td><td class="team-name">Lefty Looseys (Sefton's team)</td><td class="ctr num">R1</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+5</span></td><td class="ctr num">#8</td><td class="num">.750</td><td class="num">36</td><td class="num"><span class="zpos">+7.0</span></td></tr>
         <tr><td class="ctr num">#71</td><td class="ctr num">6</td><td class="player">Zitting, Aaron</td><td class="team-name">Youre Saying Theres A Chance (Horatio's team)</td><td class="ctr num">R4</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">+2</span></td><td class="ctr num">#47</td><td class="num">.615</td><td class="num">26</td><td class="num"><span class="zpos">+1.5</span></td></tr>
-        <tr><td class="ctr num">#72</td><td class="ctr num">6</td><td class="player">Timpson, Justin</td><td class="team-name">Good Guys (Gideon's team)</td><td class="ctr num">R6</td><td class="ctr num"><span class="zneg">▼2</span></td><td class="num"><span style="color:var(--muted)">=</span></td><td class="ctr num">#63</td><td class="num">.579</td><td class="num">19</td><td class="num"><span class="zpos">+0.4</span></td></tr>
-        <tr class="rd-break"><td class="ctr num">#73</td><td class="ctr num">7</td><td class="player">Barlow, Benjiman</td><td class="team-name">Good Guys (Gideon's team)</td><td class="ctr num">R7</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span style="color:var(--muted)">=</span></td><td class="ctr num">#78</td><td class="num">.541</td><td class="num">37</td><td class="num"><span class="zneg">−0.6</span></td></tr>
-        <tr><td class="ctr num">#74</td><td class="ctr num">7</td><td class="player">Williams, Anthony</td><td class="team-name">Youre Saying Theres A Chance (Horatio's team)</td><td class="ctr num">R3</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zpos">+4</span></td><td class="ctr num">#34</td><td class="num">.645</td><td class="num">31</td><td class="num"><span class="zpos">+2.7</span></td></tr>
+        <tr><td class="ctr num">#72</td><td class="ctr num">6</td><td class="player">Timpson, Justin</td><td class="team-name">Good Guys (Gideon's team)</td><td class="ctr num">R6</td><td class="ctr num"><span class="zneg">▼2</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#63</td><td class="num">.579</td><td class="num">19</td><td class="num"><span class="zpos">+0.4</span></td></tr>
+        <tr class="rd-break"><td class="ctr num">#73</td><td class="ctr num">7</td><td class="player">Barlow, Benjiman</td><td class="team-name">Good Guys (Gideon's team)</td><td class="ctr num">R7</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#78</td><td class="num">.541</td><td class="num">37</td><td class="num"><span class="zneg">−0.6</span></td></tr>
+        <tr><td class="ctr num">#74</td><td class="ctr num">7</td><td class="player">Williams, Anthony</td><td class="team-name">Youre Saying Theres A Chance (Horatio's team)</td><td class="ctr num">R3</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+4</span></td><td class="ctr num">#34</td><td class="num">.645</td><td class="num">31</td><td class="num"><span class="zpos">+2.7</span></td></tr>
         <tr><td class="ctr num">#75</td><td class="ctr num">7</td><td class="player">Barlow, Riley</td><td class="team-name">Lefty Looseys (Sefton's team)</td><td class="ctr num">R5</td><td class="ctr num"><span class="zneg">▼2</span></td><td class="num"><span class="zpos">+2</span></td><td class="ctr num">#60</td><td class="num">.577</td><td class="num">26</td><td class="num"><span class="zpos">+0.5</span></td></tr>
         <tr><td class="ctr num">#76</td><td class="ctr num">7</td><td class="player">Stubbs, Larry</td><td class="team-name">Ellites (Elliot's team)</td><td class="ctr num">R4</td><td class="ctr num"><span class="zpos">▲2</span></td><td class="num"><span class="zpos">+3</span></td><td class="ctr num">#38</td><td class="num">.640</td><td class="num">25</td><td class="num"><span class="zpos">+2.1</span></td></tr>
-        <tr><td class="ctr num">#77</td><td class="ctr num">7</td><td class="player">Timpson, Lexi</td><td class="team-name">Pliggas (Claude's team)</td><td class="ctr num">R4</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zpos">+3</span></td><td class="ctr num">#46</td><td class="num">.615</td><td class="num">26</td><td class="num"><span class="zpos">+1.5</span></td></tr>
+        <tr><td class="ctr num">#77</td><td class="ctr num">7</td><td class="player">Timpson, Lexi</td><td class="team-name">Pliggas (Claude's team)</td><td class="ctr num">R4</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+3</span></td><td class="ctr num">#46</td><td class="num">.615</td><td class="num">26</td><td class="num"><span class="zpos">+1.5</span></td></tr>
         <tr><td class="ctr num">#78</td><td class="ctr num">7</td><td class="player">Timpson, Hyrum</td><td class="team-name">Playas (Michael's team)</td><td class="ctr num">R9</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zneg">−2</span></td><td class="ctr num">#99</td><td class="num">.412</td><td class="num">17</td><td class="num"><span class="zneg">−2.5</span></td></tr>
         <tr><td class="ctr num">#79</td><td class="ctr num">7</td><td class="player">Darger, Nephi</td><td class="team-name">Stars and Strikes (Seth's team)</td><td class="ctr num">R8</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#93</td><td class="num">.500</td><td class="num">30</td><td class="num"><span class="zneg">−1.7</span></td></tr>
-        <tr><td class="ctr num">#80</td><td class="ctr num">7</td><td class="player">Timpson, Deborah</td><td class="team-name">Danites (Ephraims Daniel's team)</td><td class="ctr num">R5</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zpos">+2</span></td><td class="ctr num">#51</td><td class="num">.594</td><td class="num">32</td><td class="num"><span class="zpos">+1.2</span></td></tr>
+        <tr><td class="ctr num">#80</td><td class="ctr num">7</td><td class="player">Timpson, Deborah</td><td class="team-name">Danites (Ephraims Daniel's team)</td><td class="ctr num">R5</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+2</span></td><td class="ctr num">#51</td><td class="num">.594</td><td class="num">32</td><td class="num"><span class="zpos">+1.2</span></td></tr>
         <tr><td class="ctr num">#81</td><td class="ctr num">7</td><td class="player">Hammon, Nathan</td><td class="team-name">Pure Breads (Caleb's team)</td><td class="ctr num">R6</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#69</td><td class="num">.500</td><td class="num">6</td><td class="num"><span class="zneg">−0.3</span></td></tr>
         <tr><td class="ctr num">#82</td><td class="ctr num">7</td><td class="player">Naylor, Adam</td><td class="team-name">Slamma Jammas (Boyds Daniel's team)</td><td class="ctr num">R9</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zneg">−2</span></td><td class="ctr num">#100</td><td class="num">.421</td><td class="num">19</td><td class="num"><span class="zneg">−2.6</span></td></tr>
         <tr><td class="ctr num">#83</td><td class="ctr num">7</td><td class="player">Naylor, Timothy</td><td class="team-name">Fellowship of the Swing (Stafford's team)</td><td class="ctr num">R5</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zpos">+2</span></td><td class="ctr num">#53</td><td class="num">.600</td><td class="num">25</td><td class="num"><span class="zpos">+1.1</span></td></tr>
         <tr><td class="ctr num">#84</td><td class="ctr num">7</td><td class="player">Williams, Angeline</td><td class="team-name">Diamonds and Dirtbags (Jeremy's team)</td><td class="ctr num">R8</td><td class="ctr num"><span class="zpos">▲2</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#87</td><td class="num">.467</td><td class="num">15</td><td class="num"><span class="zneg">−1.3</span></td></tr>
         <tr class="rd-break"><td class="ctr num">#85</td><td class="ctr num">8</td><td class="player">Hammon, Paul</td><td class="team-name">Diamonds and Dirtbags (Jeremy's team)</td><td class="ctr num">R3</td><td class="ctr num"><span class="zpos">▲2</span></td><td class="num"><span class="zpos">+5</span></td><td class="ctr num">#35</td><td class="num">.800</td><td class="num">10</td><td class="num"><span class="zpos">+2.4</span></td></tr>
-        <tr><td class="ctr num">#86</td><td class="ctr num">8</td><td class="player">Williams, Jerold</td><td class="team-name">Fellowship of the Swing (Stafford's team)</td><td class="ctr num">R4</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zpos">+4</span></td><td class="ctr num">#43</td><td class="num">.618</td><td class="num">34</td><td class="num"><span class="zpos">+2.1</span></td></tr>
+        <tr><td class="ctr num">#86</td><td class="ctr num">8</td><td class="player">Williams, Jerold</td><td class="team-name">Fellowship of the Swing (Stafford's team)</td><td class="ctr num">R4</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+4</span></td><td class="ctr num">#43</td><td class="num">.618</td><td class="num">34</td><td class="num"><span class="zpos">+2.1</span></td></tr>
         <tr><td class="ctr num">#87</td><td class="ctr num">8</td><td class="player">Dutson, Leroy</td><td class="team-name">Slamma Jammas (Boyds Daniel's team)</td><td class="ctr num">R10</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zneg">−2</span></td><td class="ctr num">#114</td><td class="num">.423</td><td class="num">26</td><td class="num"><span class="zneg">−3.5</span></td></tr>
         <tr><td class="ctr num">#88</td><td class="ctr num">8</td><td class="player">Dutson, Selena</td><td class="team-name">Pure Breads (Caleb's team)</td><td class="ctr num">R11</td><td class="ctr num"><span class="zneg">▼2</span></td><td class="num"><span class="zneg">−3</span></td><td class="ctr num">#125</td><td class="num">.469</td><td class="num">49</td><td class="num"><span class="zneg">−4.3</span></td></tr>
-        <tr><td class="ctr num">#89</td><td class="ctr num">8</td><td class="player">Naylor, Brenda</td><td class="team-name">Danites (Ephraims Daniel's team)</td><td class="ctr num">R11</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zneg">−3</span></td><td class="ctr num">#126</td><td class="num">.294</td><td class="num">17</td><td class="num"><span class="zneg">−4.5</span></td></tr>
-        <tr><td class="ctr num">#90</td><td class="ctr num">8</td><td class="player">Timpson, Ammon</td><td class="team-name">Stars and Strikes (Seth's team)</td><td class="ctr num">R8</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span style="color:var(--muted)">=</span></td><td class="ctr num">#90</td><td class="num">.474</td><td class="num">19</td><td class="num"><span class="zneg">−1.6</span></td></tr>
+        <tr><td class="ctr num">#89</td><td class="ctr num">8</td><td class="player">Naylor, Brenda</td><td class="team-name">Danites (Ephraims Daniel's team)</td><td class="ctr num">R11</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−3</span></td><td class="ctr num">#126</td><td class="num">.294</td><td class="num">17</td><td class="num"><span class="zneg">−4.5</span></td></tr>
+        <tr><td class="ctr num">#90</td><td class="ctr num">8</td><td class="player">Timpson, Ammon</td><td class="team-name">Stars and Strikes (Seth's team)</td><td class="ctr num">R8</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#90</td><td class="num">.474</td><td class="num">19</td><td class="num"><span class="zneg">−1.6</span></td></tr>
         <tr><td class="ctr num">#91</td><td class="ctr num">8</td><td class="player">Cawley, Sophia</td><td class="team-name">Playas (Michael's team)</td><td class="ctr num">R12</td><td class="ctr num"><span class="zneg">▼2</span></td><td class="num"><span class="zneg">−4</span></td><td class="ctr num">#137</td><td class="num">.389</td><td class="num">36</td><td class="num"><span class="zneg">−6.0</span></td></tr>
-        <tr><td class="ctr num">#92</td><td class="ctr num">8</td><td class="player">Hammon, Brigham</td><td class="team-name">Pliggas (Claude's team)</td><td class="ctr num">R9</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#104</td><td class="num">.467</td><td class="num">30</td><td class="num"><span class="zneg">−2.7</span></td></tr>
-        <tr><td class="ctr num">#93</td><td class="ctr num">8</td><td class="player">Timpson, Michael</td><td class="team-name">Ellites (Elliot's team)</td><td class="ctr num">R8</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span style="color:var(--muted)">=</span></td><td class="ctr num">#94</td><td class="num">.200</td><td class="num">5</td><td class="num"><span class="zneg">−1.8</span></td></tr>
-        <tr><td class="ctr num">#94</td><td class="ctr num">8</td><td class="player">Timpson, Alma</td><td class="team-name">Lefty Looseys (Sefton's team)</td><td class="ctr num">R6</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zpos">+2</span></td><td class="ctr num">#61</td><td class="num">.577</td><td class="num">26</td><td class="num"><span class="zpos">+0.5</span></td></tr>
+        <tr><td class="ctr num">#92</td><td class="ctr num">8</td><td class="player">Hammon, Brigham</td><td class="team-name">Pliggas (Claude's team)</td><td class="ctr num">R9</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#104</td><td class="num">.467</td><td class="num">30</td><td class="num"><span class="zneg">−2.7</span></td></tr>
+        <tr><td class="ctr num">#93</td><td class="ctr num">8</td><td class="player">Timpson, Michael</td><td class="team-name">Ellites (Elliot's team)</td><td class="ctr num">R8</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#94</td><td class="num">.200</td><td class="num">5</td><td class="num"><span class="zneg">−1.8</span></td></tr>
+        <tr><td class="ctr num">#94</td><td class="ctr num">8</td><td class="player">Timpson, Alma</td><td class="team-name">Lefty Looseys (Sefton's team)</td><td class="ctr num">R6</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+2</span></td><td class="ctr num">#61</td><td class="num">.577</td><td class="num">26</td><td class="num"><span class="zpos">+0.5</span></td></tr>
         <tr><td class="ctr num">#95</td><td class="ctr num">8</td><td class="player">Hammon, Lewis</td><td class="team-name">Youre Saying Theres A Chance (Horatio's team)</td><td class="ctr num">R3</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">+5</span></td><td class="ctr num">#28</td><td class="num">.650</td><td class="num">40</td><td class="num"><span class="zpos">+3.7</span></td></tr>
         <tr><td class="ctr num">#96</td><td class="ctr num">8</td><td class="player">Williams, Tammy</td><td class="team-name">Good Guys (Gideon's team)</td><td class="ctr num">R6</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zpos">+2</span></td><td class="ctr num">#68</td><td class="num">.562</td><td class="num">32</td><td class="num"><span class="zpos">+0.2</span></td></tr>
-        <tr class="rd-break"><td class="ctr num">#97</td><td class="ctr num">9</td><td class="player">Dockstader, Abe</td><td class="team-name">Good Guys (Gideon's team)</td><td class="ctr num">R10</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#110</td><td class="num">.472</td><td class="num">36</td><td class="num"><span class="zneg">−3.0</span></td></tr>
+        <tr class="rd-break"><td class="ctr num">#97</td><td class="ctr num">9</td><td class="player">Dockstader, Abe</td><td class="team-name">Good Guys (Gideon's team)</td><td class="ctr num">R10</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#110</td><td class="num">.472</td><td class="num">36</td><td class="num"><span class="zneg">−3.0</span></td></tr>
         <tr><td class="ctr num">#98</td><td class="ctr num">9</td><td class="player">Williams, Marissa</td><td class="team-name">Youre Saying Theres A Chance (Horatio's team)</td><td class="ctr num">R7</td><td class="ctr num"><span class="zneg">▼2</span></td><td class="num"><span class="zpos">+2</span></td><td class="ctr num">#82</td><td class="num">.520</td><td class="num">25</td><td class="num"><span class="zneg">−0.9</span></td></tr>
-        <tr><td class="ctr num">#99</td><td class="ctr num">9</td><td class="player">Hammon, Shem</td><td class="team-name">Lefty Looseys (Sefton's team)</td><td class="ctr num">R6</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zpos">+3</span></td><td class="ctr num">#65</td><td class="num">.583</td><td class="num">12</td><td class="num"><span class="zpos">+0.3</span></td></tr>
-        <tr><td class="ctr num">#100</td><td class="ctr num">9</td><td class="player">Hammon, Karen</td><td class="team-name">Ellites (Elliot's team)</td><td class="ctr num">R12</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zneg">−3</span></td><td class="ctr num">#143</td><td class="num">.333</td><td class="num">36</td><td class="num"><span class="zneg">−8.0</span></td></tr>
+        <tr><td class="ctr num">#99</td><td class="ctr num">9</td><td class="player">Hammon, Shem</td><td class="team-name">Lefty Looseys (Sefton's team)</td><td class="ctr num">R6</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+3</span></td><td class="ctr num">#65</td><td class="num">.583</td><td class="num">12</td><td class="num"><span class="zpos">+0.3</span></td></tr>
+        <tr><td class="ctr num">#100</td><td class="ctr num">9</td><td class="player">Hammon, Karen</td><td class="team-name">Ellites (Elliot's team)</td><td class="ctr num">R12</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−3</span></td><td class="ctr num">#143</td><td class="num">.333</td><td class="num">36</td><td class="num"><span class="zneg">−8.0</span></td></tr>
         <tr><td class="ctr num">#101</td><td class="ctr num">9</td><td class="player">Hammon, Logan</td><td class="team-name">Pliggas (Claude's team)</td><td class="ctr num">R7</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zpos">+2</span></td><td class="ctr num">#76</td><td class="num">.536</td><td class="num">28</td><td class="num"><span class="zneg">−0.6</span></td></tr>
         <tr><td class="ctr num">#102</td><td class="ctr num">9</td><td class="player">Hammon Hebers, Benjiman</td><td class="team-name">Playas (Michael's team)</td><td class="ctr num">R12</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zneg">−3</span></td><td class="ctr num">#133</td><td class="num">.286</td><td class="num">21</td><td class="num"><span class="zneg">−5.7</span></td></tr>
-        <tr><td class="ctr num">#103</td><td class="ctr num">9</td><td class="player">Timpson, Joanne Sis</td><td class="team-name">Stars and Strikes (Seth's team)</td><td class="ctr num">R12</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zneg">−3</span></td><td class="ctr num">#135</td><td class="num">.304</td><td class="num">23</td><td class="num"><span class="zneg">−5.8</span></td></tr>
-        <tr><td class="ctr num">#104</td><td class="ctr num">9</td><td class="player">Naylor, Scott</td><td class="team-name">Danites (Ephraims Daniel's team)</td><td class="ctr num">R4</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zpos">+5</span></td><td class="ctr num">#48</td><td class="num">.700</td><td class="num">10</td><td class="num"><span class="zpos">+1.4</span></td></tr>
+        <tr><td class="ctr num">#103</td><td class="ctr num">9</td><td class="player">Timpson, Joanne Sis</td><td class="team-name">Stars and Strikes (Seth's team)</td><td class="ctr num">R12</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−3</span></td><td class="ctr num">#135</td><td class="num">.304</td><td class="num">23</td><td class="num"><span class="zneg">−5.8</span></td></tr>
+        <tr><td class="ctr num">#104</td><td class="ctr num">9</td><td class="player">Naylor, Scott</td><td class="team-name">Danites (Ephraims Daniel's team)</td><td class="ctr num">R4</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+5</span></td><td class="ctr num">#48</td><td class="num">.700</td><td class="num">10</td><td class="num"><span class="zpos">+1.4</span></td></tr>
         <tr><td class="ctr num">#105</td><td class="ctr num">9</td><td class="player">Johnson, Anson</td><td class="team-name">Pure Breads (Caleb's team)</td><td class="ctr num">R4</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zpos">+5</span></td><td class="ctr num">#37</td><td class="num">.633</td><td class="num">30</td><td class="num"><span class="zpos">+2.3</span></td></tr>
-        <tr><td class="ctr num">#106</td><td class="ctr num">9</td><td class="player">Hammon, J Daunt</td><td class="team-name">Slamma Jammas (Boyds Daniel's team)</td><td class="ctr num">R12</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zneg">−3</span></td><td class="ctr num">#141</td><td class="num">.323</td><td class="num">31</td><td class="num"><span class="zneg">−7.3</span></td></tr>
-        <tr><td class="ctr num">#107</td><td class="ctr num">9</td><td class="player">Bauer, Cleeson</td><td class="team-name">Fellowship of the Swing (Stafford's team)</td><td class="ctr num">R12</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zneg">−3</span></td><td class="ctr num">#134</td><td class="num">.304</td><td class="num">23</td><td class="num"><span class="zneg">−5.8</span></td></tr>
+        <tr><td class="ctr num">#106</td><td class="ctr num">9</td><td class="player">Hammon, J Daunt</td><td class="team-name">Slamma Jammas (Boyds Daniel's team)</td><td class="ctr num">R12</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−3</span></td><td class="ctr num">#141</td><td class="num">.323</td><td class="num">31</td><td class="num"><span class="zneg">−7.3</span></td></tr>
+        <tr><td class="ctr num">#107</td><td class="ctr num">9</td><td class="player">Bauer, Cleeson</td><td class="team-name">Fellowship of the Swing (Stafford's team)</td><td class="ctr num">R12</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−3</span></td><td class="ctr num">#134</td><td class="num">.304</td><td class="num">23</td><td class="num"><span class="zneg">−5.8</span></td></tr>
         <tr><td class="ctr num">#108</td><td class="ctr num">9</td><td class="player">Dockstader Marvins, Daniel</td><td class="team-name">Diamonds and Dirtbags (Jeremy's team)</td><td class="ctr num">R6</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">+3</span></td><td class="ctr num">#70</td><td class="num">.533</td><td class="num">15</td><td class="num"><span class="zneg">−0.3</span></td></tr>
-        <tr class="rd-break"><td class="ctr num">#109</td><td class="ctr num">10</td><td class="player">Dockstader, Dorothy</td><td class="team-name">Diamonds and Dirtbags (Jeremy's team)</td><td class="ctr num">R12</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zneg">−2</span></td><td class="ctr num">#144</td><td class="num">.306</td><td class="num">36</td><td class="num"><span class="zneg">−9.0</span></td></tr>
-        <tr><td class="ctr num">#110</td><td class="ctr num">10</td><td class="player">Naylor, Sabrina</td><td class="team-name">Fellowship of the Swing (Stafford's team)</td><td class="ctr num">R9</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#107</td><td class="num">.440</td><td class="num">25</td><td class="num"><span class="zneg">−2.9</span></td></tr>
+        <tr class="rd-break"><td class="ctr num">#109</td><td class="ctr num">10</td><td class="player">Dockstader, Dorothy</td><td class="team-name">Diamonds and Dirtbags (Jeremy's team)</td><td class="ctr num">R12</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−2</span></td><td class="ctr num">#144</td><td class="num">.306</td><td class="num">36</td><td class="num"><span class="zneg">−9.0</span></td></tr>
+        <tr><td class="ctr num">#110</td><td class="ctr num">10</td><td class="player">Naylor, Sabrina</td><td class="team-name">Fellowship of the Swing (Stafford's team)</td><td class="ctr num">R9</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#107</td><td class="num">.440</td><td class="num">25</td><td class="num"><span class="zneg">−2.9</span></td></tr>
         <tr><td class="ctr num">#111</td><td class="ctr num">10</td><td class="player">Hammon, Layla</td><td class="team-name">Slamma Jammas (Boyds Daniel's team)</td><td class="ctr num">R11</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#131</td><td class="num">.091</td><td class="num">11</td><td class="num"><span class="zneg">−5.1</span></td></tr>
-        <tr><td class="ctr num">#112</td><td class="ctr num">10</td><td class="player">Hammon, Kyle</td><td class="team-name">Pure Breads (Caleb's team)</td><td class="ctr num">R10</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span style="color:var(--muted)">=</span></td><td class="ctr num">#113</td><td class="num">.455</td><td class="num">33</td><td class="num"><span class="zneg">−3.4</span></td></tr>
+        <tr><td class="ctr num">#112</td><td class="ctr num">10</td><td class="player">Hammon, Kyle</td><td class="team-name">Pure Breads (Caleb's team)</td><td class="ctr num">R10</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#113</td><td class="num">.455</td><td class="num">33</td><td class="num"><span class="zneg">−3.4</span></td></tr>
         <tr><td class="ctr num">#113</td><td class="ctr num">10</td><td class="player">Cawley, Lorenzo</td><td class="team-name">Danites (Ephraims Daniel's team)</td><td class="ctr num">R11</td><td class="ctr num"><span class="zneg">▼3</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#132</td><td class="num">.200</td><td class="num">15</td><td class="num"><span class="zneg">−5.3</span></td></tr>
         <tr><td class="ctr num">#114</td><td class="ctr num">10</td><td class="player">Barlow, Royal</td><td class="team-name">Stars and Strikes (Seth's team)</td><td class="ctr num">R11</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#128</td><td class="num">.333</td><td class="num">21</td><td class="num"><span class="zneg">−4.7</span></td></tr>
-        <tr><td class="ctr num">#115</td><td class="ctr num">10</td><td class="player">Horsley, Rebecca</td><td class="team-name">Playas (Michael's team)</td><td class="ctr num">R11</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#121</td><td class="num">.350</td><td class="num">20</td><td class="num"><span class="zneg">−4.1</span></td></tr>
-        <tr><td class="ctr num">#116</td><td class="ctr num">10</td><td class="player">Timpson, Lindsey</td><td class="team-name">Pliggas (Claude's team)</td><td class="ctr num">R11</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#123</td><td class="num">.364</td><td class="num">22</td><td class="num"><span class="zneg">−4.2</span></td></tr>
+        <tr><td class="ctr num">#115</td><td class="ctr num">10</td><td class="player">Horsley, Rebecca</td><td class="team-name">Playas (Michael's team)</td><td class="ctr num">R11</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#121</td><td class="num">.350</td><td class="num">20</td><td class="num"><span class="zneg">−4.1</span></td></tr>
+        <tr><td class="ctr num">#116</td><td class="ctr num">10</td><td class="player">Timpson, Lindsey</td><td class="team-name">Pliggas (Claude's team)</td><td class="ctr num">R11</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#123</td><td class="num">.364</td><td class="num">22</td><td class="num"><span class="zneg">−4.2</span></td></tr>
         <tr><td class="ctr num">#117</td><td class="ctr num">10</td><td class="player">Ivory, Austin</td><td class="team-name">Ellites (Elliot's team)</td><td class="ctr num">R9</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#97</td><td class="num">.455</td><td class="num">22</td><td class="num"><span class="zneg">−2.2</span></td></tr>
         <tr><td class="ctr num">#118</td><td class="ctr num">10</td><td class="player">Dockstader, Jayla</td><td class="team-name">Lefty Looseys (Sefton's team)</td><td class="ctr num">R5</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">+5</span></td><td class="ctr num">#52</td><td class="num">.600</td><td class="num">25</td><td class="num"><span class="zpos">+1.1</span></td></tr>
         <tr><td class="ctr num">#119</td><td class="ctr num">10</td><td class="player">Knudson, Jazlin</td><td class="team-name">Youre Saying Theres A Chance (Horatio's team)</td><td class="ctr num">R8</td><td class="ctr num"><span class="zpos">▲2</span></td><td class="num"><span class="zpos">+2</span></td><td class="ctr num">#96</td><td class="num">.483</td><td class="num">29</td><td class="num"><span class="zneg">−2.1</span></td></tr>
         <tr><td class="ctr num">#120</td><td class="ctr num">10</td><td class="player">Barlow, Wallace</td><td class="team-name">Good Guys (Gideon's team)</td><td class="ctr num">R7</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">+3</span></td><td class="ctr num">#81</td><td class="num">.522</td><td class="num">23</td><td class="num"><span class="zneg">−0.8</span></td></tr>
-        <tr class="rd-break"><td class="ctr num">#121</td><td class="ctr num">11</td><td class="player">Hammon, Douglas</td><td class="team-name">Good Guys (Gideon's team)</td><td class="ctr num">R11</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span style="color:var(--muted)">=</span></td><td class="ctr num">#130</td><td class="num">.370</td><td class="num">27</td><td class="num"><span class="zneg">−5.0</span></td></tr>
+        <tr class="rd-break"><td class="ctr num">#121</td><td class="ctr num">11</td><td class="player">Hammon, Douglas</td><td class="team-name">Good Guys (Gideon's team)</td><td class="ctr num">R11</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#130</td><td class="num">.370</td><td class="num">27</td><td class="num"><span class="zneg">−5.0</span></td></tr>
         <tr><td class="ctr num">#122</td><td class="ctr num">11</td><td class="player">Hammon, David</td><td class="team-name">Youre Saying Theres A Chance (Horatio's team)</td><td class="ctr num">R9</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">+2</span></td><td class="ctr num">#98</td><td class="num">.167</td><td class="num">6</td><td class="num"><span class="zneg">−2.3</span></td></tr>
         <tr><td class="ctr num">#123</td><td class="ctr num">11</td><td class="player">Musser, Andrew</td><td class="team-name">Lefty Looseys (Sefton's team)</td><td class="ctr num">R6</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">+5</span></td><td class="ctr num">#71</td><td class="num">.542</td><td class="num">24</td><td class="num"><span class="zneg">−0.4</span></td></tr>
-        <tr><td class="ctr num">#124</td><td class="ctr num">11</td><td class="player">Dockstader, Jarom</td><td class="team-name">Ellites (Elliot's team)</td><td class="ctr num">R11</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span style="color:var(--muted)">=</span></td><td class="ctr num">#122</td><td class="num">.364</td><td class="num">22</td><td class="num"><span class="zneg">−4.2</span></td></tr>
+        <tr><td class="ctr num">#124</td><td class="ctr num">11</td><td class="player">Dockstader, Jarom</td><td class="team-name">Ellites (Elliot's team)</td><td class="ctr num">R11</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#122</td><td class="num">.364</td><td class="num">22</td><td class="num"><span class="zneg">−4.2</span></td></tr>
         <tr><td class="ctr num">#125</td><td class="ctr num">11</td><td class="player">Barlow, Violet</td><td class="team-name">Pliggas (Claude's team)</td><td class="ctr num">R5</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zpos">+6</span></td><td class="ctr num">#50</td><td class="num">.609</td><td class="num">23</td><td class="num"><span class="zpos">+1.2</span></td></tr>
-        <tr><td class="ctr num">#126</td><td class="ctr num">11</td><td class="player">Timpson, Lorin</td><td class="team-name">Playas (Michael's team)</td><td class="ctr num">R8</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zpos">+3</span></td><td class="ctr num">#88</td><td class="num">.375</td><td class="num">8</td><td class="num"><span class="zneg">−1.5</span></td></tr>
-        <tr><td class="ctr num">#127</td><td class="ctr num">11</td><td class="player">Johnson, Jefferson</td><td class="team-name">Stars and Strikes (Seth's team)</td><td class="ctr num">R10</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#117</td><td class="num">.391</td><td class="num">23</td><td class="num"><span class="zneg">−3.8</span></td></tr>
+        <tr><td class="ctr num">#126</td><td class="ctr num">11</td><td class="player">Timpson, Lorin</td><td class="team-name">Playas (Michael's team)</td><td class="ctr num">R8</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+3</span></td><td class="ctr num">#88</td><td class="num">.375</td><td class="num">8</td><td class="num"><span class="zneg">−1.5</span></td></tr>
+        <tr><td class="ctr num">#127</td><td class="ctr num">11</td><td class="player">Johnson, Jefferson</td><td class="team-name">Stars and Strikes (Seth's team)</td><td class="ctr num">R10</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#117</td><td class="num">.391</td><td class="num">23</td><td class="num"><span class="zneg">−3.8</span></td></tr>
         <tr><td class="ctr num">#128</td><td class="ctr num">11</td><td class="player">Darger, Nate</td><td class="team-name">Danites (Ephraims Daniel's team)</td><td class="ctr num">R10</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#119</td><td class="num">.400</td><td class="num">25</td><td class="num"><span class="zneg">−3.9</span></td></tr>
         <tr><td class="ctr num">#129</td><td class="ctr num">11</td><td class="player">Knudson, Kaitlyn</td><td class="team-name">Pure Breads (Caleb's team)</td><td class="ctr num">R8</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">+3</span></td><td class="ctr num">#95</td><td class="num">.429</td><td class="num">14</td><td class="num"><span class="zneg">−1.8</span></td></tr>
         <tr><td class="ctr num">#130</td><td class="ctr num">11</td><td class="player">Williams, Maureen</td><td class="team-name">Slamma Jammas (Boyds Daniel's team)</td><td class="ctr num">R4</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zpos">+7</span></td><td class="ctr num">#40</td><td class="num">.640</td><td class="num">25</td><td class="num"><span class="zpos">+2.1</span></td></tr>
-        <tr><td class="ctr num">#131</td><td class="ctr num">11</td><td class="player">Hammon, Samantha</td><td class="team-name">Fellowship of the Swing (Stafford's team)</td><td class="ctr num">R7</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zpos">+4</span></td><td class="ctr num">#74</td><td class="num">.500</td><td class="num">8</td><td class="num"><span class="zneg">−0.5</span></td></tr>
-        <tr><td class="ctr num">#132</td><td class="ctr num">11</td><td class="player">Dockstader, Marvin</td><td class="team-name">Diamonds and Dirtbags (Jeremy's team)</td><td class="ctr num">R7</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span class="zpos">+4</span></td><td class="ctr num">#80</td><td class="num">.500</td><td class="num">14</td><td class="num"><span class="zneg">−0.8</span></td></tr>
+        <tr><td class="ctr num">#131</td><td class="ctr num">11</td><td class="player">Hammon, Samantha</td><td class="team-name">Fellowship of the Swing (Stafford's team)</td><td class="ctr num">R7</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+4</span></td><td class="ctr num">#74</td><td class="num">.500</td><td class="num">8</td><td class="num"><span class="zneg">−0.5</span></td></tr>
+        <tr><td class="ctr num">#132</td><td class="ctr num">11</td><td class="player">Dockstader, Marvin</td><td class="team-name">Diamonds and Dirtbags (Jeremy's team)</td><td class="ctr num">R7</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+4</span></td><td class="ctr num">#80</td><td class="num">.500</td><td class="num">14</td><td class="num"><span class="zneg">−0.8</span></td></tr>
         <tr class="rd-break"><td class="ctr num">#133</td><td class="ctr num">12</td><td class="player">Monroy, Samantha</td><td class="team-name">Diamonds and Dirtbags (Jeremy's team)</td><td class="ctr num">R10</td><td class="ctr num"><span class="zneg">▼2</span></td><td class="num"><span class="zpos">+2</span></td><td class="ctr num">#115</td><td class="num">.429</td><td class="num">28</td><td class="num"><span class="zneg">−3.6</span></td></tr>
-        <tr><td class="ctr num">#134</td><td class="ctr num">12</td><td class="player">Timpson, Pauline</td><td class="team-name">Fellowship of the Swing (Stafford's team)</td><td class="ctr num">R12</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span style="color:var(--muted)">=</span></td><td class="ctr num">#142</td><td class="num">.240</td><td class="num">25</td><td class="num"><span class="zneg">−7.9</span></td></tr>
-        <tr><td class="ctr num">#135</td><td class="ctr num">12</td><td class="player">Zitting, Alyssa</td><td class="team-name">Slamma Jammas (Boyds Daniel's team)</td><td class="ctr num">R12</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span style="color:var(--muted)">=</span></td><td class="ctr num">#136</td><td class="num">.304</td><td class="num">23</td><td class="num"><span class="zneg">−5.8</span></td></tr>
+        <tr><td class="ctr num">#134</td><td class="ctr num">12</td><td class="player">Timpson, Pauline</td><td class="team-name">Fellowship of the Swing (Stafford's team)</td><td class="ctr num">R12</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#142</td><td class="num">.240</td><td class="num">25</td><td class="num"><span class="zneg">−7.9</span></td></tr>
+        <tr><td class="ctr num">#135</td><td class="ctr num">12</td><td class="player">Zitting, Alyssa</td><td class="team-name">Slamma Jammas (Boyds Daniel's team)</td><td class="ctr num">R12</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#136</td><td class="num">.304</td><td class="num">23</td><td class="num"><span class="zneg">−5.8</span></td></tr>
         <tr><td class="ctr num">#136</td><td class="ctr num">12</td><td class="player">Timpson, Sarah</td><td class="team-name">Pure Breads (Caleb's team)</td><td class="ctr num">R11</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#127</td><td class="num">.316</td><td class="num">19</td><td class="num"><span class="zneg">−4.6</span></td></tr>
-        <tr><td class="ctr num">#137</td><td class="ctr num">12</td><td class="player">Hammon, Bowen</td><td class="team-name">Danites (Ephraims Daniel's team)</td><td class="ctr num">R12</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span style="color:var(--muted)">=</span></td><td class="ctr num">#138</td><td class="num">.345</td><td class="num">29</td><td class="num"><span class="zneg">−6.1</span></td></tr>
+        <tr><td class="ctr num">#137</td><td class="ctr num">12</td><td class="player">Hammon, Bowen</td><td class="team-name">Danites (Ephraims Daniel's team)</td><td class="ctr num">R12</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#138</td><td class="num">.345</td><td class="num">29</td><td class="num"><span class="zneg">−6.1</span></td></tr>
         <tr><td class="ctr num">#138</td><td class="ctr num">12</td><td class="player">Hammon, Sharon</td><td class="team-name">Stars and Strikes (Seth's team)</td><td class="ctr num">R9</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">+3</span></td><td class="ctr num">#102</td><td class="num">.429</td><td class="num">21</td><td class="num"><span class="zneg">−2.7</span></td></tr>
         <tr><td class="ctr num">#139</td><td class="ctr num">12</td><td class="player">Barlow, Amie Z</td><td class="team-name">Playas (Michael's team)</td><td class="ctr num">R10</td><td class="ctr num"><span class="zneg">▼2</span></td><td class="num"><span class="zpos">+2</span></td><td class="ctr num">#118</td><td class="num">.312</td><td class="num">16</td><td class="num"><span class="zneg">−3.9</span></td></tr>
         <tr><td class="ctr num">#140</td><td class="ctr num">12</td><td class="player">Hammon, Sean</td><td class="team-name">Pliggas (Claude's team)</td><td class="ctr num">R8</td><td class="ctr num"><span class="zneg">▼4</span></td><td class="num"><span class="zpos">+4</span></td><td class="ctr num">#85</td><td class="num">.517</td><td class="num">29</td><td class="num"><span class="zneg">−1.1</span></td></tr>
         <tr><td class="ctr num">#141</td><td class="ctr num">12</td><td class="player">Wood, Lincoln</td><td class="team-name">Ellites (Elliot's team)</td><td class="ctr num">R11</td><td class="ctr num"><span class="zneg">▼3</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#124</td><td class="num">.364</td><td class="num">22</td><td class="num"><span class="zneg">−4.2</span></td></tr>
-        <tr><td class="ctr num">#142</td><td class="ctr num">12</td><td class="player">Dockstader, Isabel</td><td class="team-name">Lefty Looseys (Sefton's team)</td><td class="ctr num">R12</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span style="color:var(--muted)">=</span></td><td class="ctr num">#139</td><td class="num">.273</td><td class="num">22</td><td class="num"><span class="zneg">−6.2</span></td></tr>
-        <tr><td class="ctr num">#143</td><td class="ctr num">12</td><td class="player">Williams, Heather</td><td class="team-name">Youre Saying Theres A Chance (Horatio's team)</td><td class="ctr num">R12</td><td class="ctr num"><span style="color:var(--muted)">=</span></td><td class="num"><span style="color:var(--muted)">=</span></td><td class="ctr num">#140</td><td class="num">.310</td><td class="num">29</td><td class="num"><span class="zneg">−7.1</span></td></tr>
+        <tr><td class="ctr num">#142</td><td class="ctr num">12</td><td class="player">Dockstader, Isabel</td><td class="team-name">Lefty Looseys (Sefton's team)</td><td class="ctr num">R12</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#139</td><td class="num">.273</td><td class="num">22</td><td class="num"><span class="zneg">−6.2</span></td></tr>
+        <tr><td class="ctr num">#143</td><td class="ctr num">12</td><td class="player">Williams, Heather</td><td class="team-name">Youre Saying Theres A Chance (Horatio's team)</td><td class="ctr num">R12</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#140</td><td class="num">.310</td><td class="num">29</td><td class="num"><span class="zneg">−7.1</span></td></tr>
         <tr><td class="ctr num">#144</td><td class="ctr num">12</td><td class="player">Wood, Becky</td><td class="team-name">Good Guys (Gideon's team)</td><td class="ctr num">R10</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">+2</span></td><td class="ctr num">#112</td><td class="num">.333</td><td class="num">15</td><td class="num"><span class="zneg">−3.3</span></td></tr>
                         </tbody>
                         <caption>
@@ -3172,7 +3479,7 @@
             </section>
 
             <section id="round-rooms">
-                <div class="eyebrow">Section 10</div>
+                <div class="eyebrow">By Round</div>
                 <h2><a href="#round-rooms">The Round Rooms</a></h2>
                 <p class="lede">
                     The full class photo for every draft round — and as of this
@@ -3188,7 +3495,7 @@
                     it was a light week).
                 </p>
 
-                  <h3 id="round-1" style="margin-top:28px">Round 1 — The Penthouse</h3>
+                  <h3 id="round-1"><a href="#round-1">Round 1 — The Penthouse</a></h3>
   <div class="table-scroll">
     <table>
       <thead>
@@ -3211,7 +3518,7 @@
       <caption>Round 1: season average .716 · hit .682 as a group this period.</caption>
     </table>
   </div>
-  <h3 id="round-2" style="margin-top:28px">Round 2 — The Second Story</h3>
+  <h3 id="round-2"><a href="#round-2">Round 2 — The Second Story</a></h3>
   <div class="table-scroll">
     <table>
       <thead>
@@ -3234,7 +3541,7 @@
       <caption>Round 2: season average .654 · hit .711 as a group this period.</caption>
     </table>
   </div>
-  <h3 id="round-3" style="margin-top:28px">Round 3 — The Money Pit</h3>
+  <h3 id="round-3"><a href="#round-3">Round 3 — The Money Pit</a></h3>
   <div class="table-scroll">
     <table>
       <thead>
@@ -3257,7 +3564,7 @@
       <caption>Round 3: season average .602 · hit .584 as a group this period.</caption>
     </table>
   </div>
-  <h3 id="round-4" style="margin-top:28px">Round 4 — The Suburbs</h3>
+  <h3 id="round-4"><a href="#round-4">Round 4 — The Suburbs</a></h3>
   <div class="table-scroll">
     <table>
       <thead>
@@ -3280,7 +3587,7 @@
       <caption>Round 4: season average .591 · hit .561 as a group this period.</caption>
     </table>
   </div>
-  <h3 id="round-5" style="margin-top:28px">Round 5 — The Flats</h3>
+  <h3 id="round-5"><a href="#round-5">Round 5 — The Flats</a></h3>
   <div class="table-scroll">
     <table>
       <thead>
@@ -3303,7 +3610,7 @@
       <caption>Round 5: season average .582 · hit .595 as a group this period.</caption>
     </table>
   </div>
-  <h3 id="round-6" style="margin-top:28px">Round 6 — The Bump</h3>
+  <h3 id="round-6"><a href="#round-6">Round 6 — The Bump</a></h3>
   <div class="table-scroll">
     <table>
       <thead>
@@ -3326,7 +3633,7 @@
       <caption>Round 6: season average .603 · hit .562 as a group this period.</caption>
     </table>
   </div>
-  <h3 id="round-7" style="margin-top:28px">Round 7 — The Mezzanine</h3>
+  <h3 id="round-7"><a href="#round-7">Round 7 — The Mezzanine</a></h3>
   <div class="table-scroll">
     <table>
       <thead>
@@ -3349,7 +3656,7 @@
       <caption>Round 7: season average .543 · hit .554 as a group this period.</caption>
     </table>
   </div>
-  <h3 id="round-8" style="margin-top:28px">Round 8 — The Casino</h3>
+  <h3 id="round-8"><a href="#round-8">Round 8 — The Casino</a></h3>
   <div class="table-scroll">
     <table>
       <thead>
@@ -3372,7 +3679,7 @@
       <caption>Round 8: season average .494 · hit .493 as a group this period.</caption>
     </table>
   </div>
-  <h3 id="round-9" style="margin-top:28px">Round 9 — The Spill Zone</h3>
+  <h3 id="round-9"><a href="#round-9">Round 9 — The Spill Zone</a></h3>
   <div class="table-scroll">
     <table>
       <thead>
@@ -3395,7 +3702,7 @@
       <caption>Round 9: season average .461 · hit .340 as a group this period.</caption>
     </table>
   </div>
-  <h3 id="round-10" style="margin-top:28px">Round 10 — The Pothole</h3>
+  <h3 id="round-10"><a href="#round-10">Round 10 — The Pothole</a></h3>
   <div class="table-scroll">
     <table>
       <thead>
@@ -3418,7 +3725,7 @@
       <caption>Round 10: season average .383 · hit .426 as a group this period.</caption>
     </table>
   </div>
-  <h3 id="round-11" style="margin-top:28px">Round 11 — The Attic</h3>
+  <h3 id="round-11"><a href="#round-11">Round 11 — The Attic</a></h3>
   <div class="table-scroll">
     <table>
       <thead>
@@ -3441,7 +3748,7 @@
       <caption>Round 11: season average .440 · hit .393 as a group this period.</caption>
     </table>
   </div>
-  <h3 id="round-12" style="margin-top:28px">Round 12 — The Floor</h3>
+  <h3 id="round-12"><a href="#round-12">Round 12 — The Floor</a></h3>
   <div class="table-scroll">
     <table>
       <thead>
@@ -3609,7 +3916,7 @@
                 (n = 12 per round), so treat individual z values as directional,
                 not gospel. Sleeper and outlier tables use minimum at-bat
                 filters (15 and 10 respectively) to keep small samples from
-                stealing the show. Section 7 joins the July 3 and July 10
+                stealing the show. What Changed joins the July 3 and July 10
                 snapshots on (team, draft pick); period rate = (ΔH − ΔCO) ÷ ΔAB
                 with a 6 period-AB minimum this edition (a light week: the usual
                 10-AB bar leaves just six qualifiers league-wide, and the

@@ -372,6 +372,21 @@ So:
    prices*. Keep the season sections exactly as they are; they're right for what they do.
 6. **Anchor every week fact to what it replaced** — `.765 → .675`, `#17 → #63`, `1st → 2nd`.
    A .333 week means nothing until you know the man was a .708 hitter.
+6b. **Never write "points" without saying what they're points OF.** A point is a thousandth of an
+   average, and there are TWO different quantities in play every week — they are not the same
+   number and the prose must never blur them:
+   - the **swing**: what a player hit *this week* vs his own season line (Evan Williams, −**598**);
+   - the **season-line move**: what that did to his cumulative average (only −**90**).
+   `swing × (ΔAB ÷ total AB) = season-line move`. Say "batted 598 points *below his own line*",
+   never "lost 598 points *off his average*" — the second is simply false, and the July 10 draft
+   shipped it in the headline next to `.765 → .675`, which made the two look like one number.
+6c. **Every cross-edition superlative must be checked against EVERY prior period, with the
+   script.** "The biggest X this paper has recorded" is a claim about all snapshots, not this one.
+   Run `python3 analysis.py PREV.csv --prev PREV-PREV.csv` and compare. The July 10 draft claimed
+   Riley Barlow's 46-place fall was the biggest ever; Lorenzo Cawley had fallen **68** the period
+   before. Cheap check, and the true version is usually the better story — Cawley turned out to be
+   on both collapse lists. (Verified for this edition: Evan's −.598 swing, the Diamonds' .667 team
+   week, and the Good Guys' .421 / −.163 **are** records; the rank claims were not.)
 7. **Say the games, not "the period."** "Games 9 and 10", never "between snapshots" /
    "week-over-week", in Movement I. It turns an abstraction into a thing that happened on a field.
 8. **Name clubs by their captain, never by the team name** (owner's rule, 2026-07-14 — see

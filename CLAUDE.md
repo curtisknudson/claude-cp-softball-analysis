@@ -120,15 +120,19 @@ matching how the league's own rosters write compound names (e.g. "Dockstader Boy
 
 ## Shortstops (per Curtis, 2026-07-06 — one per team; no need to re-ask)
 
-Shortstop is the league's premium defensive position; 10 of the 12 were round-1 picks. A
+Shortstop is the league's premium defensive position; 11 of the 12 are round-1 picks. A
 shortstop's draft price partly buys defense that batting stats can't see — **temper
 "overdrafted/didn't justify" verdicts for these names** and tag them `· SS` in Verdict tables
 (`SHORTSTOPS` set + `is_ss()` in analysis.py):
 
 Hammon, Gideon (GG) · Williams, Horatio (YS) · Dockstader, Sefton (LL) · Hammon, Elliot (EL) ·
 Timpson, Claude (PL) · Williams, Michael (PLA) · Guy, Sam (SS) · Dockstader Ephraims, Daniel
-(DA, R4) · Williams, Daniel (PB) · Knudson, Levi (SJ) · Hammon, Stafford (FS, R3) ·
+(DA, R4) · Williams, Daniel (PB) · Knudson, Levi (SJ) · Dockstader, Adam (FS) ·
 Dockstader Boyds, Jeremy (DD)
+
+**Change 2026-07-13 (per Curtis): Stafford Hammon no longer plays shortstop; Adam Dockstader
+(the Fellowship's R1 pick) does.** Editions before July 10 tagged Stafford `· SS` — archives
+stay frozen as published; don't retro-edit them.
 
 ## Draft order (per Curtis, 2026-07-06 — the draft SNAKED)
 

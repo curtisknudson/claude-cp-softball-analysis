@@ -238,9 +238,10 @@ ROUND_NICKNAMES = {
 
 
 # Shortstops — one per team, per Curtis (2026-07-06). Shortstop is the league's
-# premium defensive position: 10 of the 12 were round-1 picks, and a shortstop's
+# premium defensive position: 11 of the 12 are round-1 picks, and a shortstop's
 # draft price buys a glove the batting ledger can't see. Temper "overdrafted"
-# verdicts for these names.
+# verdicts for these names. (Updated 2026-07-13: Stafford Hammon no longer plays
+# SS; Adam Dockstader, the Fellowship's R1 pick, is their shortstop now.)
 SHORTSTOPS = {
     "Hammon, Gideon",  # Good Guys
     "Williams, Horatio",  # Youre Saying Theres A Chance
@@ -252,7 +253,7 @@ SHORTSTOPS = {
     "Dockstader Ephraims, Daniel",  # Danites (R4)
     "Williams, Daniel",  # Pure Breads
     "Knudson, Levi",  # Slamma Jammas
-    "Hammon, Stafford",  # Fellowship of the Swing (R3)
+    "Dockstader, Adam",  # Fellowship of the Swing
     "Dockstader Boyds, Jeremy",  # Diamonds and Dirtbags
 }
 

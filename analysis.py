@@ -21,11 +21,14 @@ column to catch format drift.
 
 import argparse
 import csv
+import datetime
 import math
+import re
 import statistics
 import sys
 
 ROUNDS = 12
+SEASON_YEAR = 2026  # MMDD snapshot filenames carry no year; the season does
 
 # Team captains, from https://cpsoftball.com/teams.php (fetched 2026-07-06).
 # Every displayed team name carries "(<captain>'s team)". The two captains
@@ -772,6 +775,756 @@ def html_standings(st, players, prev_st=None):
         )
 
 
+# ---------------------------------------------------------------- games
+
+
+def snap_date(path):
+    """Data date of an MMDD-*.csv snapshot filename as a datetime.date."""
+    m = re.search(r"(\d{2})(\d{2})-(?:stats|standings|schedule)", path)
+    if not m:
+        sys.exit(f"{path}: can't read MMDD from the filename (expected MMDD-stats.csv style)")
+    return datetime.date(SEASON_YEAR, int(m.group(1)), int(m.group(2)))
+
+
+GAME_STATUSES = {"FINAL", "TIE", "SCHEDULED"}
+
+
+def load_games(path):
+    """Load the season schedule CSV: one row per game, completed and upcoming.
+
+    Columns: date,time,field,team_a,score_a,team_b,score_b,status,note —
+    harvested from https://cpsoftball.com/schedule.php (see CLAUDE.md). a/b is
+    the site's listing order (the league has no home/away concept). Scores are
+    blank exactly on SCHEDULED rows. Forfeits stay FINAL rows carrying the
+    site's own score plus its note; validate_games() is what makes any of
+    these numbers trustworthy.
+    """
+    games = []
+    with open(path, newline="") as f:
+        for r in csv.DictReader(f):
+            status = r["status"].strip()
+            if status not in GAME_STATUSES:
+                sys.exit(f"{path}: bad status {status!r}")
+            sa, sb = r["score_a"].strip(), r["score_b"].strip()
+            if (status == "SCHEDULED") != (sa == "" == sb):
+                sys.exit(
+                    f"{path}: {r['date']} {r['team_a']} vs {r['team_b']}: "
+                    "scores must be blank exactly when SCHEDULED"
+                )
+            for t in (r["team_a"].strip(), r["team_b"].strip()):
+                if t not in CAPTAINS:
+                    sys.exit(f"{path}: unknown team {t!r} — must match the canonical roster names")
+            games.append(
+                dict(
+                    d=datetime.date.fromisoformat(r["date"].strip()),
+                    tm=datetime.datetime.strptime(r["time"].strip(), "%I:%M %p").time(),
+                    date=r["date"].strip(),
+                    time=r["time"].strip(),
+                    field=r["field"].strip(),
+                    a=r["team_a"].strip(),
+                    b=r["team_b"].strip(),
+                    sa=int(sa) if sa else None,
+                    sb=int(sb) if sb else None,
+                    status=status,
+                    note=r["note"].strip(),
+                )
+            )
+    if not games:
+        sys.exit(f"{path}: no game rows")
+    for g in games:
+        if g["status"] == "TIE" and g["sa"] != g["sb"]:
+            sys.exit(f"{path}: {g['date']} {g['a']} vs {g['b']}: TIE with unequal scores")
+        if g["status"] == "FINAL" and g["sa"] == g["sb"]:
+            sys.exit(f"{path}: {g['date']} {g['a']} vs {g['b']}: FINAL with equal scores")
+    keys = [(g["d"], g["tm"], g["field"]) for g in games]
+    dups = sorted({k for k in keys if keys.count(k) > 1})
+    if dups:
+        sys.exit(f"{path}: duplicate (date, time, field) rows: {dups}")
+    games.sort(key=lambda g: (g["d"], g["tm"], g["field"]))
+    # Game-day shape: on any date with games, every listed club plays twice.
+    # A WARN, not an exit — a future rainout could legitimately break it.
+    for d in sorted({g["d"] for g in games}):
+        n = {}
+        for g in games:
+            if g["d"] == d:
+                n[g["a"]] = n.get(g["a"], 0) + 1
+                n[g["b"]] = n.get(g["b"], 0) + 1
+        odd = sorted(t for t, c in n.items() if c != 2)
+        if odd:
+            print(f"WARNING: {path}: {d} is not a clean doubleheader day for: {', '.join(odd)}")
+    return games
+
+
+def completed(games):
+    return [g for g in games if g["status"] != "SCHEDULED"]
+
+
+def validate_games(games, st, label, cutoff=None):
+    """The schedule's trust anchor.
+
+    Completed games (through the standings snapshot's date) must reconcile
+    with the standings EXACTLY — per team W/L/T, PF and PA, plus the league
+    game count implied by GP. Harvested scores are only trusted because this
+    holds; on failure the per-team diff printed to stderr is the refetch guide.
+    """
+    done = [g for g in completed(games) if cutoff is None or g["d"] <= cutoff]
+    agg = {s["team"]: [0, 0, 0, 0, 0] for s in st}  # W L T PF PA
+    for g in done:
+        sa, sb = g["sa"], g["sb"]
+        assert sa is not None and sb is not None  # load_games guarantees it
+        for team, us, them in ((g["a"], sa, sb), (g["b"], sb, sa)):
+            if team not in agg:
+                sys.exit(f"{label}: {team!r} plays games but is missing from the standings")
+            a = agg[team]
+            a[0] += us > them
+            a[1] += us < them
+            a[2] += us == them
+            a[3] += us
+            a[4] += them
+    bad = []
+    for s in st:
+        w, l, t, pf, pa = agg[s["team"]]
+        if (w, l, t, pf, pa) != (s["w"], s["l"], s["t"], s["pf"], s["pa"]):
+            bad.append(
+                f"  {s['team']:32s} games say {w}-{l}-{t}, PF {pf} PA {pa}"
+                f"  |  standings say {s['w']}-{s['l']}-{s['t']}, PF {s['pf']} PA {s['pa']}"
+            )
+    want = sum(s["gp"] for s in st) // 2
+    if len(done) != want:
+        bad.append(f"  {len(done)} completed games in the file vs {want} implied by standings GP")
+    if bad:
+        print(f"{label}: schedule does not reconcile with the standings:", file=sys.stderr)
+        for line in bad:
+            print(line, file=sys.stderr)
+        sys.exit(f"{label}: schedule<->standings identity FAILED — refetch the named teams' date ranges")
+    print(
+        f"GAMES OK: {label}: {len(done)} completed games reconcile exactly with the standings "
+        f"({len(games) - len(completed(games))} scheduled ahead)",
+        file=sys.stderr,
+    )
+
+
+def team_games(games, team):
+    """One club's completed games, chronological: opp, us/them, W/L/T, margin."""
+    out = []
+    for g in completed(games):
+        if team == g["a"]:
+            us, them, opp = g["sa"], g["sb"], g["b"]
+        elif team == g["b"]:
+            us, them, opp = g["sb"], g["sa"], g["a"]
+        else:
+            continue
+        assert us is not None and them is not None
+        out.append(
+            dict(
+                d=g["d"], date=g["date"], time=g["time"], field=g["field"],
+                opp=opp, us=us, them=them,
+                result="T" if us == them else ("W" if us > them else "L"),
+                margin=us - them, note=g["note"],
+            )
+        )
+    return out
+
+
+# ---------------------------------------------------------------- afternoon desk
+# Computations behind the Afternoon Final's modules. Everything here reads the
+# shared primitives (period_rows/team_period) plus the games/standings loaders;
+# nothing prints except afternoon_digest() and the emitters further down.
+
+
+def enrich(players):
+    """All per-snapshot derived fields (z, value/vround, pickno). Idempotent —
+    each function recomputes from raw counts, so calling twice is harmless."""
+    add_z(players)
+    add_value(players)
+    add_picks(players)
+
+
+def period_label(da, db):
+    return f"{da.strftime('%b')} {da.day} → {db.strftime('%b')} {db.day}"
+
+
+def hae(rows):
+    """Hits Above Expectation for each period row: dH − dCO − dAB × own line.
+
+    'Expected hits' = what the player's own season average at the previous
+    snapshot predicts for this many at-bats. Positive = beat his own book.
+    Volume-aware where the swing is not: a .700 afternoon on 20 ABs out-earns a
+    1.000 afternoon on 4. None when the player sat or had no prior line."""
+    for r in rows:
+        r["hae"] = (
+            (r["dh"] - r["dco"]) - r["dab"] * r["o"]["avg"]
+            if r["dab"] > 0 and r["o"]["ab"]
+            else None
+        )
+    return rows
+
+
+def afternoon_awards(rows, tw):
+    """Ranked shortlists for the Weeklies; index 0 of each list is the winner."""
+    hae(rows)
+    return dict(
+        bat=sorted(
+            (r for r in rows if r["hae"] is not None),
+            key=lambda r: (-r["hae"], -r["dab"]),
+        ),
+        anvil=sorted(
+            (r for r in rows if r["dab"] >= 4 and r["swing"] is not None),
+            key=lambda r: (r["swing"], -r["dab"]),
+        ),
+        # ties broken by season CO total: the deepest sinner leads the shortlist
+        vacuum=sorted(
+            (r for r in rows if r["dco"] > 0),
+            key=lambda r: (-r["dco"], -r["n"]["co"], -r["dab"]),
+        ),
+        ghost=sorted((r for r in rows if r["dab"] == 0), key=lambda r: r["n"]["rank"]),
+        iron=sorted(
+            (r for r in rows if r["dab"] > 0),
+            key=lambda r: (-r["dab"], -(r["rate"] or 0.0)),
+        ),
+        sweep=[r for r in tw if r["dco"] == 0],
+        ladder=sorted(rows, key=lambda r: (-r["drank"], r["n"]["rank"])),
+        chute=sorted(rows, key=lambda r: (r["drank"], r["n"]["rank"])),
+    )
+
+
+def collapse_list(prev, cur, thresh=-0.300, min_dab=4):
+    """The published Collapse cohort: swing <= thresh on min_dab+ period ABs."""
+    return sorted(
+        (
+            r
+            for r in period_rows(prev, cur)
+            if r["dab"] >= min_dab and r["swing"] is not None and r["swing"] <= thresh
+        ),
+        key=lambda r: r["swing"],
+    )
+
+
+def rebound_ledger(prev2, prev, cur):
+    """Last edition's Collapse cohort re-examined against the new period.
+
+    REBOUNDED = the new period's rate above the player's own season line as it
+    stood when the afternoon began (his line at prev); FELL AGAIN = at or below it;
+    SAT = no at-bats. The cohort rule matches what the previous edition printed
+    (fell 300+ points on 4+ period ABs)."""
+    new = {(r["team"], r["pick"]): r for r in period_rows(prev, cur)}
+    out = []
+    for c in collapse_list(prev2, prev):
+        r = new[(c["team"], c["pick"])]
+        if r["dab"] == 0:
+            verdict = "SAT"
+        elif r["rate"] is not None and r["rate"] > r["o"]["avg"]:
+            verdict = "REBOUNDED"
+        else:
+            verdict = "FELL AGAIN"
+        out.append(dict(prior=c, now=r, verdict=verdict))
+    return out
+
+
+def team_series(snaps):
+    """{team: [season adj avg at each snapshot]} over [(date, players), ...]."""
+    out = {}
+    for _, players in snaps:
+        agg = {}
+        for p in players:
+            a = agg.setdefault(p["team"], [0, 0])
+            a[0] += p["h"] - p["co"]
+            a[1] += p["ab"]
+        for t in sorted(agg):
+            out.setdefault(t, []).append(agg[t][0] / agg[t][1])
+    return out
+
+
+def form_glyphs(snaps, deadband=0.050):
+    """{(team, pick): glyph string}, one glyph per period between snapshots:
+    ↗ swing above +deadband, ↘ below −deadband, → inside (or no prior line),
+    · sat the period."""
+    glyphs = {}
+    for (_, a), (_, b) in zip(snaps, snaps[1:]):
+        for r in period_rows(a, b):
+            if r["dab"] == 0:
+                g = "·"
+            elif r["swing"] is None or abs(r["swing"]) <= deadband:
+                g = "→"
+            elif r["swing"] > 0:
+                g = "↗"
+            else:
+                g = "↘"
+            glyphs.setdefault((r["team"], r["pick"]), []).append(g)
+    return {k: "".join(v) for k, v in glyphs.items()}
+
+
+def family_week(prev, cur):
+    """Aggregate family period rates: (ΣdH − ΣdCO) ÷ ΣdAB over single-surname
+    families of 3+ players. Aggregate, like team weeks — season family averages
+    are mean-of-player-averages, but a week is pooled at-bats."""
+    fams = {}
+    for r in period_rows(prev, cur):
+        s = surname(r["n"])
+        if " " not in s:
+            fams.setdefault(s, []).append(r)
+    out = {}
+    for s, rs in sorted(fams.items()):
+        if len(rs) < 3:
+            continue
+        dab = sum(r["dab"] for r in rs)
+        if dab:
+            out[s] = dict(
+                rate=sum(r["dh"] - r["dco"] for r in rs) / dab,
+                dab=dab,
+                n=len(rs),
+            )
+    return out
+
+
+def games_back(st):
+    """{team: games behind the rank-1 club}: ((leadW − W) + (L − leadL)) / 2."""
+    lead = next(s for s in st if s["rank"] == 1)
+    return {
+        s["team"]: ((lead["w"] - s["w"]) + (s["l"] - lead["l"])) / 2 for s in st
+    }
+
+
+def gb_str(v):
+    """Games back, scoreboard-style: '—' for the leader, then '½', '1', '1½'."""
+    if v <= 0:
+        return "—"
+    whole, half = int(v), v % 1 >= 0.5
+    if whole == 0:
+        return "½"
+    return f"{whole}½" if half else f"{whole}"
+
+
+def streaks(games):
+    """{team: current run over its completed games, e.g. 'W3', 'L2', 'T1'}."""
+    out = {}
+    for t in sorted(CAPTAINS):
+        gs = team_games(games, t)
+        if not gs:
+            continue
+        last = gs[-1]["result"]
+        n = 0
+        for g in reversed(gs):
+            if g["result"] != last:
+                break
+            n += 1
+        out[t] = f"{last}{n}"
+    return out
+
+
+def longest_win_streaks(games):
+    """{team: (length, start date, end date)} of each club's longest W run."""
+    out = {}
+    for t in sorted(CAPTAINS):
+        best = (0, None, None)
+        run, start = 0, None
+        for g in team_games(games, t):
+            if g["result"] == "W":
+                if run == 0:
+                    start = g["d"]
+                run += 1
+                if run > best[0]:
+                    best = (run, start, g["d"])
+            else:
+                run = 0
+        out[t] = best
+    return out
+
+
+def game_records(games):
+    """Season game extremes over completed games; ties all listed."""
+    rows = []
+    for g in completed(games):
+        sa, sb = g["sa"], g["sb"]
+        assert sa is not None and sb is not None
+        rows.append((abs(sa - sb), sa + sb, g))
+    mmax = max(m for m, _, _ in rows)
+    tmax = max(t for _, t, _ in rows)
+    tmin = min(t for _, t, _ in rows)
+    return dict(
+        margin=[g for m, _, g in rows if m == mmax],
+        highest=[g for _, t, g in rows if t == tmax],
+        lowest=[g for _, t, g in rows if t == tmin],
+    )
+
+
+def head_to_head(games, teams):
+    """{(a, b): [W, L, T]} of a vs b among a team subset, from completed games."""
+    m = {(x, y): [0, 0, 0] for x in teams for y in teams if x != y}
+    for g in completed(games):
+        if g["a"] in teams and g["b"] in teams:
+            sa, sb = g["sa"], g["sb"]
+            assert sa is not None and sb is not None
+            for x, y, sx, sy in ((g["a"], g["b"], sa, sb), (g["b"], g["a"], sb, sa)):
+                rec = m[(x, y)]
+                rec[0] += sx > sy
+                rec[1] += sx < sy
+                rec[2] += sx == sy
+    return m
+
+
+def next_afternoon(games, after):
+    """The first game date after `after`: (date, {team: [its games, in time
+    order]}). (None, {}) with a NOTICE if the schedule lists nothing ahead."""
+    future = sorted({g["d"] for g in games if g["d"] > after})
+    if not future:
+        print(f"NOTICE: no scheduled games after {after} in the schedule file", file=sys.stderr)
+        return None, {}
+    d = future[0]
+    by = {}
+    for g in games:
+        if g["d"] == d:
+            by.setdefault(g["a"], []).append(
+                dict(opp=g["b"], time=g["time"], field=g["field"], tm=g["tm"])
+            )
+            by.setdefault(g["b"], []).append(
+                dict(opp=g["a"], time=g["time"], field=g["field"], tm=g["tm"])
+            )
+    for v in by.values():
+        v.sort(key=lambda x: x["tm"])
+    return d, by
+
+
+def race_top(players, n=4, min_ab=15):
+    """The batting race's top n: [(player, hits back at own volume)]."""
+    racers = sorted(
+        (p for p in players if p["ab"] >= min_ab), key=lambda p: (-p["avg"], -p["ab"])
+    )[:n]
+    lead = racers[0]
+    return [
+        (p, 0.0 if p is lead else (lead["avg"] - p["avg"]) * p["ab"]) for p in racers
+    ]
+
+
+def race_history(snaps, min_ab=10):
+    """[(date, leader by avg at that snapshot)] across the whole history."""
+    return [
+        (d, max((p for p in ps if p["ab"] >= min_ab), key=lambda p: (p["avg"], p["ab"])))
+        for d, ps in snaps
+    ]
+
+
+# The weekly record book. records_board() recomputes every category from the
+# full snapshot chain each run — no hand-maintained state to drift. The
+# constant below is the board as LAST PUBLISHED (stamped with its edition
+# date): a tripwire, not a source of truth. Recomputing the board through
+# that date must reproduce it exactly; a mismatch means an upstream data
+# revision — investigate before printing. Update both the rows and the AS_OF
+# date whenever an edition publishes a new board.
+RECORDS_PUBLISHED_AS_OF = datetime.date(2026, 7, 17)
+RECORDS_PUBLISHED = [
+    ("hot_week", "Timpson, Cuervo", 0.957),
+    ("cold_week", "Dockstader, Dorothy", 0.154),
+    ("team_best", "Youre Saying Theres A Chance", 0.700),
+    ("team_worst", "The Good Guys", 0.421),
+    ("family_best", "Knudson", 0.700),
+    ("workload", "Timpson, Taylor", 30),
+    ("team_co", "The Good Guys", 9),
+    ("player_co", ("Hammon, Roy", "Dockstader, Noah"), 3),
+]
+
+RECORD_CATS = [
+    ("hot_week", "Hottest week (10+ AB)"),
+    ("cold_week", "Coldest week (10+ AB)"),
+    ("team_best", "Best team week"),
+    ("team_worst", "Worst team week"),
+    ("family_best", "Best family week"),
+    ("workload", "Biggest workload week"),
+    ("team_co", "Most caused outs in a week, team"),
+    ("player_co", "Most caused outs in a week, player"),
+]
+
+HI_CATS = {"hot_week", "team_best", "family_best", "workload", "team_co", "player_co"}
+RATE_CATS = {"hot_week", "cold_week", "team_best", "team_worst", "family_best"}
+
+
+def fmtv(cat, v):
+    return A(v) if cat in RATE_CATS else f"+{v}"
+
+
+def records_board(snaps, min_dab=10):
+    """{category: (value, [(holder, period label), ...])} across every period."""
+    cats = {}
+
+    def post(cat, val, who, label, hi):
+        got = cats.get(cat)
+        if got is None or (val > got[0] if hi else val < got[0]):
+            cats[cat] = (val, [(who, label)])
+        elif val == got[0]:
+            got[1].append((who, label))
+
+    for (da, a), (db, b) in zip(snaps, snaps[1:]):
+        label = period_label(da, db)
+        for r in period_rows(a, b):
+            if r["dab"] >= min_dab and r["rate"] is not None:
+                post("hot_week", r["rate"], r["name"], label, True)
+                post("cold_week", r["rate"], r["name"], label, False)
+            if r["dab"] > 0:
+                post("workload", r["dab"], r["name"], label, True)
+            if r["dco"] > 0:
+                post("player_co", r["dco"], r["name"], label, True)
+        for t, a2 in sorted(team_period(a, b).items()):
+            if a2["dab"]:
+                post("team_best", a2["rate"], t, label, True)
+                post("team_worst", a2["rate"], t, label, False)
+            if a2["dco"]:
+                post("team_co", a2["dco"], t, label, True)
+        for s, f in family_week(a, b).items():
+            post("family_best", f["rate"], s, label, True)
+    return cats
+
+
+def records_report(snaps, near_rate=0.050, near_count=2):
+    """Per category: the all-time mark + what the LAST period did to it.
+
+    status: FELL (the afternoon set a new mark), MATCHED (tied it), NEAR MISS
+    (within near_rate for rates / near_count for counts), HELD. Also runs the
+    RECORDS_PUBLISHED drift tripwire against the board as of the previous
+    snapshot."""
+    now = records_board(snaps)
+    before = records_board(snaps[:-1]) if len(snaps) >= 3 else None
+    last = records_board(snaps[-2:])
+
+    # Drift tripwire: the board as published on RECORDS_PUBLISHED_AS_OF must
+    # be reproducible from the data through that date. Only runs when the
+    # history chain reaches the stamp.
+    pub_snaps = [s for s in snaps if s[0] <= RECORDS_PUBLISHED_AS_OF]
+    if len(pub_snaps) >= 2 and pub_snaps[-1][0] == RECORDS_PUBLISHED_AS_OF:
+        pub = records_board(pub_snaps)
+        for cat, who, val in RECORDS_PUBLISHED:
+            bval, bhold = pub[cat]
+            names = {h for h, _ in bhold}
+            want = set(who) if isinstance(who, tuple) else {who}
+            close = abs(bval - val) < 0.0015 if isinstance(val, float) else bval == val
+            if not (close and want <= names):
+                print(
+                    f"WARNING: records tripwire: {cat} recomputes to "
+                    f"{fmtv(cat, bval)} {sorted(names)} but the published board "
+                    f"says {fmtv(cat, val)} {sorted(want)}",
+                    file=sys.stderr,
+                )
+
+    out = []
+    for cat, title in RECORD_CATS:
+        val, holders = now[cat]
+        lval, lhold = last.get(cat, (None, []))
+        status, prev = "—", ""
+        if before is not None:
+            bval, bhold = before[cat]
+            hi = cat in HI_CATS
+            near = near_rate if cat in RATE_CATS else near_count
+            if lval is not None and (lval > bval if hi else lval < bval):
+                status = "FELL"
+                prev = f"{bhold[0][0]} ({fmtv(cat, bval)})"
+            elif lval is not None and lval == bval:
+                status = "MATCHED"
+            elif lval is not None and abs(bval - lval) <= near:
+                status = "NEAR MISS"
+            else:
+                status = "HELD"
+        out.append(
+            dict(
+                cat=cat,
+                title=title,
+                value=val,
+                holders=holders,
+                status=status,
+                prev=prev,
+                last=lval,
+                last_holders=lhold,
+            )
+        )
+    return out
+
+
+def afternoon_digest(snaps, games, st, prev_st):
+    """The Afternoon Desk digest: every number the front of the paper transcribes.
+    Raw team names throughout — this is the author's tool, not the page."""
+    dcur, cur = snaps[-1]
+    dprev, prev = snaps[-2]
+    rows = period_rows(prev, cur)
+    hae(rows)
+    tw = team_week_rows(prev, cur, st, prev_st)
+    gpast = [g for g in games if g["d"] <= dcur]
+    afternoon = [g for g in completed(games) if dprev < g["d"] <= dcur]
+    print(f"\n{'=' * 72}\n=== AFTERNOON DESK: {period_label(dprev, dcur)} ===\n{'=' * 72}")
+
+    ranks = {s["team"]: s["rank"] for s in prev_st} if prev_st else {}
+    print(f"\n--- AFTERNOON SCOREBOARD ({len(afternoon)} games, in afternoon order) ---")
+    for g in afternoon:
+        sa, sb = g["sa"], g["sb"]
+        assert sa is not None and sb is not None
+        tags = []
+        if g["status"] == "TIE":
+            tags.append("TIE")
+        if abs(sa - sb) == 1:
+            tags.append("1-RUN")
+        if ranks and g["status"] == "FINAL":
+            wt, lt = (g["a"], g["b"]) if sa > sb else (g["b"], g["a"])
+            if ranks[wt] - ranks[lt] >= 6:
+                tags.append(f"UPSET #{ranks[wt]} over #{ranks[lt]}")
+        if g["note"]:
+            tags.append(g["note"])
+        print(
+            f"  {g['time']:>7s} {g['field']:5s} {g['a']:30s} {sa:2d}  "
+            f"{g['b']:30s} {sb:2d}  {' · '.join(tags)}"
+        )
+
+    hist = race_history(snaps)
+    print("\n--- AFTERNOON CROWN (race history; chase = top 4 by avg, AB >= 15) ---")
+    for d, p in hist:
+        print(
+            f"  {d.strftime('%b')} {d.day:>2d}: {p['name']:30s} {disp(p)} "
+            f"on {p['ab']:2d} AB  ({p['team']})"
+        )
+    old_lead, new_lead = hist[-2][1], hist[-1][1]
+    if (old_lead["team"], old_lead["pick"]) != (new_lead["team"], new_lead["pick"]):
+        r = next(
+            r
+            for r in rows
+            if (r["team"], r["pick"]) == (old_lead["team"], old_lead["pick"])
+        )
+        firstco = (
+            " — his FIRST caused out of the season"
+            if r["dco"] > 0 and r["o"]["co"] == 0
+            else ""
+        )
+        print(
+            f"  LEAD CHANGE: {old_lead['name']} fell {disp(old_lead)} -> "
+            f"{disp(r['n'])} (rank #{r['o']['rank']} -> #{r['n']['rank']}), "
+            f"afternoon {week_line(r)}{firstco}"
+        )
+    for p, back in race_top(cur, 4):
+        b = "lead" if back == 0 else f"back {back:.1f} hits"
+        print(f"  {p['name']:30s} {disp(p)} on {p['ab']:2d} AB  {b:14s} ({p['team']})")
+
+    aw = afternoon_awards(rows, tw)
+    print("\n--- AFTERNOON AWARDS ---")
+    print("  BAT OF THE AFTERNOON (HAE = dH − dCO − dAB × own prior line):")
+    for r in aw["bat"][:3]:
+        print(
+            f"    {r['name']:30s} {week_line(r):16s} HAE {r['hae']:+.2f} "
+            f"vs own {A(r['o']['avg'])}  ({r['team']})"
+        )
+    print("  THE ANVIL (worst swing, 4+ AB):")
+    for r in aw["anvil"][:3]:
+        print(
+            f"    {r['name']:30s} {week_line(r):16s} swing {r['swing']:+.3f} "
+            f"vs own {A(r['o']['avg'])}  ({r['team']})"
+        )
+    print("  THE VACUUM (afternoon caused outs; ties broken by season CO):")
+    for r in aw["vacuum"][:3]:
+        print(
+            f"    {r['name']:30s} +{r['dco']} CO (season {r['n']['co']})  "
+            f"{week_line(r):16s} ({r['team']})"
+        )
+    print("  THE GHOST (highest-ranked player who sat the afternoon):")
+    for r in aw["ghost"][:3]:
+        print(
+            f"    {r['name']:30s} rank #{r['n']['rank']:<3d} {disp(r['n'])} "
+            f"on {r['n']['ab']:2d} AB  ({r['team']})"
+        )
+    print("  THE IRON WEEK (most afternoon at-bats):")
+    for r in aw["iron"][:3]:
+        rate = A(r["rate"]) if r["rate"] is not None else "—"
+        print(f"    {r['name']:30s} {week_line(r):16s} rate {rate}  ({r['team']})")
+    sweep = " | ".join(f"{r['team']} ({r['dh']}-for-{r['dab']})" for r in aw["sweep"])
+    print(f"  CLEAN SWEEP (zero afternoon CO): {sweep or 'none'}")
+    lad, chu = aw["ladder"][0], aw["chute"][0]
+    print(
+        f"  THE LADDER: {lad['name']} #{lad['o']['rank']} -> #{lad['n']['rank']} "
+        f"(▲{lad['drank']})  |  THE CHUTE: {chu['name']} #{chu['o']['rank']} -> "
+        f"#{chu['n']['rank']} (▼{-chu['drank']})"
+    )
+
+    print("\n--- FAMILY AFTERNOON (aggregate (dH − dCO) / dAB, families of 3+) ---")
+    fw = family_week(prev, cur)
+    for s, f in sorted(fw.items(), key=lambda kv: -kv[1]["rate"]):
+        print(f"  {s:12s} {A(f['rate'])} on {f['dab']:3d} afternoon AB  ({f['n']} players)")
+
+    if len(snaps) >= 3:
+        led = rebound_ledger(snaps[-3][1], prev, cur)
+        n_r = sum(1 for e in led if e["verdict"] == "REBOUNDED")
+        n_f = sum(1 for e in led if e["verdict"] == "FELL AGAIN")
+        n_s = sum(1 for e in led if e["verdict"] == "SAT")
+        print(
+            f"\n--- REBOUND LEDGER ({len(led)} collapsed 300+ last period: "
+            f"{n_r} rebounded / {n_f} fell again / {n_s} sat) ---"
+        )
+        for e in led:
+            c, r = e["prior"], e["now"]
+            rate = A(r["rate"]) if r["rate"] is not None else "—"
+            print(
+                f"  {e['verdict']:10s} {r['name']:30s} was {c['swing']:+.3f}  "
+                f"afternoon {week_line(r):16s} {rate:5s} vs own {A(r['o']['avg'])}  "
+                f"({r['team']})"
+            )
+
+    gb = games_back(st)
+    stk = streaks(gpast)
+    lws = longest_win_streaks(gpast)
+    print("\n--- GAMES BACK & STREAKS ---")
+    for s in st:
+        t = s["team"]
+        ln, a, b = lws[t]
+        span = f"{a.strftime('%b')} {a.day}–{b.strftime('%b')} {b.day}" if ln else "—"
+        print(
+            f"{s['rank']:2d} {t:32s} GB {gb_str(gb[t]):>4s}  now {stk.get(t, '—'):3s}  "
+            f"longest W run {ln} ({span})"
+        )
+
+    gr = game_records(gpast)
+
+    def gline(g):
+        return f"{g['a']} {g['sa']}–{g['sb']} {g['b']} ({g['date']})"
+
+    nmarg = max(afternoon, key=lambda g: abs(g["sa"] - g["sb"]))
+    ntot = max(afternoon, key=lambda g: g["sa"] + g["sb"])
+    print("\n--- GAME RECORDS (all completed games) ---")
+    print("  biggest margin : " + " | ".join(gline(g) for g in gr["margin"]))
+    print("  highest-scoring: " + " | ".join(gline(g) for g in gr["highest"]))
+    print("  lowest-scoring : " + " | ".join(gline(g) for g in gr["lowest"]))
+    print(f"  this afternoon's extremes: margin {gline(nmarg)} | total {gline(ntot)}")
+
+    top4 = [s["team"] for s in st[:4]]
+    m = head_to_head(gpast, set(top4))
+    print("\n--- HEAD-TO-HEAD (current top four; W-L-T of row vs column) ---")
+    for x in top4:
+        cells = []
+        for y in top4:
+            if x == y:
+                cells.append("—")
+            else:
+                w_, l_, t_ = m[(x, y)]
+                cells.append(f"{w_}-{l_}" + (f"-{t_}" if t_ else ""))
+        print(f"  {x:32s} " + "  ".join(f"{c:6s}" for c in cells))
+
+    nd, _ = next_afternoon(games, dcur)
+    if nd:
+        print(f"\n--- NEXT AFTERNOON ({nd.strftime('%b')} {nd.day}) ---")
+        for g in games:
+            if g["d"] == nd:
+                print(f"  {g['time']:>7s} {g['field']:5s} {g['a']} vs {g['b']}")
+
+    print("\n--- RECORDS WATCH (the weekly record book vs this afternoon) ---")
+    for row in records_report(snaps):
+        hold = ", ".join(f"{h} ({lab})" for h, lab in row["holders"])
+        print(f"  {row['title']:34s} {fmtv(row['cat'], row['value']):>6s}  "
+              f"{row['status']:9s} {hold}")
+        if row["status"] == "FELL":
+            print(f"      previous record: {row['prev']}")
+        elif row["status"] in ("NEAR MISS", "MATCHED") and row["last"] is not None:
+            who = ", ".join(h for h, _ in row["last_holders"])
+            print(f"      this afternoon: {fmtv(row['cat'], row['last'])} ({who})")
+
+    series = team_series(snaps)
+    hdr = "  ".join(f"{d.strftime('%b')} {d.day:>2d}" for d, _ in snaps)
+    print("\n--- ARCS SERIES (season adj avg at each snapshot) ---")
+    print(f"  {'team':32s} {hdr}")
+    for t in sorted(series, key=lambda t: -series[t][-1]):
+        print(f"  {t:32s} " + "    ".join(A(v) for v in series[t]))
+
+
 # ---------------------------------------------------------------- html tables
 
 
@@ -800,14 +1553,12 @@ def team_label(team):
 
 def period_map(prev, cur):
     """(team, pick) -> (period AB, period rate or None), joined on the key."""
-    po = {(p["team"], p["pick"]): p for p in prev}
-    out = {}
-    for p in cur:
-        o = po[(p["team"], p["pick"])]
-        dab = p["ab"] - o["ab"]
-        dnet = (p["h"] - p["co"]) - (o["h"] - o["co"])
-        out[(p["team"], p["pick"])] = (dab, dnet / dab if dab > 0 else None)
-    return out
+    return {
+        (r["team"], r["pick"]): (r["dab"], r["rate"]) for r in period_rows(prev, cur)
+    }
+
+
+_PERIOD_CACHE = {}
 
 
 def period_rows(prev, cur):
@@ -818,7 +1569,12 @@ def period_rows(prev, cur):
     and dco are kept, not just their net: a week is reported as a *line*
     ("7-for-7"), where the hits are raw and only the rate is net of caused
     outs. That is why a 2-for-5 week with two caused outs is worth .000.
+    Memoized per (prev, cur) pair — the afternoon digest and emitters walk every
+    consecutive snapshot pair repeatedly.
     """
+    memo = _PERIOD_CACHE.get((id(prev), id(cur)))
+    if memo is not None:
+        return memo
     po = {(p["team"], p["pick"]): p for p in prev}
     pn = {(p["team"], p["pick"]): p for p in cur}
     if set(po) != set(pn):
@@ -853,7 +1609,24 @@ def period_rows(prev, cur):
                 drank=o["rank"] - n["rank"],  # positive = climbed toward #1
             )
         )
+    _PERIOD_CACHE[(id(prev), id(cur))] = rows
     return rows
+
+
+def team_period(prev, cur):
+    """Per-team aggregate of a period: dab/dh/dco, week rate, own prior line."""
+    agg = {}
+    for r in period_rows(prev, cur):
+        a = agg.setdefault(r["team"], dict(dab=0, dh=0, dco=0, onet=0, oab=0))
+        a["dab"] += r["dab"]
+        a["dh"] += r["dh"]
+        a["dco"] += r["dco"]
+        a["onet"] += r["o"]["h"] - r["o"]["co"]
+        a["oab"] += r["o"]["ab"]
+    for a in agg.values():
+        a["rate"] = (a["dh"] - a["dco"]) / a["dab"] if a["dab"] else None
+        a["line"] = a["onet"] / a["oab"] if a["oab"] else None
+    return agg
 
 
 def week_line(r, html=False):
@@ -876,16 +1649,7 @@ def team_week_rows(prev, cur, st=None, prev_st=None):
     Temperature bars draw. With both standings snapshots, each row also
     carries the week's record, points, run differential and rank move.
     """
-    po = {(p["team"], p["pick"]): p for p in prev}
-    agg = {}
-    for p in cur:
-        o = po[(p["team"], p["pick"])]
-        a = agg.setdefault(p["team"], dict(dab=0, dh=0, dco=0, onet=0, oab=0))
-        a["dab"] += p["ab"] - o["ab"]
-        a["dh"] += p["h"] - o["h"]
-        a["dco"] += p["co"] - o["co"]
-        a["onet"] += o["h"] - o["co"]
-        a["oab"] += o["ab"]
+    agg = team_period(prev, cur)
 
     sn = {s["team"]: s for s in st} if st else {}
     so = {s["team"]: s for s in prev_st} if prev_st else {}
@@ -894,8 +1658,7 @@ def team_week_rows(prev, cur, st=None, prev_st=None):
 
     rows = []
     for t, a in agg.items():
-        rate = (a["dh"] - a["dco"]) / a["dab"] if a["dab"] else None
-        line = a["onet"] / a["oab"] if a["oab"] else None
+        rate, line = a["rate"], a["line"]
         r = dict(
             team=t,
             dab=a["dab"],
@@ -933,6 +1696,70 @@ def temp_scale(tw):
     return max(0.200, math.ceil(m * 20) / 20)
 
 
+# Shared HTML formatters. Every emitter (the legacy --html-tables one and the
+# per-module afternoon emitters) speaks the same cell vocabulary through these.
+
+
+def G(v):
+    """A signed three-decimal delta, leading zero stripped: '+.060', '−.163'."""
+    return f"{v:+.3f}".replace("-", "−").replace("0.", ".", 1)
+
+
+def signed(v, text):
+    return f'<span class="{"zpos" if v >= 0 else "zneg"}">{text}</span>'
+
+
+def rankcell(r):
+    return f'#{r["o"]["rank"]} <span class="muted">→</span> #{r["n"]["rank"]}'
+
+
+def zspan(z):
+    return f'<span class="{"zpos" if z >= 0 else "zneg"}">{Z(z)}</span>'
+
+
+def vspan(v):
+    return f'<span class="{"zpos" if v >= 0 else "zneg"}">{f"{v:+.1f}".replace("-", "−")}</span>'
+
+
+def pname(p):
+    return p["name"] + (
+        ' <span class="muted">· SS</span>' if is_ss(p) else ""
+    )
+
+
+def gapspan(p):
+    gap = p["pick"] - p["vround"]
+    if gap > 0:
+        return f'<span class="zpos">+{gap}</span>'
+    if gap < 0:
+        return f'<span class="zneg">−{-gap}</span>'
+    return '<span class="muted">=</span>'
+
+
+def arrow(m):
+    """A ▲▼= movement span with the standard classes (positive = climbed)."""
+    if m == 0:
+        return '<span class="muted">=</span>'
+    return f'<span class="{"zpos" if m > 0 else "zneg"}">{"▲" if m > 0 else "▼"}{abs(m)}</span>'
+
+
+def disp(p):
+    """A player's season average exactly as the source file prints it.
+
+    The site rounds half UP (13-for-16 = .8125 prints .813); Python's round
+    half-to-even would print .812. Display always transcribes the file."""
+    return A(p["file_avg"])
+
+
+def cap_slug(team):
+    return CAPTAINS[team].lower().replace(" ", "-")
+
+
+def club_slug(team):
+    """Anchor id for a club's page block: club-caleb, club-boyds-daniel."""
+    return "club-" + cap_slug(team)
+
+
 def html_tables(cur, prev=None, prev2=None, st=None, prev_st=None):
     """Emit page-ready HTML for every table on the page, in page order.
 
@@ -944,16 +1771,6 @@ def html_tables(cur, prev=None, prev2=None, st=None, prev_st=None):
     """
     add_z(cur)
     per = period_map(prev, cur) if prev else {}
-
-    def G(v):
-        """A signed three-decimal delta, leading zero stripped: '+.060', '−.163'."""
-        return f"{v:+.3f}".replace("-", "−").replace("0.", ".", 1)
-
-    def signed(v, text):
-        return f'<span class="{"zpos" if v >= 0 else "zneg"}">{text}</span>'
-
-    def rankcell(r):
-        return f'#{r["o"]["rank"]} <span class="muted">→</span> #{r["n"]["rank"]}'
 
     # ---- the front of book: the week (needs prev)
     if prev:
@@ -1135,9 +1952,6 @@ def html_tables(cur, prev=None, prev2=None, st=None, prev_st=None):
         ),
     )
 
-    def zspan(z):
-        return f'<span class="{"zpos" if z >= 0 else "zneg"}">{Z(z)}</span>'
-
     print(
         "<!-- TEAM SHEET A: best & worst pick per team, season z (standings order) -->"
     )
@@ -1201,14 +2015,6 @@ def html_tables(cur, prev=None, prev2=None, st=None, prev_st=None):
             return '<td class="ctr num"><span class="muted">=</span></td>'
         arrow = f"▲{m}" if m > 0 else f"▼{-m}"
         return f'<td class="ctr num"><span class="{"zpos" if m > 0 else "zneg"}">{arrow}</span></td>'
-
-    def vspan(v):
-        return f'<span class="{"zpos" if v >= 0 else "zneg"}">{f"{v:+.1f}".replace("-", "−")}</span>'
-
-    def pname(p):
-        return p["name"] + (
-            ' <span class="muted">· SS</span>' if is_ss(p) else ""
-        )
 
     print(
         "\n<!-- DREAM TEAM: best value per round, coed rule enforced (>= 2 women); "
@@ -1274,14 +2080,6 @@ def html_tables(cur, prev=None, prev2=None, st=None, prev_st=None):
     add_picks(cur)
     ranked = sorted(cur, key=lambda p: (-p["value"], -p["avg"], -p["ab"], p["name"]))
     vrank = {id(p): i for i, p in enumerate(ranked, 1)}
-
-    def gapspan(p):
-        gap = p["pick"] - p["vround"]
-        if gap > 0:
-            return f'<span class="zpos">+{gap}</span>'
-        if gap < 0:
-            return f'<span class="zneg">−{-gap}</span>'
-        return '<span class="muted">=</span>'
 
     print(
         "\n<!-- CAPTAINS MIRROR: where each captain drafted themselves vs their true round -->"
@@ -1399,6 +2197,569 @@ def html_tables(cur, prev=None, prev2=None, st=None, prev_st=None):
                     f'<td class="num"><span class="{kind}">{A(r2)}</span> ({d2})</td>'
                     f'<td class="num">{A(p["avg"])}</td></tr>'
                 )
+
+
+# ---------------------------------------------------------------- afternoon html
+# One emitter per page module, page order, registered in AFTERNOON_EMITTERS.
+# Future editions add/swap registry entries instead of growing one monolith.
+# Banner comments name the module id they feed. Digest prints raw team names;
+# THESE emit team_label() — nothing else is allowed to name a club on a page.
+
+
+def ordinal(n):
+    return f"{n}{'th' if 10 <= n % 100 <= 20 else {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th')}"
+
+
+def emit_scoreboard(c):
+    print("<!-- SCOREBOARD (id scoreboard): the afternoon's games in time order; tags computed -->")
+    print('<div class="tickets">')
+    ranks = c["ranks"]
+    for g in c["afternoon"]:
+        sa, sb = g["sa"], g["sb"]
+        assert sa is not None and sb is not None
+        tags = []
+        if g["status"] == "TIE":
+            tags.append(("tie", "TIE"))
+        if abs(sa - sb) == 1:
+            tags.append(("one-run", "1-RUN"))
+        if ranks and g["status"] == "FINAL":
+            wt, lt = (g["a"], g["b"]) if sa > sb else (g["b"], g["a"])
+            if ranks[wt] - ranks[lt] >= 6:
+                tags.append(("upset", "UPSET"))
+        if g["note"]:
+            tags.append(("note", g["note"]))
+        tag_html = "".join(f'<span class="tag {k}">{txt}</span>' for k, txt in tags)
+        awin = " win" if sa > sb else ""
+        bwin = " win" if sb > sa else ""
+        hhmm = g["time"].replace(" PM", "")
+        print(
+            f'    <article class="ticket">\n'
+            f'        <div class="t-meta">{hhmm} · {g["field"]}{tag_html}</div>\n'
+            f'        <div class="t-row{awin}"><span class="t-team">{team_label(g["a"])}</span>'
+            f'<span class="t-score">{sa}</span></div>\n'
+            f'        <div class="t-row{bwin}"><span class="t-team">{team_label(g["b"])}</span>'
+            f'<span class="t-score">{sb}</span></div>\n'
+            f'        <p class="t-note"><!-- one hand-written line --></p>\n'
+            f"    </article>"
+        )
+    print("</div>")
+
+
+def emit_crown(c):
+    print("<!-- CROWN (id race): the chase — top 4 by avg, AB >= 15 -->")
+    for i, (p, back) in enumerate(race_top(c["cur"], 4), 1):
+        b = '<span class="muted">—</span>' if back == 0 else f"{back:.1f}"
+        r = c["bykey"][(p["team"], p["pick"])]
+        wl = week_line(r, html=True) if r["dab"] else '<span class="muted">sat</span>'
+        print(
+            f'        <tr{" class=" + chr(34) + "hl" + chr(34) if i == 1 else ""}>'
+            f'<td class="ctr num">{i}</td><td class="player">{p["name"]}</td>'
+            f'<td class="team-name">{team_label(p["team"])}</td>'
+            f'<td class="num{" big" if i == 1 else ""}">{disp(p)}</td>'
+            f'<td class="num">{p["ab"]}</td><td class="num">{wl}</td>'
+            f'<td class="num">{b}</td></tr>'
+        )
+    print("\n<!-- CROWN HISTORY: the leader at every snapshot -->")
+    for d, p in race_history(c["snaps"]):
+        print(
+            f'        <tr><td class="team-name">{d.strftime("%B")} {d.day}</td>'
+            f'<td class="player">{p["name"]}</td>'
+            f'<td class="team-name">{team_label(p["team"])}</td>'
+            f'<td class="num">{disp(p)}</td><td class="num">{p["ab"]}</td></tr>'
+        )
+
+
+def emit_weeklies(c):
+    aw = c["aw"]
+
+    def card(name, winner, club, cite, also):
+        also_html = f'\n        <p class="a-also">then: {also}</p>' if also else ""
+        print(
+            f'    <article class="award">\n'
+            f'        <div class="a-name">{name}</div>\n'
+            f'        <div class="a-winner">{winner}</div>\n'
+            f'        <div class="a-club">{club}</div>\n'
+            f'        <p class="a-cite">{cite}</p>{also_html}\n'
+            f"    </article>"
+        )
+
+    print("<!-- WEEKLIES (id weeklies): computed awards, winner + citation + runners-up -->")
+    print('<div class="weeklies">')
+    b = aw["bat"][0]
+    card(
+        "Bat of the Afternoon", b["name"], team_label(b["team"]),
+        f'{week_line(b, html=True)} — <strong>{b["hae"]:+.1f} hits</strong> above '
+        f'their own book (line {A(b["o"]["avg"])})',
+        " · ".join(f'{r["name"]} {r["hae"]:+.1f}' for r in aw["bat"][1:3]),
+    )
+    a = aw["anvil"][0]
+    card(
+        "The Anvil", a["name"], team_label(a["team"]),
+        f'{week_line(a, html=True)} — {signed(a["swing"], G(a["swing"]))} against '
+        f'their own {A(a["o"]["avg"])}',
+        " · ".join(f'{r["name"]} {G(r["swing"])}' for r in aw["anvil"][1:3]),
+    )
+    v = aw["vacuum"][0]
+    card(
+        "The Vacuum", v["name"], team_label(v["team"]),
+        f'+{v["dco"]} caused outs on a {week_line(v, html=True)} afternoon — '
+        f'season total now <strong>{v["n"]["co"]}</strong>',
+        " · ".join(f'{r["name"]} +{r["dco"]}' for r in aw["vacuum"][1:3]),
+    )
+    gh = aw["ghost"][0]
+    card(
+        "The Ghost", gh["name"], team_label(gh["team"]),
+        f'league <strong>#{gh["n"]["rank"]}</strong>, {disp(gh["n"])} on '
+        f'{gh["n"]["ab"]} AB — did not bat',
+        " · ".join(f'{r["name"]} #{r["n"]["rank"]}' for r in aw["ghost"][1:3]),
+    )
+    ir = aw["iron"][0]
+    rate = A(ir["rate"]) if ir["rate"] is not None else "—"
+    card(
+        "The Iron Week", ir["name"], team_label(ir["team"]),
+        f'{week_line(ir, html=True)} — {rate}, the afternoon\'s biggest workload '
+        f'(season AB {ir["o"]["ab"]} → {ir["n"]["ab"]})',
+        " · ".join(f'{r["name"]} +{r["dab"]}' for r in aw["iron"][1:3]),
+    )
+    sw = aw["sweep"]
+    card(
+        "Clean Sweep", " · ".join(team_label(r["team"]) for r in sw) or "nobody",
+        "zero caused outs on the afternoon",
+        " · ".join(f'{r["dh"]}-for-{r["dab"]}' for r in sw),
+        "",
+    )
+    lad, chu = aw["ladder"][0], aw["chute"][0]
+    card(
+        "The Ladder", lad["name"], team_label(lad["team"]),
+        f'{rankcell(lad)} <span class="zpos">(▲{lad["drank"]})</span> — '
+        f'{week_line(lad, html=True)}',
+        "",
+    )
+    card(
+        "The Chute", chu["name"], team_label(chu["team"]),
+        f'{rankcell(chu)} <span class="zneg">(▼{-chu["drank"]})</span> — '
+        f'{week_line(chu, html=True)}',
+        "",
+    )
+    print("</div>")
+
+
+def emit_arcs_svg(c):
+    series = c["series"]
+    dates = [d for d, _ in c["snaps"]]
+    x0, x1, yt, yb = 44.0, 560.0, 16.0, 384.0
+    vlo, vhi = 0.400, 0.640
+    span = (dates[-1] - dates[0]).days
+
+    def X(d):
+        return x0 + (d - dates[0]).days / span * (x1 - x0)
+
+    def Y(v):
+        return yt + (vhi - v) / (vhi - vlo) * (yb - yt)
+
+    order = sorted(series, key=lambda t: (-series[t][-1], t))
+    slots = []
+    for t in order:
+        ideal = Y(series[t][-1]) + 4.0
+        slots.append(max(ideal, slots[-1] + 15.0) if slots else ideal)
+    for i in range(len(slots) - 1, -1, -1):
+        cap = 400.0 - 15.0 * (len(slots) - 1 - i)
+        if slots[i] > cap:
+            slots[i] = cap
+
+    print("<!-- ARCS (id arcs): the season, club by club — colors live in page CSS -->")
+    print('<figure class="arcs-fig">')
+    print('    <div class="arcs-scroll">')
+    print(
+        '    <svg viewBox="0 0 760 420" role="img" '
+        'aria-labelledby="arcs-title arcs-desc">'
+    )
+    dhdr = " → ".join(f"{d.strftime('%B')} {d.day}" for d in dates)
+    print("        <title id=\"arcs-title\">Season batting arcs, all twelve clubs</title>")
+    print(
+        f'        <desc id="arcs-desc">Each club\'s season adjusted average at '
+        f"the {len(dates)} snapshots: {dhdr}.</desc>"
+    )
+    for v in (0.450, 0.500, 0.550, 0.600):
+        yy = Y(v)
+        print(
+            f'        <line class="arc-grid" x1="{x0:.1f}" y1="{yy:.1f}" '
+            f'x2="{x1:.1f}" y2="{yy:.1f}" />'
+        )
+        print(
+            f'        <text class="arc-tick" x="{x0 - 6:.1f}" y="{yy + 3.5:.1f}" '
+            f'text-anchor="end">{A(v)}</text>'
+        )
+    for d in dates:
+        print(
+            f'        <text class="arc-tick" x="{X(d):.1f}" y="404" '
+            f'text-anchor="middle">{d.strftime("%b")} {d.day}</text>'
+        )
+    for i, t in enumerate(order):
+        vals = series[t]
+        pts = " ".join(f"{X(d):.1f},{Y(v):.1f}" for d, v in zip(dates, vals))
+        tip = f"{team_label(t)}: " + " → ".join(A(v) for v in vals)
+        ey, ly = Y(vals[-1]), slots[i]
+        print(f'        <g class="arc t-{cap_slug(t)}">')
+        print(f"            <title>{tip}</title>")
+        print(f'            <polyline class="arc-line" points="{pts}" />')
+        print(
+            f'            <path class="arc-lead" d="M {x1:.1f} {ey:.1f} '
+            f'L {x1 + 8:.1f} {ly - 3.5:.1f} L {x1 + 14:.1f} {ly - 3.5:.1f}" />'
+        )
+        print(
+            f'            <rect class="arc-chip" x="{x1 + 18:.1f}" '
+            f'y="{ly - 11.5:.1f}" width="10" height="10" rx="2" />'
+        )
+        print(
+            f'            <text class="arc-label" x="{x1 + 34:.1f}" y="{ly:.1f}">'
+            f'{team_label(t)} <tspan class="arc-val">{A(vals[-1])}</tspan></text>'
+        )
+        print("        </g>")
+    print("    </svg>\n    </div>")
+    print(
+        "    <figcaption>Season adjusted average at each snapshot. Highlighted "
+        "clubs carry color; the label rail names every line, best season line "
+        "first. Hover a line for its numbers.</figcaption>"
+    )
+    print("</figure>")
+
+
+def emit_arcs_table(c):
+    print("<!-- ARCS TABLE: the chart's own numbers (and its no-SVG fallback) -->")
+    for t in sorted(c["series"], key=lambda t: (-c["series"][t][-1], t)):
+        cells = "".join(f'<td class="num">{A(v)}</td>' for v in c["series"][t])
+        print(f'        <tr><td class="player">{team_label(t)}</td>{cells}</tr>')
+
+
+def emit_rebound(c):
+    print("<!-- REBOUND (id rebound): last edition's Collapse cohort, afternoon verdicts -->")
+    spans = {
+        "REBOUNDED": '<span class="zpos">REBOUNDED</span>',
+        "FELL AGAIN": '<span class="zneg">FELL AGAIN</span>',
+        "SAT": '<span class="muted">SAT</span>',
+    }
+    tint = {"REBOUNDED": ' class="hl"', "FELL AGAIN": ' class="lo"', "SAT": ""}
+    for e in rebound_ledger(c["snaps"][-3][1], c["prev"], c["cur"]):
+        p, r = e["prior"], e["now"]
+        rate = A(r["rate"]) if r["rate"] is not None else '<span class="muted">—</span>'
+        wl = week_line(r, html=True) if r["dab"] else '<span class="muted">sat</span>'
+        print(
+            f'        <tr{tint[e["verdict"]]}><td class="player">{r["name"]}</td>'
+            f'<td class="team-name">{team_label(r["team"])}</td>'
+            f'<td class="num">{signed(p["swing"], G(p["swing"]))}</td>'
+            f'<td class="num">{wl}</td><td class="num">{rate}</td>'
+            f'<td class="num"><span class="muted">{A(r["o"]["avg"])}</span></td>'
+            f'<td>{spans[e["verdict"]]}</td></tr>'
+        )
+
+
+def emit_clubhouse(c):
+    print("<!-- CLUBHOUSE (id clubhouse): twelve club blocks in standings order -->")
+    twby = {r["team"]: r for r in c["tw"]}
+    byteam = {}
+    for p in c["cur"]:
+        byteam.setdefault(p["team"], []).append(p)
+    for s in c["st"]:
+        t = s["team"]
+        r = twby[t]
+        slug = club_slug(t)
+        afternoon_gs = [g for g in team_games(c["gpast"], t) if g["d"] > c["dprev"]]
+        res = " · ".join(
+            f'{g["result"]} {g["us"]}–{g["them"]} vs {team_label(g["opp"])}'
+            for g in afternoon_gs
+        )
+        nxt = ", ".join(team_label(x["opp"]) for x in c["nby"].get(t, [])) or "—"
+        luck = s["win_pct"] - pythag(s)
+        mv = (c["ranks"][t] - s["rank"]) if c["ranks"] else 0
+        luck_txt = f"{luck:+.3f}".replace("-", "−")
+        print(f'  <h3 id="{slug}"><a href="#{slug}">{team_label(t)}</a></h3>')
+        print(
+            f'  <div class="club-card">\n'
+            f'      <div class="c-line"><strong>{ordinal(s["rank"])}</strong> · '
+            f'{s["w"]}-{s["l"]}-{s["t"]} · GB {gb_str(c["gb"][t])} · '
+            f'afternoon {arrow(mv)} · streak {c["stk"].get(t, "—")} · '
+            f'luck {signed(luck, luck_txt)}</div>\n'
+            f'      <div class="c-line">The afternoon: {res} — '
+            f'{r["dh"]}-for-{r["dab"]}'
+            + (f' · {r["dco"]} CO' if r["dco"] else "")
+            + f' ({A(r["rate"])}) against a {A(r["line"])} season line</div>\n'
+            f'      <div class="c-line">Next: {nxt}</div>\n'
+            f"  </div>"
+        )
+        roster = sorted(byteam[t], key=lambda p: p["pick"])
+        live = [
+            c["bykey"][(p["team"], p["pick"])]
+            for p in roster
+            if c["bykey"][(p["team"], p["pick"])]["dab"] > 0
+        ]
+        hi = max(live, key=lambda r2: r2["swing"] or -9) if live else None
+        lo = min(live, key=lambda r2: r2["swing"] or 9) if live else None
+        print('  <div class="table-scroll">\n    <table>\n      <thead>')
+        print(
+            '        <tr><th class="ctr">Rd</th><th>Player</th>'
+            '<th class="num">Afternoon</th><th class="num">Swing</th>'
+            '<th class="num">Season</th><th class="ctr">Rank</th>'
+            "<th class=\"ctr\">Form</th></tr>"
+        )
+        print("      </thead>\n      <tbody>")
+        for p in roster:
+            r2 = c["bykey"][(p["team"], p["pick"])]
+            cls = (
+                ' class="hl"'
+                if r2 is hi
+                else (' class="lo"' if r2 is lo else "")
+            )
+            afternoon_c = (
+                week_line(r2, html=True) if r2["dab"] else '<span class="muted">sat</span>'
+            )
+            swing_c = (
+                signed(r2["swing"], G(r2["swing"]))
+                if r2["swing"] is not None
+                else '<span class="muted">—</span>'
+            )
+            rank_c = rankcell(r2) if r2["dab"] else f"#{p['rank']}"
+            glyph = c["glyphs"].get((p["team"], p["pick"]), "")
+            print(
+                f'        <tr{cls}><td class="ctr num">{p["pick"]}</td>'
+                f'<td class="player">{p["name"]}</td>'
+                f'<td class="num">{afternoon_c}</td><td class="num">{swing_c}</td>'
+                f'<td class="num">{disp(p)}</td><td class="ctr num">{rank_c}</td>'
+                f'<td class="ctr form">{glyph}</td></tr>'
+            )
+        print(
+            f"      </tbody>\n      <caption>{team_label(t)}, player by player. "
+            f"Form reads the last three periods against the player's own line "
+            f"(↗ up, → flat, ↘ down, · sat).</caption>\n    </table>\n  </div>"
+        )
+
+
+def emit_standings_afternoon(c):
+    print(
+        "<!-- STANDINGS+ (id standings): rank, move, club, record, GB, win%, "
+        "PF, PA, diff, streak, pyth, luck, bat, bat rank -->"
+    )
+    bat, brank, _ = team_batting(c["cur"])
+    for s in c["st"]:
+        t = s["team"]
+        py = pythag(s)
+        luck = s["win_pct"] - py
+        mv = (c["ranks"][t] - s["rank"]) if c["ranks"] else 0
+        d = s["diff"]
+        print(
+            f'        <tr><td class="ctr num">{s["rank"]}</td>'
+            f'<td class="ctr num">{arrow(mv)}</td>'
+            f'<td class="player">{team_label(t)}</td>'
+            f'<td class="num">{s["w"]}-{s["l"]}-{s["t"]}</td>'
+            f'<td class="num">{gb_str(c["gb"][t])}</td>'
+            f'<td class="num big">{A(s["win_pct"])}</td>'
+            f'<td class="num">{s["pf"]}</td><td class="num">{s["pa"]}</td>'
+            f'<td class="num">{signed(d, f"{d:+d}".replace("-", "−"))}</td>'
+            f'<td class="ctr num">{c["stk"].get(t, "—")}</td>'
+            f'<td class="num">{A(py)}</td>'
+            f'<td class="num">{signed(luck, f"{luck:+.3f}".replace("-", "−"))}</td>'
+            f'<td class="num">{A(bat[t])}</td>'
+            f'<td class="ctr num">{brank[t]}</td></tr>'
+        )
+
+
+def emit_value_desk(c):
+    cur, prev = c["cur"], c["prev"]
+    print(
+        "<!-- VALUE DESK (id value / dream-team): best value per round, coed "
+        "rule; 'in for' = seat change vs the previous edition -->"
+    )
+    dteam, dswapped = dream_team(cur)
+    dprev = dream_team(prev)[0]
+    for rd in range(1, ROUNDS + 1):
+        p = dteam[rd]
+        coed = ' <span class="muted">· coed</span>' if rd in dswapped else ""
+        o = dprev[rd]
+        change = (
+            f' <span class="muted">· in for {o["name"]}</span>'
+            if (o["team"], o["pick"]) != (p["team"], p["pick"])
+            else ""
+        )
+        print(
+            f'        <tr><td class="ctr num">{rd}</td>'
+            f'<td class="player">{pname(p)}{coed}{change}</td>'
+            f'<td class="team-name">{team_label(p["team"])}</td>'
+            f'<td class="num">{disp(p)}</td>'
+            f'<td class="num">{p["ab"]}</td><td class="num">{vspan(p["value"])}</td></tr>'
+        )
+    po = {(q["team"], q["pick"]): q for q in prev}
+    moved = []
+    for p in cur:
+        m = po[(p["team"], p["pick"])]["vround"] - p["vround"]
+        if m:
+            moved.append((m, p))
+    print(
+        f"\n<!-- VALUE MOVERS: {len(moved)}/{len(cur)} changed true round; "
+        "top climbs then slides (rd-break starts the slides) -->"
+    )
+    ups = sorted(moved, key=lambda t: (-t[0], -t[1]["value"]))[:4]
+    downs = sorted(moved, key=lambda t: (t[0], t[1]["value"]))[:4]
+    for j, (m, p) in enumerate(ups + downs):
+        brk = ' class="rd-break"' if j == len(ups) else ""
+        o = po[(p["team"], p["pick"])]
+        print(
+            f'        <tr{brk}><td class="player">{pname(p)}</td>'
+            f'<td class="team-name">{team_label(p["team"])}</td>'
+            f'<td class="ctr num">R{o["vround"]} <span class="muted">→</span> R{p["vround"]}</td>'
+            f'<td class="ctr num">{arrow(m)}</td>'
+            f'<td class="num">{disp(p)}</td><td class="num">{p["ab"]}</td>'
+            f'<td class="num">{vspan(p["value"])}</td></tr>'
+        )
+
+
+TEAM_RECORD_CATS = {"team_best", "team_worst", "team_co"}
+
+
+def emit_records_board(c):
+    print("<!-- RECORDS (id records): the weekly record book + game records -->")
+    status_html = {
+        "FELL": '<span class="zpos">NEW RECORD</span>',
+        "MATCHED": '<span class="zpos">MATCHED</span>',
+        "NEAR MISS": '<span class="zneg">NEAR MISS</span>',
+        "HELD": '<span class="muted">HELD</span>',
+        "—": '<span class="muted">—</span>',
+    }
+    for row in c["report"]:
+        names = "; ".join(
+            (team_label(h) if row["cat"] in TEAM_RECORD_CATS else h)
+            + f' <span class="muted">({lab})</span>'
+            for h, lab in row["holders"]
+        )
+        extra = ""
+        if row["status"] == "FELL":
+            prev_who, _, prev_val = row["prev"].rpartition(" (")
+            prev_who = (
+                team_label(prev_who)
+                if row["cat"] in TEAM_RECORD_CATS
+                else prev_who
+            )
+            extra = f' <span class="muted">breaks {prev_who} ({prev_val}</span>'
+        elif row["status"] in ("NEAR MISS", "MATCHED") and row["last"] is not None:
+            who = ", ".join(
+                team_label(h) if row["cat"] in TEAM_RECORD_CATS else h
+                for h, _ in row["last_holders"]
+            )
+            extra = (
+                f' <span class="muted">this afternoon: '
+                f'{fmtv(row["cat"], row["last"])} ({who})</span>'
+            )
+        print(
+            f'        <tr><td class="player">{row["title"]}</td>'
+            f'<td class="num big">{fmtv(row["cat"], row["value"])}</td>'
+            f"<td>{names}</td><td>{status_html[row['status']]}{extra}</td></tr>"
+        )
+
+    def gcell(g):
+        return (
+            f'{team_label(g["a"])} {g["sa"]}–{g["sb"]} {team_label(g["b"])} '
+            f'<span class="muted">({g["d"].strftime("%b")} {g["d"].day})</span>'
+        )
+
+    gr = c["gr"]
+    best_run = max(c["lws"].values(), key=lambda v: v[0])
+    runners = sorted(t for t, v in c["lws"].items() if v[0] == best_run[0])
+    run_names = "; ".join(
+        f'{team_label(t)} <span class="muted">'
+        f'({c["lws"][t][1].strftime("%b")} {c["lws"][t][1].day} – '
+        f'{c["lws"][t][2].strftime("%b")} {c["lws"][t][2].day})</span>'
+        for t in runners
+    )
+    print("\n<!-- GAME RECORDS rows (same table): computed from every completed game -->")
+    for title, val, names in (
+        ("Biggest win margin", f'+{abs(gr["margin"][0]["sa"] - gr["margin"][0]["sb"])}',
+         "; ".join(gcell(g) for g in gr["margin"])),
+        ("Highest-scoring game", f'{gr["highest"][0]["sa"] + gr["highest"][0]["sb"]} runs',
+         "; ".join(gcell(g) for g in gr["highest"])),
+        ("Lowest-scoring game", f'{gr["lowest"][0]["sa"] + gr["lowest"][0]["sb"]} runs',
+         "; ".join(gcell(g) for g in gr["lowest"])),
+        ("Longest win streak", f'{best_run[0]} games', run_names),
+    ):
+        print(
+            f'        <tr><td class="player">{title}</td>'
+            f'<td class="num big">{val}</td><td>{names}</td>'
+            f'<td><span class="muted">NEW CATEGORY</span></td></tr>'
+        )
+
+
+def emit_watch(c):
+    if not c["nd"]:
+        print("<!-- WATCH (id watch): schedule lists no future games -->")
+        return
+    nd = c["nd"]
+    print(
+        f'<!-- WATCH (id watch): the next slate, {nd.strftime("%B")} {nd.day} -->'
+    )
+    for g in c["games"]:
+        if g["d"] == nd:
+            print(
+                f'        <tr><td class="num">{g["time"].replace(" PM", "")}</td>'
+                f'<td class="ctr"><span class="muted">{g["field"]}</span></td>'
+                f'<td class="player">{team_label(g["a"])}</td>'
+                f'<td class="ctr"><span class="muted">vs</span></td>'
+                f'<td class="player">{team_label(g["b"])}</td></tr>'
+            )
+
+
+AFTERNOON_EMITTERS = [
+    ("SCOREBOARD", emit_scoreboard),
+    ("CROWN", emit_crown),
+    ("WEEKLIES", emit_weeklies),
+    ("ARCS SVG", emit_arcs_svg),
+    ("ARCS TABLE", emit_arcs_table),
+    ("REBOUND", emit_rebound),
+    ("CLUBHOUSE", emit_clubhouse),
+    ("STANDINGS", emit_standings_afternoon),
+    ("VALUE DESK", emit_value_desk),
+    ("RECORDS", emit_records_board),
+    ("WATCH", emit_watch),
+]
+
+
+def html_afternoon(snaps, games, st, prev_st):
+    """Emit every Afternoon Final module, page order, one emitter per module."""
+    for _, s in snaps:
+        enrich(s)
+    dcur, cur = snaps[-1]
+    dprev, prev = snaps[-2]
+    rows = period_rows(prev, cur)
+    hae(rows)
+    tw = team_week_rows(prev, cur, st, prev_st)
+    nd, nby = next_afternoon(games, dcur)
+    gpast = [g for g in games if g["d"] <= dcur]
+    ctx = dict(
+        snaps=snaps,
+        dcur=dcur,
+        dprev=dprev,
+        cur=cur,
+        prev=prev,
+        rows=rows,
+        bykey={(r["team"], r["pick"]): r for r in rows},
+        tw=tw,
+        games=games,
+        gpast=gpast,
+        afternoon=[g for g in completed(games) if dprev < g["d"] <= dcur],
+        st=st,
+        prev_st=prev_st,
+        ranks={s["team"]: s["rank"] for s in prev_st} if prev_st else {},
+        gb=games_back(st),
+        stk=streaks(gpast),
+        series=team_series(snaps),
+        glyphs=form_glyphs(snaps),
+        nd=nd,
+        nby=nby,
+        aw=afternoon_awards(rows, tw),
+        report=records_report(snaps),
+        gr=game_records(gpast),
+        lws=longest_win_streaks(gpast),
+    )
+    for banner, fn in AFTERNOON_EMITTERS:
+        print(f"\n\n<!-- ══════════════════ {banner} ══════════════════ -->")
+        fn(ctx)
 
 
 # ---------------------------------------------------------------- compare
@@ -1696,16 +3057,14 @@ def two_week_trends(prev2, prev, cur, min_dab=6):
     periods. Returns (heating, cooling) as lists of
     (player, rate1, rate2, dab1, dab2), sorted hottest/coldest first.
     """
-    p2 = {(p["team"], p["pick"]): p for p in prev2}
-    p1 = {(p["team"], p["pick"]): p for p in prev}
+    m1, m2 = period_map(prev2, prev), period_map(prev, cur)
     heat, cool = [], []
     for p in cur:
-        a, b = p2[(p["team"], p["pick"])], p1[(p["team"], p["pick"])]
-        d1, d2 = b["ab"] - a["ab"], p["ab"] - b["ab"]
+        d1, r1 = m1[(p["team"], p["pick"])]
+        d2, r2 = m2[(p["team"], p["pick"])]
         if d1 < min_dab or d2 < min_dab:
             continue
-        r1 = ((b["h"] - b["co"]) - (a["h"] - a["co"])) / d1
-        r2 = ((p["h"] - p["co"]) - (b["h"] - b["co"])) / d2
+        assert r1 is not None and r2 is not None  # guaranteed by the min_dab gate
         if r2 > r1 and r2 > p["avg"]:
             heat.append((p, r1, r2, d1, d2))
         elif r2 < r1 and r2 < p["avg"]:
@@ -1734,13 +3093,9 @@ def arcs(prev2, prev, cur, min_dab=6, top=6):
 
     # team arcs: period rate per team per period, same direction both weeks
     def trates(old, new):
-        agg = {}
-        for p in new:
-            o = {(q["team"], q["pick"]): q for q in old}[(p["team"], p["pick"])]
-            a = agg.setdefault(p["team"], [0, 0])
-            a[0] += (p["h"] - p["co"]) - (o["h"] - o["co"])
-            a[1] += p["ab"] - o["ab"]
-        return {t: v[0] / v[1] for t, v in agg.items() if v[1] > 0}
+        return {
+            t: a["rate"] for t, a in team_period(old, new).items() if a["dab"] > 0
+        }
 
     t1, t2 = trates(prev2, prev), trates(prev, cur)
     season = {}
@@ -1817,6 +3172,25 @@ def main():
         metavar="CSV",
         help="older standings snapshot for week-over-week movement arrows",
     )
+    ap.add_argument(
+        "--games",
+        metavar="CSV",
+        help="season schedule CSV (MMDD-schedule.csv) of game results; requires --standings",
+    )
+    ap.add_argument(
+        "--history",
+        metavar="CSV",
+        nargs="+",
+        help="ALL older snapshots oldest->newest; implies --prev/--prev2 and "
+        "powers the arcs chart, form glyphs, the rebound ledger and the "
+        "records board",
+    )
+    ap.add_argument(
+        "--html-afternoon",
+        action="store_true",
+        help="emit page-ready HTML for the Afternoon Final modules (needs --history "
+        "with 2+ snapshots, --games, --standings and --prev-standings)",
+    )
     args = ap.parse_args()
 
     cur, cur_fmt = load(args.snapshot)
@@ -1824,21 +3198,72 @@ def main():
         ref, _ = load(args.names_from)
         canonicalize_prev_names(cur, ref)
 
-    prev, renames = None, []
-    if args.prev:
-        prev, fmt = load(args.prev)
-        renames = canonicalize_prev_names(prev, cur) if fmt == "old" else []
+    history = []  # [(path, players, renames)] oldest -> newest
+    if args.history:
+        for path in args.history:
+            snap, fmt = load(path)
+            ren = canonicalize_prev_names(snap, cur) if fmt == "old" else []
+            history.append((path, snap, ren))
+        dates = [snap_date(p) for p, _, _ in history]
+        if dates != sorted(set(dates)) or dates[-1] >= snap_date(args.snapshot):
+            sys.exit(
+                "--history must be strictly oldest->newest, all older than the "
+                "current snapshot"
+            )
+        if args.prev and args.prev != history[-1][0]:
+            sys.exit(
+                "--prev conflicts with --history (the last history entry IS the prev)"
+            )
+        if args.prev2 and (len(history) < 2 or args.prev2 != history[-2][0]):
+            sys.exit(
+                "--prev2 conflicts with --history (the second-to-last history "
+                "entry IS the prev2)"
+            )
 
-    prev2 = None
-    if args.prev2:
-        if not prev:
-            sys.exit("--prev2 requires --prev (it is the snapshot before --prev)")
-        prev2, fmt2 = load(args.prev2)
-        if fmt2 == "old":
-            canonicalize_prev_names(prev2, cur)
+    prev, prev2, renames = None, None, []
+    if history:
+        prev, renames = history[-1][1], history[-1][2]
+        if len(history) >= 2:
+            prev2 = history[-2][1]
+    else:
+        if args.prev:
+            prev, fmt = load(args.prev)
+            renames = canonicalize_prev_names(prev, cur) if fmt == "old" else []
+        if args.prev2:
+            if not prev:
+                sys.exit("--prev2 requires --prev (it is the snapshot before --prev)")
+            prev2, fmt2 = load(args.prev2)
+            if fmt2 == "old":
+                canonicalize_prev_names(prev2, cur)
 
     st = load_standings(args.standings) if args.standings else None
     prev_st = load_standings(args.prev_standings) if args.prev_standings else None
+
+    games = None
+    if args.games:
+        if not st:
+            sys.exit(
+                "--games requires --standings (the identity check against it "
+                "is what makes harvested scores trustworthy)"
+            )
+        games = load_games(args.games)
+        validate_games(games, st, args.games, snap_date(args.standings))
+
+    snaps = (
+        [(snap_date(p), s) for p, s, _ in history]
+        + [(snap_date(args.snapshot), cur)]
+        if history
+        else None
+    )
+
+    if args.html_afternoon:
+        if not (games and st and prev_st and snaps and len(snaps) >= 3):
+            sys.exit(
+                "--html-afternoon needs --games, --standings, --prev-standings and "
+                "--history with at least two snapshots"
+            )
+        html_afternoon(snaps, games, st, prev_st)
+        return
 
     if args.html_tables:
         html_tables(cur, prev, prev2, st, prev_st)
@@ -1850,7 +3275,7 @@ def main():
     if prev:
         digest(
             prev,
-            f"{args.prev} (prev)",
+            f"{args.prev or (history[-1][0] if history else '?')} (prev)",
             args.prev_min_ab_sleeper,
             args.prev_min_ab_outlier,
         )
@@ -1864,6 +3289,8 @@ def main():
         )
     if prev2:
         arcs(prev2, prev, cur)
+    if games is not None and st and snaps and len(snaps) >= 2:
+        afternoon_digest(snaps, games, st, prev_st)
 
 
 if __name__ == "__main__":

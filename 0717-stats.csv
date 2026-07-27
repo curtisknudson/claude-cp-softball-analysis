@@ -1,0 +1,145 @@
+rank,player,team,draft_pick,at_bats,hits,caused_outs,adjusted_avg
+1,"Dockstader, Sefton",The Lefty Looseys,1,38,31,0,0.816
+2,"Hammon, Paul",The Diamonds and Dirtbags,8,16,13,0,0.813
+3,"Knudson, Curtis",Youre Saying Theres A Chance,2,44,36,1,0.795
+4,"Timpson, Cuervo",The Stars and Strikes,2,66,53,1,0.788
+5,"Williams, Horatio",Youre Saying Theres A Chance,1,36,28,0,0.778
+6,"Timpson, William",The Diamonds and Dirtbags,2,31,24,0,0.774
+7,"Hammon, Gideon",The Good Guys,1,57,45,1,0.772
+8,"White, Curt",Youre Saying Theres A Chance,4,38,29,0,0.763
+9,"Guy, Sam",The Stars and Strikes,1,33,25,0,0.758
+10,"Timpson, Claude",The Pliggas,1,57,45,2,0.754
+11,"Williams, Daniel",The Pure Breads,1,60,45,0,0.750
+12,"Hammon, Aryck",The Pure Breads,3,38,28,0,0.737
+13,"Williams, Wesley",The Diamonds and Dirtbags,6,34,26,1,0.735
+14,"Knudson, Derrick",The Slamma Jammas,2,45,33,0,0.733
+15,"Timpson, Lonnie",The Ellites,2,29,21,0,0.724
+16,"Dockstader Boyds, Jeremy",The Diamonds and Dirtbags,1,29,22,1,0.724
+17,"Dockstader Marvins, Jeremy",The Diamonds and Dirtbags,3,32,23,0,0.719
+18,"Dockstader, Adam",The Fellowship of the Swing,1,45,32,0,0.711
+19,"Williams, Evan",The Good Guys,3,47,33,0,0.702
+20,"Naylor, Scott",The Danites,9,10,9,2,0.700
+21,"Hammon, Ryan",The Pure Breads,5,36,25,0,0.694
+22,"Knudson, Levi",The Slamma Jammas,1,39,27,0,0.692
+23,"Williams, Leslie",The Playas,6,32,22,0,0.688
+24,"Williams, Charles",The Fellowship of the Swing,6,51,35,0,0.686
+25,"Timpson, Seth",The Lefty Looseys,6,44,31,1,0.682
+26,"Williams, Maureen",The Slamma Jammas,11,31,21,0,0.677
+27,"Knudson, Nathan",The Playas,3,37,26,1,0.676
+28,"Hammon, Monte",The Fellowship of the Swing,2,47,32,1,0.660
+29,"Dockstader, Robert",The Danites,2,41,28,1,0.659
+30,"Williams, Anthony",Youre Saying Theres A Chance,7,38,26,1,0.658
+31,"Hammon, Stafford",The Fellowship of the Swing,3,38,26,1,0.658
+32,"Williams, Heber",The Danites,1,49,32,0,0.653
+33,"Horsley, Max",The Ellites,5,40,26,0,0.650
+34,"Barlow, Riley",The Lefty Looseys,7,40,30,4,0.650
+35,"Hammon, Lewis",Youre Saying Theres A Chance,8,40,26,0,0.650
+36,"Hammon, Bruce",The Fellowship of the Swing,4,31,21,1,0.645
+37,"Williams, Matt",The Pure Breads,4,39,26,1,0.641
+38,"Stubbs, Larry",The Ellites,7,25,17,1,0.640
+39,"Dockstader, Steven",The Slamma Jammas,5,22,14,0,0.636
+40,"Johnson, Anson",The Pure Breads,9,30,20,1,0.633
+41,"Williams, Connor",The Pliggas,2,57,36,0,0.632
+42,"Timpson Rays, Jonathan",The Pliggas,4,43,29,2,0.628
+43,"Zitting, Aaron",Youre Saying Theres A Chance,6,32,21,1,0.625
+44,"Hammon, Curtis",The Diamonds and Dirtbags,5,42,26,0,0.619
+45,"Williams, Ben",The Slamma Jammas,4,34,22,1,0.618
+46,"Hammon, Elliot",The Ellites,1,34,23,2,0.618
+47,"Dockstader, Sidney",The Playas,4,26,16,0,0.615
+48,"Barlow, Caleb",The Pure Breads,2,54,33,0,0.611
+49,"Barlow, Violet",The Pliggas,11,23,14,0,0.609
+50,"Hammon Legrands, Benjiman",Youre Saying Theres A Chance,5,40,24,0,0.600
+51,"Hammon, Jason",The Good Guys,4,10,6,0,0.600
+52,"Dockstader, Bryan",The Ellites,3,42,26,1,0.595
+53,"Williams, Jerold",The Fellowship of the Swing,8,42,27,2,0.595
+54,"Hammon, Porter",The Stars and Strikes,6,37,22,0,0.595
+55,"Timpson, Deborah",The Danites,7,32,19,0,0.594
+56,"Williams, Michael",The Playas,1,22,14,1,0.591
+57,"Timpson, Taylor",The Diamonds and Dirtbags,4,77,45,0,0.584
+58,"Hammon, Shem",The Lefty Looseys,9,12,7,0,0.583
+59,"Dockstader, Noah",The Danites,6,55,35,3,0.582
+60,"Timpson, Alma",The Lefty Looseys,8,26,15,0,0.577
+61,"Williams, Carl",The Danites,3,33,21,2,0.576
+62,"Knudson, Daniel",The Lefty Looseys,5,42,26,2,0.571
+63,"Knudson, Preston",The Lefty Looseys,4,35,20,0,0.571
+64,"Hammon, Jairus",The Good Guys,2,28,17,1,0.571
+65,"Barlow, Benjiman",The Good Guys,7,44,32,7,0.568
+66,"Williams, Marissa",Youre Saying Theres A Chance,9,37,23,2,0.568
+67,"Hammon, Brayden",The Lefty Looseys,3,39,22,0,0.564
+68,"Timpson, Donald",The Stars and Strikes,3,41,25,2,0.561
+69,"Dockstader Boyds, Daniel",The Slamma Jammas,3,27,19,4,0.556
+70,"Dockstader Ephraims, Daniel",The Danites,4,38,21,0,0.553
+71,"Naylor, Timothy",The Fellowship of the Swing,7,40,24,2,0.550
+72,"Williams, Tammy",The Good Guys,8,42,24,1,0.548
+73,"Dockstader, Jayla",The Lefty Looseys,10,31,18,1,0.548
+74,"Hammon, Kendall",The Lefty Looseys,2,33,19,1,0.545
+75,"Timpson, Treyton",Youre Saying Theres A Chance,3,68,37,0,0.544
+76,"Musser, Moroni",The Pliggas,6,35,21,2,0.543
+77,"Timpson, Jason W",The Playas,2,24,13,0,0.542
+78,"Timpson, Ammon",The Stars and Strikes,8,26,15,1,0.538
+79,"Barlow, Wallace",The Good Guys,10,23,13,1,0.522
+80,"Cawley, Seth",The Stars and Strikes,5,31,17,1,0.516
+81,"Hammon, Brigham",The Pliggas,8,37,20,1,0.514
+82,"Hammon, Roy",The Ellites,4,39,23,3,0.513
+83,"Timpson, Merlek",The Pure Breads,6,46,25,2,0.500
+84,"Williams, Seth",The Slamma Jammas,6,42,23,2,0.500
+85,"Hammon, Logan",The Pliggas,9,40,21,1,0.500
+86,"Timpson, Lexi",The Pliggas,7,38,20,1,0.500
+87,"Knudson, Jazlin",Youre Saying Theres A Chance,10,34,20,3,0.500
+88,"Darger, Nephi",The Stars and Strikes,7,30,16,1,0.500
+89,"Musser, Andrew",The Lefty Looseys,11,30,16,1,0.500
+90,"Dockstader, Kyle",The Good Guys,5,28,18,4,0.500
+91,"Timpson, Justin",The Good Guys,6,26,14,1,0.500
+92,"Dockstader, Marvin",The Diamonds and Dirtbags,11,14,9,2,0.500
+93,"Hammon, Nathan",The Pure Breads,7,6,3,0,0.500
+94,"Hammon, Gerard",The Fellowship of the Swing,5,33,18,2,0.485
+95,"Barlow Jr, John",The Playas,5,27,14,1,0.481
+96,"Timpson, Teancum",The Danites,5,48,26,3,0.479
+97,"Timpson, Kayden",The Pliggas,3,46,25,3,0.478
+98,"Dockstader Marvins, Daniel",The Diamonds and Dirtbags,9,21,11,1,0.476
+99,"Hammon, Avery",The Pliggas,5,34,20,4,0.471
+100,"Dutson, Selena",The Pure Breads,8,49,25,2,0.469
+101,"Williams, Angeline",The Diamonds and Dirtbags,7,15,8,1,0.467
+102,"Dockstader, Abe",The Good Guys,9,43,24,4,0.465
+103,"Hammon, Kyle",The Pure Breads,10,40,21,3,0.450
+104,"Horsley, Rebecca",The Playas,10,27,13,1,0.444
+105,"Hammon, Samantha",The Fellowship of the Swing,11,16,9,2,0.438
+106,"Hammon, Sean",The Pliggas,12,35,15,0,0.429
+107,"Monroy, Samantha",The Diamonds and Dirtbags,12,28,13,1,0.429
+108,"Dockstader, Jarom",The Ellites,11,28,12,0,0.429
+109,"Hammon, Sharon",The Stars and Strikes,12,21,9,0,0.429
+110,"Naylor, Adam",The Slamma Jammas,7,19,9,1,0.421
+111,"Horsley, Lizzy",The Ellites,6,48,20,0,0.417
+112,"Horsley, Dylan",The Stars and Strikes,4,24,12,2,0.417
+113,"Timpson, Hyrum",The Playas,7,17,8,1,0.412
+114,"Johnson, Jefferson",The Stars and Strikes,11,23,10,1,0.391
+115,"Cawley, Sophia",The Playas,8,36,15,1,0.389
+116,"Naylor, Sabrina",The Fellowship of the Swing,10,39,15,0,0.385
+117,"Barlow, Royal",The Stars and Strikes,10,26,10,0,0.385
+118,"Timpson, Sarah",The Pure Breads,12,26,13,3,0.385
+119,"Hammon, Douglas",The Good Guys,11,34,17,4,0.382
+120,"Knudson, Kaitlyn",The Pure Breads,11,21,8,0,0.381
+121,"Timpson, Joanne Sis",The Stars and Strikes,9,29,12,1,0.379
+122,"Williams, Heather",Youre Saying Theres A Chance,12,35,13,0,0.371
+123,"Ivory, Austin",The Ellites,10,35,14,1,0.371
+124,"Dutson, Leroy",The Slamma Jammas,8,33,14,2,0.364
+125,"Wood, Lincoln",The Ellites,12,22,8,0,0.364
+126,"Dockstader, Isabel",The Lefty Looseys,12,28,12,2,0.357
+127,"Timpson, Lindsey",The Pliggas,10,28,13,3,0.357
+128,"Timpson, Lorin",The Playas,11,14,6,1,0.357
+129,"Darger, Nate",The Danites,11,31,12,1,0.355
+130,"Bauer, Cleeson",The Fellowship of the Swing,9,31,12,1,0.355
+131,"Hammon, Karen",The Ellites,9,43,16,2,0.326
+132,"Hammon, J Daunt",The Slamma Jammas,9,31,13,3,0.323
+133,"Dockstader, Dorothy",The Diamonds and Dirtbags,10,36,13,2,0.306
+134,"Barlow, Amie Z",The Playas,12,23,10,3,0.304
+135,"Zitting, Alyssa",The Slamma Jammas,12,23,9,2,0.304
+136,"Naylor, Brenda",The Danites,8,17,5,0,0.294
+137,"Hammon, Bowen",The Danites,12,35,14,4,0.286
+138,"Hammon Hebers, Benjiman",The Playas,9,21,9,3,0.286
+139,"Wood, Becky",The Good Guys,12,20,5,0,0.250
+140,"Timpson, Pauline",The Fellowship of the Swing,12,25,7,1,0.240
+141,"Timpson, Michael",The Ellites,8,5,1,0,0.200
+142,"Cawley, Lorenzo",The Danites,10,21,4,0,0.190
+143,"Hammon, David",Youre Saying Theres A Chance,11,6,1,0,0.167
+144,"Hammon, Layla",The Slamma Jammas,10,11,1,0,0.091

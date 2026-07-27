@@ -22,23 +22,32 @@ analytics snippet). Every page is static, hand-authored HTML with inline CSS, se
 
 The data pipeline is deliberately boring:
 
-1. The league's numbers are harvested from cpsoftball.com into a CSV snapshot (`0710-stats.csv`).
-2. `analysis.py` reads the snapshot (plus previous ones) and prints a digest of *every* number the
-   page could want — z-scores, draft value, week swings, streaks, standings luck.
+1. The league's numbers are harvested from cpsoftball.com into CSV snapshots — batting stats
+   (`0717-stats.csv`), standings (`0717-standings.csv`), and the full game schedule with every
+   final score (`0717-schedule.csv`, reconciled *exactly* against the standings before anything
+   is trusted).
+2. `analysis.py` reads the snapshots (plus the whole history) and prints a digest of *every*
+   number the page could want — z-scores, draft value, afternoon swings, awards, streaks, games
+   back, standings luck, and a records board recomputed from scratch each run.
 3. The page is written from that digest. **Numbers are transcribed, never computed by hand.** If a
    number isn't in the script's output, the rule is to extend the script, not to do arithmetic in
    your head.
 
-`analysis.py` is stdlib-only Python 3 and can also emit page-ready HTML tables (`--html-tables`),
-so the big tables are generated rather than typed.
+`analysis.py` is stdlib-only Python 3 and also emits page-ready HTML — one emitter per page
+module (`--html-afternoon`), including the arcs chart as deterministic inline SVG — so the tables,
+cards, and the chart are generated rather than typed. (`--html-tables` remains for the older
+editions' era.)
 
 ```bash
 # just this week's numbers
-python3 analysis.py 0710-stats.csv
+python3 analysis.py 0717-stats.csv
 
-# the full weekly digest: this week vs last, two-week arcs, standings
-python3 analysis.py 0710-stats.csv --prev 0703-stats.csv --prev2 0612-stats.csv \
-  --standings 0710-standings.csv --prev-standings 0706-standings.csv
+# the full edition run: history, game results, standings, the afternoon desk
+python3 analysis.py 0717-stats.csv --history 0612-stats.csv 0703-stats.csv 0710-stats.csv \
+  --games 0717-schedule.csv --standings 0717-standings.csv --prev-standings 0710-standings.csv
+
+# the same, emitting every page module for the current edition
+python3 analysis.py ... --html-afternoon
 ```
 
 The script validates as it goes and exits loudly on bad data: the adjusted-average formula must
@@ -53,6 +62,7 @@ hold for every row, the draft grid must be 12 teams × 12 rounds, and snapshots 
 | `analysis.py` | The single source of truth for every number on every page |
 | `MMDD-stats.csv` | Raw weekly batting snapshots |
 | `MMDD-standings.csv` | Weekly standings snapshots |
+| `MMDD-schedule.csv` | The season game book — every game, completed and upcoming, with scores |
 | `CLAUDE.md` | The house rules: data facts, editorial conventions, weekly procedure, style |
 | `CNAME` | GitHub Pages custom-domain file |
 | `favicon.svg` · `apple-touch-icon.png` · `og.png` | Site chrome |
@@ -72,10 +82,10 @@ wanted to see how far an LLM can carry a project, you're welcome to open a PR.
 
 Things that would be great to have:
 
-- **New statistics.** The script already knows draft value, z-scores by round, Pythagorean luck, and
-  two-week arcs. It does *not* yet know anything about game results — `schedule.php` on the league
-  site has every final score, which would unlock win/loss streaks, head-to-head grids, close-game
-  splits, and strength of schedule. That's the biggest open door.
+- **New statistics.** The script knows draft value, z-scores by round, Pythagorean luck,
+  multi-snapshot arcs, and — as of the July 17 edition — every game result: streaks, games back,
+  head-to-head, and a game-level record book. Open doors now: strength of *remaining* schedule,
+  a playoff-picture math section, and new chart forms for future rotating fronts.
 - **Design and accessibility.** The CSS is hand-written and lives inline in each page. Light and
   dark mode, the mobile breakpoint, table scrolling, contrast, focus states — all fair game.
 - **Bugs in the numbers.** If a figure on a page looks wrong, it probably is, and a bug report with
@@ -84,8 +94,9 @@ Things that would be great to have:
 
 A few ground rules that keep the site coherent:
 
-1. **Read [`CLAUDE.md`](CLAUDE.md) first.** It's long, but it's the spec — the data invariants, the
-   analysis conventions, the page anatomy, and the rules about what may be said where.
+1. **Read [`CLAUDE.md`](CLAUDE.md) first.** It's long, but it's the spec — the data invariants,
+   the analysis conventions, the rotating-front doctrine (each edition designs its front fresh
+   around that week's story), and the rules about what may be said where.
 2. **No build step, no JavaScript, no frameworks.** Static HTML and inline CSS. This constraint is
    the point, not an accident.
 3. **Every number on a page must come from `analysis.py` output.** New stat? Add it to the script,

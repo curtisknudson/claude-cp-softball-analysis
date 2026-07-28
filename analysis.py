@@ -1185,6 +1185,226 @@ def next_afternoon(games, after):
     return d, by
 
 
+# ---------------------------------------------------------------- schedule desk
+# The Gauntlet and the Alibi Audit (first ran as a late supplement to the
+# 2026-07-17 edition). Everything reads the game book plus the standings.
+# Honesty limits, stated wherever these numbers print: player stats arrive as
+# period deltas and every afternoon is two games, so no player's line can be
+# pinned to a single opponent — a week is charged to the whole slate it was
+# batted against. And the only defense the book can see is run prevention.
+
+
+def run_rates(st):
+    """{team: (PF/G, RA/G)} from the standings — the per-game run environment."""
+    return {s["team"]: (s["pf"] / s["gp"], s["pa"] / s["gp"]) for s in st}
+
+
+def defense_rank(st):
+    """{team: 1..12} by runs allowed per game, stingiest first (ties by name)."""
+    rr = run_rates(st)
+    return {t: i + 1 for i, t in enumerate(sorted(rr, key=lambda t: (rr[t][1], t)))}
+
+
+def sos_rows(games, st, dcur):
+    """The Gauntlet's ledger, hardest played slate first.
+
+    sosp = the mean, over a club's completed games, of that opponent's win% in
+    its OTHER games — head-to-head results excluded, so beating a club cannot
+    soften the slate it represented. sosl = the mean, over the club's
+    scheduled games, of the opponent's current win% (None once the slate is
+    done). vtop4 = scheduled games against the standings' current top four.
+    unmet/twice = opponents never met / met twice among completed games.
+    """
+    done = [g for g in completed(games) if g["d"] <= dcur]
+    future = [g for g in games if g["status"] == "SCHEDULED"]
+    winpct = {s["team"]: s["win_pct"] for s in st}
+    rank = {s["team"]: s["rank"] for s in st}
+    top4 = {s["team"] for s in st[:4]}
+    keyed = []
+    for t in sorted(CAPTAINS):
+        met, sos = [], []
+        for g in team_games(done, t):
+            met.append(g["opp"])
+            others = [o for o in team_games(done, g["opp"]) if o["opp"] != t]
+            if others:
+                w = sum(o["result"] == "W" for o in others)
+                ti = sum(o["result"] == "T" for o in others)
+                sos.append((w + ti / 2) / len(others))
+        if not sos:
+            sys.exit(f"{t}: no completed games — the Gauntlet needs a played slate")
+        left = [g["b"] if g["a"] == t else g["a"] for g in future if t in (g["a"], g["b"])]
+        sosp = sum(sos) / len(sos)
+        keyed.append(
+            (
+                sosp,
+                dict(
+                    team=t,
+                    rank=rank[t],
+                    sosp=sosp,
+                    sosl=sum(winpct[o] for o in left) / len(left) if left else None,
+                    left=len(left),
+                    vtop4=sum(o in top4 for o in left),
+                    unmet=sorted(o for o in CAPTAINS if o != t and o not in met),
+                    twice=sorted(o for o in set(met) if met.count(o) >= 2),
+                ),
+            )
+        )
+    return [r for _, r in sorted(keyed, key=lambda kv: -kv[0])]
+
+
+def season_series_pairs(games, dcur):
+    """Every pairing meeting 3+ times on the full slate: [(a, b, played, left)],
+    plus the meeting-count distribution {meetings: pair count} over all 66."""
+    cnt, played = {}, {}
+    for x in sorted(CAPTAINS):
+        for y in sorted(CAPTAINS):
+            if x < y:
+                cnt[(x, y)] = 0
+                played[(x, y)] = 0
+    for g in games:
+        k = (g["a"], g["b"]) if g["a"] < g["b"] else (g["b"], g["a"])
+        cnt[k] += 1
+        if g["status"] != "SCHEDULED" and g["d"] <= dcur:
+            played[k] += 1
+    dist = {}
+    for k, n in cnt.items():
+        dist[n] = dist.get(n, 0) + 1
+    triples = [
+        (a, b, played[(a, b)], n - played[(a, b)])
+        for (a, b), n in sorted(cnt.items())
+        if n >= 3
+    ]
+    return triples, dist
+
+
+def period_opponents(snaps, games):
+    """Aligned with snaps: [(game dates in the period, {team: [opponents]})].
+    Index 0 is the season-opening block through the first snapshot — remember
+    the blocks and the calendar don't align 1:1 (two early blocks hold two
+    afternoons each)."""
+    out = []
+    prev_d = None
+    for d, _ in snaps:
+        m = {t: [] for t in sorted(CAPTAINS)}
+        dates = set()
+        for g in completed(games):
+            if (prev_d is None or g["d"] > prev_d) and g["d"] <= d:
+                m[g["a"]].append(g["b"])
+                m[g["b"]].append(g["a"])
+                dates.add(g["d"])
+        out.append((sorted(dates), m))
+        prev_d = d
+    return out
+
+
+def schedule_faced(snaps, games, st):
+    """(team, pick) -> (AB-weighted mean opponent RA/G over the season, AB).
+
+    The only slate measure the book supports at player level: each period's
+    at-bats are charged to that period's whole opponent set. High = soft."""
+    rr = run_rates(st)
+    maps = period_opponents(snaps, games)
+    agg = {}
+    for i, (_, players) in enumerate(snaps):
+        if i == 0:
+            rows = [dict(team=p["team"], pick=p["pick"], dab=p["ab"]) for p in players]
+        else:
+            rows = period_rows(snaps[i - 1][1], players)
+        for r in rows:
+            opps = maps[i][1][r["team"]]
+            if r["dab"] <= 0 or not opps:
+                continue
+            od = sum(rr[o][1] for o in opps) / len(opps)
+            ab, tot = agg.get((r["team"], r["pick"]), (0, 0.0))
+            agg[(r["team"], r["pick"])] = (ab + r["dab"], tot + r["dab"] * od)
+    return {k: (tot / ab, ab) for k, (ab, tot) in agg.items() if ab}
+
+
+def player_period_slates(snaps, games, st, team, pick):
+    """One player's case file: [(dates, dab, dh, dco, rate, [(opp, drank)])]."""
+    drank = defense_rank(st)
+    maps = period_opponents(snaps, games)
+    out = []
+    for i, (_, players) in enumerate(snaps):
+        if i == 0:
+            p = next(p for p in players if (p["team"], p["pick"]) == (team, pick))
+            dab, dh, dco = p["ab"], p["h"], p["co"]
+        else:
+            r = next(
+                r
+                for r in period_rows(snaps[i - 1][1], players)
+                if (r["team"], r["pick"]) == (team, pick)
+            )
+            dab, dh, dco = r["dab"], r["dh"], r["dco"]
+        dates, m = maps[i]
+        rate = (dh - dco) / dab if dab else None
+        out.append((dates, dab, dh, dco, rate, [(o, drank[o]) for o in m[team]]))
+    return out
+
+
+def alibi_verdict(snaps, games, st):
+    """The Alibi Audit's verdict: every measure of a week, split by whether the
+    slate was softer or harder than the league mean (by season RA/G).
+
+    players: AB-weighted mean swing over player-weeks, soft vs hard slates.
+    clubs:   AB-weighted mean gap to own line over club-weeks, same split.
+    runs:    each completed game's score against that defense's runs allowed
+             in its OTHER games, split at the median opposing defense.
+    """
+    rr = run_rates(st)
+    lg = sum(ra for _, ra in rr.values()) / len(rr)
+    maps = period_opponents(snaps, games)
+    ps = [0.0, 0]
+    ph = [0.0, 0]
+    cs = [0.0, 0]
+    ch = [0.0, 0]
+    for i in range(1, len(snaps)):
+        prev, cur = snaps[i - 1][1], snaps[i][1]
+        m = maps[i][1]
+        for r in period_rows(prev, cur):
+            opps = m[r["team"]]
+            if r["swing"] is None or not opps:
+                continue
+            od = sum(rr[o][1] for o in opps) / len(opps)
+            side = ps if od >= lg else ph
+            side[0] += r["dab"] * r["swing"]
+            side[1] += r["dab"]
+        tp = team_period(prev, cur)
+        for t, a in tp.items():
+            opps = m[t]
+            if a["rate"] is None or a["line"] is None or not opps:
+                continue
+            od = sum(rr[o][1] for o in opps) / len(opps)
+            side = cs if od >= lg else ch
+            side[0] += a["dab"] * (a["rate"] - a["line"])
+            side[1] += a["dab"]
+    done = [g for g in completed(games) if g["d"] <= snaps[-1][0]]
+    by_team = {t: team_games(done, t) for t in sorted(CAPTAINS)}
+    obs = []
+    for g in done:
+        sa, sb = g["sa"], g["sb"]
+        assert sa is not None and sb is not None
+        for us, opp in ((sa, g["b"]), (sb, g["a"])):
+            gs = by_team[opp]
+            if len(gs) < 2:
+                continue
+            obs.append(((sum(x["them"] for x in gs) - us) / (len(gs) - 1), us))
+    med = statistics.median(loo for loo, _ in obs)
+    stingy = [us for loo, us in obs if loo < med]
+    generous = [us for loo, us in obs if loo >= med]
+    return dict(
+        lg=lg,
+        p_soft=ps[0] / ps[1],
+        p_soft_ab=ps[1],
+        p_hard=ph[0] / ph[1],
+        p_hard_ab=ph[1],
+        c_soft=cs[0] / cs[1],
+        c_hard=ch[0] / ch[1],
+        r_stingy=statistics.mean(stingy),
+        r_generous=statistics.mean(generous),
+    )
+
+
 def race_top(players, n=4, min_ab=15):
     """The batting race's top n: [(player, hits back at own volume)]."""
     racers = sorted(
@@ -1498,6 +1718,94 @@ def afternoon_digest(snaps, games, st, prev_st):
                 w_, l_, t_ = m[(x, y)]
                 cells.append(f"{w_}-{l_}" + (f"-{t_}" if t_ else ""))
         print(f"  {x:32s} " + "  ".join(f"{c:6s}" for c in cells))
+
+    print(
+        "\n--- SCHEDULE DESK: THE GAUNTLET (SOS = opponents' win% in games "
+        "not vs the club; hardest played slate first) ---"
+    )
+    for r in sos_rows(games, st, dcur):
+        sosl = A(r["sosl"]) if r["sosl"] is not None else "—"
+        print(
+            f"  #{r['rank']:>2} {r['team']:32s} played {A(r['sosp'])} | "
+            f"left {sosl} ({r['left']} games, {r['vtop4']} vs top four)"
+        )
+        print(f"      never met: {', '.join(r['unmet']) or '—'}")
+        print(f"      met twice: {', '.join(r['twice']) or '—'}")
+    triples, dist = season_series_pairs(games, dcur)
+    ds = ", ".join(f"{n} pairs meet {k}x" for k, n in sorted(dist.items()))
+    print(f"  SERIES SHAPE (all 66 pairings, full slate): {ds}")
+    print("  TRIPLE ROUNDS (3 meetings on the season; played + left, left dates):")
+    for a, b, p, sched in triples:
+        when = ", ".join(
+            g["date"]
+            for g in games
+            if g["status"] == "SCHEDULED" and {g["a"], g["b"]} == {a, b}
+        )
+        print(f"    {a} vs {b}: {p} played + {sched} left ({when or 'none left'})")
+
+    print("\n--- SCHEDULE DESK: THE ALIBI AUDIT ---")
+    rr = run_rates(st)
+    drank = defense_rank(st)
+    print("  defense ledger (runs allowed per game, stingiest first; the only")
+    print("  defense the book can see — descriptive, not predictive, see verdict):")
+    for t in sorted(rr, key=lambda t: drank[t]):
+        pf, ra = rr[t]
+        print(f"    D{drank[t]:<2} {t:32s} allows {ra:5.2f} | scores {pf:5.2f}")
+    v = alibi_verdict(snaps, games, st)
+    print(f"  THE VERDICT (slates split at the league mean {v['lg']:.2f} RA/G):")
+    print(
+        f"    player-weeks: soft slates swing {v['p_soft']:+.3f} on "
+        f"{v['p_soft_ab']} AB | hard slates {v['p_hard']:+.3f} on {v['p_hard_ab']} AB"
+    )
+    print(
+        f"    club-weeks:   soft slates gap {v['c_soft']:+.3f} | "
+        f"hard slates {v['c_hard']:+.3f} (vs own line)"
+    )
+    print(
+        f"    runs: {v['r_stingy']:.2f}/game vs the stingier half of defenses | "
+        f"{v['r_generous']:.2f} vs the more generous half (each game vs that "
+        "defense's RA/G in its other games, median split)"
+    )
+    faced = schedule_faced(snaps, games, st)
+    print("  THE CHASE, RE-READ (slate faced = AB-weighted opponent RA/G; high = soft):")
+    chase_faced = [(p, faced[(p["team"], p["pick"])][0]) for p, _ in race_top(cur, 4)]
+    soft_ix = max(range(len(chase_faced)), key=lambda i: chase_faced[i][1])
+    hard_ix = min(range(len(chase_faced)), key=lambda i: chase_faced[i][1])
+    for i, (p, od) in enumerate(chase_faced):
+        tag = " (hardest of four)" if i == hard_ix else (
+            " (softest of four)" if i == soft_ix else ""
+        )
+        print(f"    {p['name']:30s} {disp(p)} on {p['ab']:2d} AB  slate {od:5.2f}{tag}  ({p['team']})")
+    reg = [(od, ab, k) for k, (od, ab) in faced.items() if ab >= 15]
+    print("  SLATES FACED, 15+ AB (softest and hardest three):")
+    byname = {(p["team"], p["pick"]): p for p in cur}
+    for od, ab, k in sorted(reg, reverse=True)[:3] + sorted(reg)[:3]:
+        p = byname[k]
+        print(f"    {p['name']:30s} slate {od:5.2f} on {ab:3d} AB  ({p['team']})")
+    print("  CASE FILE — Hammon, Sean (The Pliggas, R12):")
+    sp = next(p for p in cur if p["name"] == "Hammon, Sean")
+    for dates, dab, dh, dco, rate, opps in player_period_slates(
+        snaps, games, st, sp["team"], sp["pick"]
+    ):
+        when = " + ".join(f"{d.strftime('%b')} {d.day}" for d in dates)
+        line = f"{dh}-for-{dab}" + (f" · {dco} CO" if dco else "")
+        rs = A(rate) if rate is not None else "sat"
+        os_ = ", ".join(f"{o} (D{dr})" for o, dr in opps)
+        print(f"    {when}: {line:14s} {rs:5s} vs {os_}")
+    sod, sab = faced[(sp["team"], sp["pick"])]
+    unmet = next(r for r in sos_rows(games, st, dcur) if r["team"] == sp["team"])["unmet"]
+    print(
+        f"    slate faced {sod:5.2f} on {sab} AB (league mean {v['lg']:.2f}); "
+        f"his club never met: {', '.join(unmet)}"
+    )
+    bw = next(p for p in cur if p["name"] == "Wood, Becky")
+    bod, bab = faced[(bw['team'], bw['pick'])]
+    softest = max(reg)[2] if reg else None
+    tagb = " — the softest slate among 15+ AB regulars" if softest == (bw["team"], bw["pick"]) else ""
+    print(
+        f"  CASE FILE — Wood, Becky (#144): {bw['h']}-for-{bw['ab']}, "
+        f"rank #{bw['rank']}, slate faced {bod:5.2f} on {bab} AB{tagb}"
+    )
 
     nd, _ = next_afternoon(games, dcur)
     if nd:
@@ -2563,6 +2871,83 @@ def emit_standings_afternoon(c):
         )
 
 
+def emit_gauntlet(c):
+    print(
+        "<!-- THE GAUNTLET (id gauntlet): SOS ledger, hardest played slate "
+        "first; vtop4 = scheduled games vs the current top four -->"
+    )
+    for r in sos_rows(c["games"], c["st"], c["dcur"]):
+        sosl = A(r["sosl"]) if r["sosl"] is not None else "—"
+        unmet = " · ".join(team_label(t) for t in r["unmet"]) or "—"
+        twice = " · ".join(team_label(t) for t in r["twice"]) or "—"
+        print(
+            f'        <tr><td class="ctr num">{r["rank"]}</td>'
+            f'<td class="player">{team_label(r["team"])}</td>'
+            f'<td class="num big">{A(r["sosp"])}</td>'
+            f'<td class="num">{sosl}</td>'
+            f'<td class="ctr num">{r["vtop4"]}</td>'
+            f"<td>{unmet}</td><td>{twice}</td></tr>"
+        )
+
+
+def emit_alibi(c):
+    st, games, snaps, cur = c["st"], c["games"], c["snaps"], c["cur"]
+    rr = run_rates(st)
+    drank = defense_rank(st)
+    print(
+        "<!-- THE ALIBI AUDIT (id alibi): defense ledger — runs allowed per "
+        "game, stingiest first; descriptive, not predictive (the verdict) -->"
+    )
+    for t in sorted(rr, key=lambda t: drank[t]):
+        pf, ra = rr[t]
+        print(
+            f'        <tr><td class="ctr num">D{drank[t]}</td>'
+            f'<td class="player">{team_label(t)}</td>'
+            f'<td class="num big">{ra:.2f}</td>'
+            f'<td class="num">{pf:.2f}</td></tr>'
+        )
+    faced = schedule_faced(snaps, games, st)
+    print(
+        "\n<!-- CHASE SLATES (id chase-slates): the crown chase re-read; "
+        "slate faced = AB-weighted opponent RA/G, high = soft -->"
+    )
+    chase_faced = [(p, faced[(p["team"], p["pick"])][0]) for p, _ in race_top(cur, 4)]
+    soft_ix = max(range(len(chase_faced)), key=lambda i: chase_faced[i][1])
+    hard_ix = min(range(len(chase_faced)), key=lambda i: chase_faced[i][1])
+    for i, (p, od) in enumerate(chase_faced):
+        tag = (
+            ' <span class="muted">· hardest of the four</span>'
+            if i == hard_ix
+            else (' <span class="muted">· softest of the four</span>' if i == soft_ix else "")
+        )
+        print(
+            f'        <tr><td class="ctr num">{i + 1}</td>'
+            f'<td class="player">{pname(p)}</td>'
+            f'<td class="team-name">{team_label(p["team"])}</td>'
+            f'<td class="num">{disp(p)}</td><td class="num">{p["ab"]}</td>'
+            f'<td class="num">{od:.2f}{tag}</td></tr>'
+        )
+    print(
+        "\n<!-- CASE FILE (id case-sean): Sean Hammon block by block; "
+        "slate = opponents with defense rank -->"
+    )
+    sp = next(p for p in cur if p["name"] == "Hammon, Sean")
+    for dates, dab, dh, dco, rate, opps in player_period_slates(
+        snaps, games, st, sp["team"], sp["pick"]
+    ):
+        when = " + ".join(f"{d.strftime('%b')} {d.day}" for d in dates)
+        line = f"{dh}-for-{dab}" + (
+            f' <span class="muted">· {dco} CO</span>' if dco else ""
+        )
+        rs = A(rate) if rate is not None else "—"
+        os_ = " · ".join(f"{team_label(o)} (D{dr})" for o, dr in opps)
+        print(
+            f'        <tr><td class="player">{when}</td>'
+            f'<td class="num">{line}</td><td class="num big">{rs}</td>'
+            f"<td>{os_}</td></tr>"
+        )
+
+
 def emit_value_desk(c):
     cur, prev = c["cur"], c["prev"]
     print(
@@ -2714,6 +3099,8 @@ AFTERNOON_EMITTERS = [
     ("REBOUND", emit_rebound),
     ("CLUBHOUSE", emit_clubhouse),
     ("STANDINGS", emit_standings_afternoon),
+    ("GAUNTLET", emit_gauntlet),
+    ("ALIBI", emit_alibi),
     ("VALUE DESK", emit_value_desk),
     ("RECORDS", emit_records_board),
     ("WATCH", emit_watch),

@@ -204,7 +204,19 @@ The week (one league afternoon between snapshots):
 - **Min-AB gates**: swing/perfect lists 4+ (`--min-ab-swing/-perfect`), hot/cold period list 6+
   (`--min-ab-period`), weekly records 10+. Scale sensibly as the season accumulates.
 
-The record book (`records_board` / `records_report` / `RECORDS_PUBLISHED`):
+The schedule desk (added 2026-07-28: `sos_rows` / `season_series_pairs` / `schedule_faced` /
+`player_period_slates` / `alibi_verdict`; prints in the SCHEDULE DESK digest block):
+- **SOS played** = mean over a club's completed games of that opponent's win% in its OTHER
+  games (head-to-head excluded, one entry per game); **SOS left** = mean current win% of the
+  clubs still on the slate. **Slate faced** (player) = AB-weighted mean opponent RA/G across
+  periods — a period's ABs are charged to its **whole** opponent set (an afternoon is two
+  games, early blocks four): attribution finer than the slate is impossible; never fake it.
+- **Defense ledger** = runs allowed per game (standings PA/GP) — the only defense the book
+  supports. **Audit verdict (through 0717 — recompute before citing):** opponent quality does
+  NOT predict batting; the splits ran backwards (soft slates +.002 swing vs hard +.022; runs
+  11.01/game vs generous defenses, 11.63 vs stingy). So: **never publish schedule-adjusted
+  averages** — the alibi audit exists to kill that idea. The `gauntlet` (SOS) is standings
+  context and recurs; the `alibi` was a one-off (bring it back only if the verdict flips).
 - **Recomputed from the full `--history` chain every run** — player hot/cold week (10+ AB),
   team best/worst week, family best week, workload, team CO, player CO — plus **game records**
   from the schedule (biggest margin, highest/lowest-scoring game, longest win streak).
@@ -244,7 +256,8 @@ What stays stable underneath — the spine:
 - **The anchor contract:** `race`, `standings`, `records`, `watch`, and `dream-team` exist on
   every edition, whatever form their sections take. Every table carries an h3 anchor. Module
   ids that recur keep their names across editions (`scoreboard`, `weeklies`, `arcs`, `rebound`,
-  `clubhouse`, `chase`, `crown-history`, `arcs-table`, `value`, `value-movers`, `club-<slug>`).
+  `clubhouse`, `chase`, `crown-history`, `arcs-table`, `value`, `value-movers`, `club-<slug>`,
+  `gauntlet`).
 - **The reference back**: standings, race, records, dream team, and a find-yourself surface
   (currently the clubhouse roster tables) appear in some form every edition. Anything deeper
   (full docket, round rooms, draft board…) may **rest** — say where it rests (the archive), and
@@ -282,6 +295,13 @@ What stays stable underneath — the spine:
   ("the next slate" — matchup-driven). Retired-that-edition: glance, draft-board, sleepers,
   teams/report-card, second-look, missing-pages, what-changed, team-sheets, verdict tables
   beyond the Dream Team, round-rooms, dynasty section (folded to a value-desk note).
+  **Supplement 2026-07-28** (spliced into the live 07-17 edition between `standings` and
+  `value`, plates marked "Supplement · July 28"): `gauntlet` — the SOS ledger (recurring
+  module, `emit_gauntlet`) — and `alibi` — the schedule-alibi audit, a one-off feature
+  (`emit_alibi`; sub-ids `defense-ledger`, `chase-slates`, `case-sean`). Both fed by the
+  SCHEDULE DESK digest block. When this edition archives, the gauntlet stays (the fixture
+  list was known on the data date — it is a ledger, not foreshadowing); only `watch` gets
+  deleted per the archive rule.
 
 **Retired ids** (pre-2026-07-17; they resolve in the archives, never reuse for new meanings):
 `the-week, week-bats, temperature, glance, draft-board, sleepers, teams, second-look,
@@ -301,9 +321,14 @@ captains-mirror, full-docket, outliers, round-1…round-12`.
   the Williamses the same afternoon).
 - **Sean Hammon's fairy tale is CLOSED** (2026-07-17: hitless afternoon, lost the R12 Dream Team
   seat to Sharon Hammon; "the mean he was regressing toward is above him"). Do not resurrect
-  without a genuine second act — a comeback would BE the story, not the gag.
+  without a genuine second act — a comeback would BE the story, not the gag. The 2026-07-28
+  alibi audit **acquitted** his June of schedule inflation (hot block vs the D2/D4 defenses;
+  his club never met Michael's team; slate 11.19 ≈ league mean) — "the audit merely corrects
+  the cause of death." The file stays closed; cite the audit rather than reopening it.
 - **Becky Wood, #144**: "still technically a bargain" is now "doing heavy lifting" (0-for-5,
-  #139). Keep tracking; never invent numbers for her.
+  #139). 2026-07-28: the audit found she has also faced the league's softest slate (12.36 opp
+  RA/G, most generous among 15+ AB regulars) — "no alibi in either direction." Keep tracking;
+  never invent numbers for her.
 - **The invoice** (Stafford's team's luck): opened +.243 (July 10), **first installment
   collected** 2026-07-17 (+.200, slid #2→#4). Each edition: pay it down or re-inflate it, with
   the actual Luck number.
@@ -311,6 +336,12 @@ captains-mirror, full-docket, outliers, round-1…round-12`.
   their captain won Bat of the Afternoon); Jeremy's team "the quietest hot team in the league"
   (won six straight while batting worst on the day); "the 1.000 club is closed" (first
   zero-perfect afternoon). Use them only when the new data feeds them.
+- **The schedule alibi is dead** (2026-07-28 audit): the league batted *better* against the
+  harder slates. If a club or player blames the schedule in a future edition, cite the audit
+  ("the alibi desk settled this in July") instead of re-running it — unless the verdict has
+  actually flipped, which would be a story. Related standing fact: the Gauntlet showed the
+  top four all rode sub-.500 slates while Sefton's club (5th) walked the hardest and drew
+  the softest run-in — the August run-in is loaded (Caleb–Stafford ×3, Jeremy–Boyds ×3).
 
 ## Weekly update procedure
 

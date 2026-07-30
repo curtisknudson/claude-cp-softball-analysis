@@ -443,7 +443,7 @@
                 border-bottom: 1px dotted var(--rule);
                 padding: 4px 0;
             }
-            .m-field > span {
+            .m-field > span:first-child {
                 font-family: var(--mono);
                 font-size: 0.6rem;
                 letter-spacing: 0.12em;
@@ -451,6 +451,10 @@
                 color: var(--muted);
                 min-width: 92px;
                 flex-shrink: 0;
+            }
+            .m-field .m-val {
+                flex: 1 1 auto;
+                min-width: 0;
             }
             .m-punches {
                 display: flex;
@@ -497,6 +501,54 @@
             tr.bench .player,
             tr.bench .num {
                 color: var(--muted);
+            }
+
+            /* ── the second opinion (Rx pad) ── */
+            .rx-card {
+                max-width: 560px;
+                border: 1px solid var(--rule-strong);
+                background: var(--paper);
+                padding: 10px 14px 12px;
+                margin: 12px 0 4px;
+            }
+            .rx-head {
+                display: flex;
+                align-items: baseline;
+                gap: 10px;
+                border-bottom: 1px dotted var(--rule);
+                padding-bottom: 6px;
+                margin-bottom: 6px;
+            }
+            .rx-sym {
+                font-size: 1.7rem;
+                font-weight: 700;
+                color: var(--accent);
+                line-height: 1;
+            }
+            .rx-head span:last-child {
+                font-family: var(--mono);
+                font-size: 0.6rem;
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+                color: var(--muted);
+            }
+            .rx-scrip {
+                margin-top: 10px;
+                padding-top: 8px;
+                border-top: 1px dotted var(--rule);
+                font-style: italic;
+                font-size: 0.95rem;
+            }
+            .rx-scrip .sig {
+                display: block;
+                text-align: right;
+                font-family: var(--mono);
+                font-style: normal;
+                font-size: 0.62rem;
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+                color: var(--muted);
+                margin-top: 8px;
             }
 
             /* ── tickets (scoreboard entries) ── */
@@ -812,12 +864,12 @@
             <nav class="contents" aria-label="Contents">
                 <a href="#thousand-club">The 1.000 Club</a><span class="sep">·</span>
                 <a href="#mw-benchmark">Mike Williams Benchmark</a><span class="sep">·</span>
+                <a href="#trainers-table">Trainer's Table</a><span class="sep">·</span>
                 <a href="#invoice">The Invoice</a><span class="sep">·</span>
                 <a href="#scoreboard">The Day's Entries</a><span class="sep">·</span>
                 <a href="#debits">The Debits</a><span class="sep">·</span>
                 <a href="#race">The Crown</a><span class="sep">·</span>
                 <a href="#weeklies">The Weeklies</a><span class="sep">·</span>
-                <a href="#trainers-table">Trainer's Table</a><span class="sep">·</span>
                 <a href="#records">The Record Book</a><span class="sep">·</span>
                 <a href="#arcs">The Arcs</a><span class="sep">·</span>
                 <a href="#rebound">The Rebound Ledger</a><span class="sep">·</span>
@@ -929,6 +981,100 @@
                         and a glove buys things no batting column can see.
                         The desk extends this courtesy in full — and notes,
                         courteously, that Debbie Timpson does not need it.
+                    </li>
+                </ul>
+                <h3 id="second-opinion"><a href="#second-opinion">The second opinion</a></h3>
+                <p class="dek">
+                    Following the findings above, the desk ordered a medical
+                    review of the benchmark's condition and referred the
+                    case to the league's only known physician: Dr. Ben
+                    Williams of Boyds Daniel's team — bedside manner
+                    excellent, plate manner under review. The consult
+                    collapsed at intake, on grounds of conflict: the doctor
+                    is also a Williams, is himself presenting with a .250
+                    week, and the nearest qualified specialist is his own
+                    father — Charlie Williams, sixty-five, who took the
+                    field the same afternoon with no symptoms and posted
+                    the biggest workload in the league for the first-place
+                    club. Doctors make the worst patients. Fathers make the
+                    worst control groups. Physician, heal thy swing.
+                </p>
+                <div class="rx-card">
+                    <div class="rx-head"><span class="rx-sym">℞</span><span>Chart note · not valid at any pharmacy</span></div>
+                    <div class="m-field"><span>Patient</span><span class="m-val">Williams, Ben — Boyds Daniel's team · R4</span></div>
+                    <div class="m-field"><span>Chief complaint</span><span class="m-val">The swing — acute onset July 24 · 3-for-8 <span class="muted">· 1 CO</span> · a .250 episode</span></div>
+                    <div class="m-field"><span>Vitals</span><span class="m-val">Season .618 → .548 · league rank #45 → #71 · trending down</span></div>
+                    <div class="m-field"><span>Family history</span><span class="m-val">Father, 65, asymptomatic — .647 season, the afternoon's biggest workload <span class="muted">(his paperwork is filed on the debits page)</span></span></div>
+                    <div class="m-field"><span>Treatment plan</span><span class="m-val">Observe the father closely.</span></div>
+                    <div class="m-field"><span>Prognosis</span><span class="m-val">Full recovery expected — the genetics are demonstrably excellent; the inheritance is pending.</span></div>
+                    <div class="rx-scrip">
+                        Take two at-bats and call the desk in the morning.
+                        Do not operate heavy machinery. Do operate on
+                        breaking pitches.
+                        <span class="sig">Signed — the desk (not a doctor)</span>
+                    </div>
+                </div>
+            </section>
+
+            <section id="trainers-table">
+                <div class="plate">
+                    <span>Ledger Special · The Trainer's Table</span><span class="pg">The physio desk reports</span>
+                </div>
+                <h2><a href="#trainers-table">Remarkable, for men in their condition</a></h2>
+                <p class="dek">
+                    Four men whose medical charts read like a park bench and
+                    whose batting reads like a scouting report. The desk has
+                    examined the files, examined the numbers, and can offer
+                    no clinical explanation for the season being assembled on
+                    these knees, ankles, and intermittently cramping
+                    everything else. (Disclosure: the ward is three-quarters
+                    Knudson.)
+                </p>
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr><th>Patient</th><th>Club</th><th>The chart says</th><th>Status</th><th class="num">The afternoon</th><th class="num">Season</th></tr>
+                        </thead>
+                        <tbody>
+        <tr><td class="player">Knudson, Levi</td><td class="team-name">Boyds Daniel's team</td><td>Knees (both) — filed as weak; ignores the filing; plays shortstop</td><td><span class="zpos">DAY-TO-DAY</span></td><td class="num">7-for-8</td><td class="num">.723 · #14</td></tr>
+        <tr><td class="player">Knudson, Derrick</td><td class="team-name">Boyds Daniel's team</td><td>One ankle, listed as weak; the other, overworked</td><td><span class="zpos">PROBABLE</span></td><td class="num">6-for-9</td><td class="num">.722 · #15</td></tr>
+        <tr><td class="player">Knudson, Nathan</td><td class="team-name">Michael's team</td><td>Cramps — chronic, full-body, arrive unannounced</td><td><span class="zneg">QUESTIONABLE</span></td><td class="num">3-for-6</td><td class="num">.651 · #30</td></tr>
+        <tr><td class="player">Guy, Sam</td><td class="team-name">Seth's team</td><td>Nothing on file — under review by the desk</td><td><span class="zpos">SUSPICIOUSLY FIT</span></td><td class="num">6-for-7</td><td class="num">.775 · #5</td></tr>
+                        </tbody>
+                        <caption>
+                            Conditions as filed with the physio desk; statuses
+                            are the desk's own. Afternoon lines: hits raw,
+                            rate net. The batting is real; the medicine is
+                            editorial.
+                        </caption>
+                    </table>
+                </div>
+                <ul class="notes">
+                    <li>
+                        <strong>Levi Knudson mans shortstop</strong> — the
+                        most demanding real estate in the league — on two
+                        knees the chart lists as weak, hauling a frame the
+                        chart lists as generous, and bats fourteenth in the
+                        league anyway. The desk has stopped scheduling his
+                        follow-ups; he keeps missing them to take extra
+                        swings.
+                    </li>
+                    <li>
+                        <strong>Derrick Knudson has one reliable ankle and
+                        zero caused outs all season</strong> — 54 at-bats,
+                        nothing handed back — which the desk attributes to a
+                        man who has learned, the hard way, that sudden
+                        movement is a young man's error.
+                    </li>
+                    <li>
+                        <strong>Nathan Knudson bats through cramps</strong>
+                        that arrive whole-body and on their own schedule, and
+                        still holds a season line comfortably above the
+                        league's. <strong>Sam Guy was admitted as the control
+                        group:</strong> no conditions on file, a top-five bat
+                        in the league, and two of the day's hottest lines
+                        belong to this very ward — the desk regards his chart,
+                        blank as it is, as the most suspicious of the four.
                     </li>
                 </ul>
             </section>
@@ -1341,69 +1487,6 @@
         <p class="a-cite">#50 <span class="muted">→</span> #85 <span class="zneg">(▼35)</span> — 4-for-11 <span class="muted">· 2 CO</span></p>
     </article>
 </div>
-            </section>
-
-            <section id="trainers-table">
-                <div class="plate">
-                    <span>Ledger Special · The Trainer's Table</span><span class="pg">The physio desk reports</span>
-                </div>
-                <h2><a href="#trainers-table">Remarkable, for men in their condition</a></h2>
-                <p class="dek">
-                    Four men whose medical charts read like a park bench and
-                    whose batting reads like a scouting report. The desk has
-                    examined the files, examined the numbers, and can offer
-                    no clinical explanation for the season being assembled on
-                    these knees, ankles, and intermittently cramping
-                    everything else. (Disclosure: the ward is three-quarters
-                    Knudson.)
-                </p>
-                <div class="table-scroll">
-                    <table>
-                        <thead>
-                            <tr><th>Patient</th><th>Club</th><th>The chart says</th><th>Status</th><th class="num">The afternoon</th><th class="num">Season</th></tr>
-                        </thead>
-                        <tbody>
-        <tr><td class="player">Knudson, Levi</td><td class="team-name">Boyds Daniel's team</td><td>Knees (both) — filed as weak; ignores the filing; plays shortstop</td><td><span class="zpos">DAY-TO-DAY</span></td><td class="num">7-for-8</td><td class="num">.723 · #14</td></tr>
-        <tr><td class="player">Knudson, Derrick</td><td class="team-name">Boyds Daniel's team</td><td>One ankle, listed as weak; the other, overworked</td><td><span class="zpos">PROBABLE</span></td><td class="num">6-for-9</td><td class="num">.722 · #15</td></tr>
-        <tr><td class="player">Knudson, Nathan</td><td class="team-name">Michael's team</td><td>Cramps — chronic, full-body, arrive unannounced</td><td><span class="zneg">QUESTIONABLE</span></td><td class="num">3-for-6</td><td class="num">.651 · #30</td></tr>
-        <tr><td class="player">Guy, Sam</td><td class="team-name">Seth's team</td><td>Nothing on file — under review by the desk</td><td><span class="zpos">SUSPICIOUSLY FIT</span></td><td class="num">6-for-7</td><td class="num">.775 · #5</td></tr>
-                        </tbody>
-                        <caption>
-                            Conditions as filed with the physio desk; statuses
-                            are the desk's own. Afternoon lines: hits raw,
-                            rate net. The batting is real; the medicine is
-                            editorial.
-                        </caption>
-                    </table>
-                </div>
-                <ul class="notes">
-                    <li>
-                        <strong>Levi Knudson mans shortstop</strong> — the
-                        most demanding real estate in the league — on two
-                        knees the chart lists as weak, hauling a frame the
-                        chart lists as generous, and bats fourteenth in the
-                        league anyway. The desk has stopped scheduling his
-                        follow-ups; he keeps missing them to take extra
-                        swings.
-                    </li>
-                    <li>
-                        <strong>Derrick Knudson has one reliable ankle and
-                        zero caused outs all season</strong> — 54 at-bats,
-                        nothing handed back — which the desk attributes to a
-                        man who has learned, the hard way, that sudden
-                        movement is a young man's error.
-                    </li>
-                    <li>
-                        <strong>Nathan Knudson bats through cramps</strong>
-                        that arrive whole-body and on their own schedule, and
-                        still holds a season line comfortably above the
-                        league's. <strong>Sam Guy was admitted as the control
-                        group:</strong> no conditions on file, a top-five bat
-                        in the league, and two of the day's hottest lines
-                        belong to this very ward — the desk regards his chart,
-                        blank as it is, as the most suspicious of the four.
-                    </li>
-                </ul>
             </section>
 
             <section id="records">

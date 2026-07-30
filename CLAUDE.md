@@ -335,15 +335,19 @@ What stays stable underneath — the spine:
   (UNDISPUTED)) — og:image/twitter:image point at it; every share of this edition is the
   tease. Revert og:image to og.png next edition (or ship a new card). Second late addition
   (same day): **`trainers-table`** — "Ledger Special · The Trainer's Table," an
-  injury-report parody between `weeklies` and `records` (hand-written, no emitter; lines
-  from the digest) teasing the editor's brothers and Sam Guy — see the gag ledger for the
-  owner facts and the tone mandate. Third late addition (same day): **`the-disclaimer`**,
+  injury-report parody (hand-written, no emitter; lines from the digest) teasing the
+  editor's brothers and Sam Guy — see the gag ledger for the owner facts and the tone
+  mandate. Debuted between `weeklies` and `records`, then moved up to sit directly after
+  `mw-benchmark`/`second-opinion` (owner request) — the front now runs a continuous
+  medical block: benchmark → the doctor's chart → the ward. Third late addition (same day): **`the-disclaimer`**,
   an h3 notice at the foot of `scoreboard` recording the overturned-in-spirit home run in
   the upset game (owner facts in the gag ledger; linked from the upset ticket). Fourth
   late addition (same day): **`mw-benchmark`** — the Mike Williams Benchmark honor roll, placed
   directly after `thousand-club` and before `invoice` (owner wants it high); hand-written,
   numbers from the stats file via a FEMALE_GIVEN query — see the gag ledger for the
-  framing mandate and the Sidney/Leslie caveat.
+  framing mandate and the Sidney/Leslie caveat. Fifth late addition (same day):
+  **`second-opinion`** — the Dr. Ben Williams prescription-pad coda at the foot of
+  `mw-benchmark` (owner facts in the gag ledger).
 
 **Retired ids** (pre-2026-07-17; they resolve in the archives, never reuse for new meanings):
 `the-week, week-bats, temperature, glance, draft-board, sleepers, teams, second-look,
@@ -439,6 +443,18 @@ captains-mirror, full-docket, outliers, round-1…round-12`.
   is the standing disclaimer. Statuses (DAY-TO-DAY / PROBABLE / QUESTIONABLE / SUSPICIOUSLY
   FIT) are the desk's own. Recurring only if Curtis feeds it; escalate the charts honestly
   (a bad afternoon = a setback in physio, a hot one = medically unexplained).
+- **The Second Opinion** (debuted 2026-07-24, owner request 2026-07-29; `second-opinion`,
+  an h3 coda at the foot of `mw-benchmark` — moved there from `trainers-table` at the
+  owner's request — styled as a prescription pad, `.rx-card`; the lead-in frames it as a
+  medical review of the benchmark's condition, referred to the league's only physician,
+  who is also a Williams): **owner
+  facts: Ben Williams (Boyds Daniel's team, R4) is a doctor — a great one; his father is
+  Charles "Charlie" Williams (Stafford's team), age 65 exactly (owner-supplied, printable,
+  unlike Ryan's qualitative "forty-plus").** The bit: praise the doctoring, roast the
+  batting — the physician who can treat everyone but the hitter in his own mirror, while
+  dad posts league-leading workloads at 65. The father-son link is owner-sourced, not in
+  the data. If it recurs: a Ben hot week = "responding to treatment"; Charlie stays the
+  elder-statesman engine alongside Ryan Hammon.
 - **The schedule alibi is dead** (2026-07-28 audit): the league batted *better* against the
   harder slates. If a club or player blames the schedule in a future edition, cite the audit
   ("the alibi desk settled this in July") instead of re-running it — unless the verdict has

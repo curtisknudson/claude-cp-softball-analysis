@@ -343,6 +343,26 @@
             tr.rd-break > td {
                 border-top: 2px solid var(--rule-strong);
             }
+            /* The Full Docket is 144 rows — the only table long enough to
+               want a sticky header. Sticky needs the height-capped pane
+               itself to scroll: inside a wrapper that only scrolls
+               sideways, a sticky th resolves against the wrapper (which
+               never scrolls vertically) and so never sticks at all. */
+            .table-scroll.tall {
+                max-height: min(78vh, 900px);
+                overflow: auto;
+            }
+            .table-scroll.tall thead th {
+                position: sticky;
+                top: 0;
+                z-index: 2;
+                background: var(--paper);
+                /* border-collapse hands borders to the table, not the
+                   cell, so a border-bottom would scroll away from under a
+                   sticky th. */
+                border-bottom: none;
+                box-shadow: inset 0 -2px 0 var(--rule-strong);
+            }
             caption {
                 caption-side: bottom;
                 text-align: left;
@@ -501,54 +521,6 @@
             tr.bench .player,
             tr.bench .num {
                 color: var(--muted);
-            }
-
-            /* ── the second opinion (Rx pad) ── */
-            .rx-card {
-                max-width: 560px;
-                border: 1px solid var(--rule-strong);
-                background: var(--paper);
-                padding: 10px 14px 12px;
-                margin: 12px 0 4px;
-            }
-            .rx-head {
-                display: flex;
-                align-items: baseline;
-                gap: 10px;
-                border-bottom: 1px dotted var(--rule);
-                padding-bottom: 6px;
-                margin-bottom: 6px;
-            }
-            .rx-sym {
-                font-size: 1.7rem;
-                font-weight: 700;
-                color: var(--accent);
-                line-height: 1;
-            }
-            .rx-head span:last-child {
-                font-family: var(--mono);
-                font-size: 0.6rem;
-                letter-spacing: 0.12em;
-                text-transform: uppercase;
-                color: var(--muted);
-            }
-            .rx-scrip {
-                margin-top: 10px;
-                padding-top: 8px;
-                border-top: 1px dotted var(--rule);
-                font-style: italic;
-                font-size: 0.95rem;
-            }
-            .rx-scrip .sig {
-                display: block;
-                text-align: right;
-                font-family: var(--mono);
-                font-style: normal;
-                font-size: 0.62rem;
-                letter-spacing: 0.12em;
-                text-transform: uppercase;
-                color: var(--muted);
-                margin-top: 8px;
             }
 
             /* ── tickets (scoreboard entries) ── */
@@ -809,6 +781,12 @@
                 .contents {
                     display: none;
                 }
+                /* an overflow container clips in print — un-clip both axes */
+                .table-scroll,
+                .table-scroll.tall {
+                    overflow: visible;
+                    max-height: none;
+                }
                 section {
                     break-inside: avoid-page;
                 }
@@ -824,7 +802,7 @@
             <header class="masthead">
                 <div class="kicker">
                     CP Softball · softball.best · The afternoon of July 24,
-                    2026 · Games 13 and 14 · Compiled July 29
+                    2026 · Games 13 and 14 · Compiled July 30
                 </div>
                 <h1 class="nameplate">
                     The Ledger<span class="bug">Statement of account · Games 13 &amp; 14</span>
@@ -844,9 +822,10 @@
                     <code>PF² ÷ (PF² + PA²)</code>, a rule borrowed from
                     baseball — and <strong>luck</strong> is how far a club's
                     actual record sits above or below it. Readers hunting the
-                    deep season reference — draft board, round rooms, the
-                    full docket — will still find it filed in the
-                    <a href="2026-07-10.html">July 10 archive</a>.
+                    deep season reference — draft board, round rooms — will
+                    still find it filed in the
+                    <a href="2026-07-10.html">July 10 archive</a>; the full
+                    docket itself returns to the back of this ledger.
                 </p>
                 <nav class="editions" aria-label="Editions">
                     <span class="here">July 24 — reading now</span>
@@ -877,6 +856,7 @@
                 <a href="#standings">Standings</a><span class="sep">·</span>
                 <a href="#gauntlet">The Gauntlet</a><span class="sep">·</span>
                 <a href="#value">The Value Desk</a><span class="sep">·</span>
+                <a href="#full-docket">The Full Docket</a><span class="sep">·</span>
                 <a href="#watch">The Next Slate</a>
             </nav>
 
@@ -983,37 +963,6 @@
                         courteously, that Debbie Timpson does not need it.
                     </li>
                 </ul>
-                <h3 id="second-opinion"><a href="#second-opinion">The second opinion</a></h3>
-                <p class="dek">
-                    Following the findings above, the desk ordered a medical
-                    review of the benchmark's condition and referred the
-                    case to the league's only known physician: Dr. Ben
-                    Williams of Boyds Daniel's team — bedside manner
-                    excellent, plate manner under review. The consult
-                    collapsed at intake, on grounds of conflict: the doctor
-                    is also a Williams, is himself presenting with a .250
-                    week, and the nearest qualified specialist is his own
-                    father — Charlie Williams, born 1958, who took the
-                    field the same afternoon with no symptoms and posted
-                    the biggest workload in the league for the first-place
-                    club. Doctors make the worst patients. Fathers make the
-                    worst control groups. Physician, heal thy swing.
-                </p>
-                <div class="rx-card">
-                    <div class="rx-head"><span class="rx-sym">℞</span><span>Chart note · not valid at any pharmacy</span></div>
-                    <div class="m-field"><span>Patient</span><span class="m-val">Williams, Ben — Boyds Daniel's team · R4</span></div>
-                    <div class="m-field"><span>Chief complaint</span><span class="m-val">The swing — acute onset July 24 · 3-for-8 <span class="muted">· 1 CO</span> · a .250 episode</span></div>
-                    <div class="m-field"><span>Vitals</span><span class="m-val">Season .618 → .548 · league rank #45 → #71 · trending down</span></div>
-                    <div class="m-field"><span>Family history</span><span class="m-val">Father, b. 1958, asymptomatic — .647 season, the afternoon's biggest workload <span class="muted">(his paperwork is filed on the debits page)</span></span></div>
-                    <div class="m-field"><span>Treatment plan</span><span class="m-val">Observe the father closely.</span></div>
-                    <div class="m-field"><span>Prognosis</span><span class="m-val">Full recovery expected — the genetics are demonstrably excellent; the inheritance is pending.</span></div>
-                    <div class="rx-scrip">
-                        Take two at-bats and call the desk in the morning.
-                        Do not operate heavy machinery. Do operate on
-                        breaking pitches.
-                        <span class="sig">Signed — the desk (not a doctor)</span>
-                    </div>
-                </div>
             </section>
 
             <section id="trainers-table">
@@ -2331,9 +2280,208 @@
                 </div>
             </section>
 
+            <section id="full-docket">
+                <div class="plate">
+                    <span>Ledger Nº 13 · The Full Docket</span><span class="pg">The season reference</span>
+                </div>
+                <h2><a href="#full-docket">All 144 picks, marked to market</a></h2>
+                <p class="lede">
+                    Back from the archive by the editor's order: every
+                    player in the league in true draft order, pick #1
+                    through pick #144, snake turns included.
+                    <strong>True Rd</strong> is where the value math files
+                    each bat — value rank dealt into rounds of twelve —
+                    <strong>Move</strong> is how that standing changed on
+                    the afternoon of July 24 (▲ climbed toward round one,
+                    ▼ fell, <span class="muted">=</span> held),
+                    <strong>Gap</strong> is the audit's finding —
+                    <span class="zpos">green</span> cleared the draft price
+                    with rounds to spare, <span class="muted">=</span>
+                    priced exactly right, <span class="zneg">red</span>
+                    booked below cost — and <strong>League #</strong> is
+                    value rank out of 144. The season's totals: 81 picks
+                    stand justified, 27 of them priced to the exact round.
+                    The heavier lines start a new round.
+                </p>
+                <div class="table-scroll tall">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="ctr">Pick</th>
+                                <th class="ctr">Rd</th>
+                                <th>Player</th>
+                                <th>Club</th>
+                                <th class="ctr">True Rd</th>
+                                <th class="ctr">Move</th>
+                                <th class="num">Gap</th>
+                                <th class="ctr">League #</th>
+                                <th class="num">Season</th>
+                                <th class="num">AB</th>
+                                <th class="num">Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+        <tr><td class="ctr num">#1</td><td class="ctr num">1</td><td class="player">Hammon, Gideon <span class="muted">· SS</span></td><td class="team-name">Gideon's team</td><td class="ctr num">R1</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#2</td><td class="num">.794</td><td class="num">63</td><td class="num"><span class="zpos">+15.1</span></td></tr>
+        <tr><td class="ctr num">#2</td><td class="ctr num">1</td><td class="player">Williams, Horatio <span class="muted">· SS</span></td><td class="team-name">Horatio's team</td><td class="ctr num">R1</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#9</td><td class="num">.762</td><td class="num">42</td><td class="num"><span class="zpos">+8.7</span></td></tr>
+        <tr><td class="ctr num">#3</td><td class="ctr num">1</td><td class="player">Dockstader, Sefton <span class="muted">· SS</span></td><td class="team-name">Sefton's team</td><td class="ctr num">R1</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#4</td><td class="num">.809</td><td class="num">47</td><td class="num"><span class="zpos">+11.9</span></td></tr>
+        <tr><td class="ctr num">#4</td><td class="ctr num">1</td><td class="player">Hammon, Elliot <span class="muted">· SS</span></td><td class="team-name">Elliot's team</td><td class="ctr num">R5</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zneg">−4</span></td><td class="ctr num">#56</td><td class="num">.581</td><td class="num">43</td><td class="num"><span class="zpos">+1.1</span></td></tr>
+        <tr><td class="ctr num">#5</td><td class="ctr num">1</td><td class="player">Timpson, Claude <span class="muted">· SS</span></td><td class="team-name">Claude's team</td><td class="ctr num">R1</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#5</td><td class="num">.734</td><td class="num">64</td><td class="num"><span class="zpos">+11.5</span></td></tr>
+        <tr><td class="ctr num">#6</td><td class="ctr num">1</td><td class="player">Williams, Michael <span class="muted">· SS</span></td><td class="team-name">Michael's team</td><td class="ctr num">R6</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zneg">−5</span></td><td class="ctr num">#68</td><td class="num">.556</td><td class="num">27</td><td class="num"><span class="zpos">+0.0</span></td></tr>
+        <tr><td class="ctr num">#7</td><td class="ctr num">1</td><td class="player">Guy, Sam <span class="muted">· SS</span></td><td class="team-name">Seth's team</td><td class="ctr num">R1</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#8</td><td class="num">.775</td><td class="num">40</td><td class="num"><span class="zpos">+8.8</span></td></tr>
+        <tr><td class="ctr num">#8</td><td class="ctr num">1</td><td class="player">Williams, Heber</td><td class="team-name">Ephraims Daniel's team</td><td class="ctr num">R3</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zneg">−2</span></td><td class="ctr num">#27</td><td class="num">.636</td><td class="num">55</td><td class="num"><span class="zpos">+4.5</span></td></tr>
+        <tr><td class="ctr num">#9</td><td class="ctr num">1</td><td class="player">Williams, Daniel <span class="muted">· SS</span></td><td class="team-name">Caleb's team</td><td class="ctr num">R1</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#6</td><td class="num">.716</td><td class="num">67</td><td class="num"><span class="zpos">+10.8</span></td></tr>
+        <tr><td class="ctr num">#10</td><td class="ctr num">1</td><td class="player">Knudson, Levi <span class="muted">· SS</span></td><td class="team-name">Boyds Daniel's team</td><td class="ctr num">R2</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#13</td><td class="num">.723</td><td class="num">47</td><td class="num"><span class="zpos">+7.9</span></td></tr>
+        <tr><td class="ctr num">#11</td><td class="ctr num">1</td><td class="player">Dockstader, Adam <span class="muted">· SS</span></td><td class="team-name">Stafford's team</td><td class="ctr num">R2</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#16</td><td class="num">.708</td><td class="num">48</td><td class="num"><span class="zpos">+7.4</span></td></tr>
+        <tr><td class="ctr num">#12</td><td class="ctr num">1</td><td class="player">Dockstader Boyds, Jeremy <span class="muted">· SS</span></td><td class="team-name">Jeremy's team</td><td class="ctr num">R2</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#24</td><td class="num">.724</td><td class="num">29</td><td class="num"><span class="zpos">+4.9</span></td></tr>
+        <tr class="rd-break"><td class="ctr num">#13</td><td class="ctr num">2</td><td class="player">Timpson, William</td><td class="team-name">Jeremy's team</td><td class="ctr num">R2</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#21</td><td class="num">.711</td><td class="num">38</td><td class="num"><span class="zpos">+5.9</span></td></tr>
+        <tr><td class="ctr num">#14</td><td class="ctr num">2</td><td class="player">Hammon, Monte</td><td class="team-name">Stafford's team</td><td class="ctr num">R1</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#12</td><td class="num">.696</td><td class="num">56</td><td class="num"><span class="zpos">+7.9</span></td></tr>
+        <tr><td class="ctr num">#15</td><td class="ctr num">2</td><td class="player">Knudson, Derrick</td><td class="team-name">Boyds Daniel's team</td><td class="ctr num">R1</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#7</td><td class="num">.722</td><td class="num">54</td><td class="num"><span class="zpos">+9.0</span></td></tr>
+        <tr><td class="ctr num">#16</td><td class="ctr num">2</td><td class="player">Barlow, Caleb</td><td class="team-name">Caleb's team</td><td class="ctr num">R3</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#28</td><td class="num">.632</td><td class="num">57</td><td class="num"><span class="zpos">+4.4</span></td></tr>
+        <tr><td class="ctr num">#17</td><td class="ctr num">2</td><td class="player">Dockstader, Robert</td><td class="team-name">Ephraims Daniel's team</td><td class="ctr num">R2</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#19</td><td class="num">.688</td><td class="num">48</td><td class="num"><span class="zpos">+6.4</span></td></tr>
+        <tr><td class="ctr num">#18</td><td class="ctr num">2</td><td class="player">Timpson, Cuervo</td><td class="team-name">Seth's team</td><td class="ctr num">R1</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#1</td><td class="num">.788</td><td class="num">66</td><td class="num"><span class="zpos">+15.4</span></td></tr>
+        <tr><td class="ctr num">#19</td><td class="ctr num">2</td><td class="player">Timpson, Jason W</td><td class="team-name">Michael's team</td><td class="ctr num">R7</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−5</span></td><td class="ctr num">#73</td><td class="num">.542</td><td class="num">24</td><td class="num"><span class="zneg">−0.3</span></td></tr>
+        <tr><td class="ctr num">#20</td><td class="ctr num">2</td><td class="player">Williams, Connor</td><td class="team-name">Claude's team</td><td class="ctr num">R3</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#33</td><td class="num">.612</td><td class="num">67</td><td class="num"><span class="zpos">+3.8</span></td></tr>
+        <tr><td class="ctr num">#21</td><td class="ctr num">2</td><td class="player">Timpson, Lonnie</td><td class="team-name">Elliot's team</td><td class="ctr num">R2</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#14</td><td class="num">.763</td><td class="num">38</td><td class="num"><span class="zpos">+7.9</span></td></tr>
+        <tr><td class="ctr num">#22</td><td class="ctr num">2</td><td class="player">Hammon, Kendall</td><td class="team-name">Sefton's team</td><td class="ctr num">R6</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zneg">−4</span></td><td class="ctr num">#72</td><td class="num">.545</td><td class="num">33</td><td class="num"><span class="zneg">−0.3</span></td></tr>
+        <tr><td class="ctr num">#23</td><td class="ctr num">2</td><td class="player">Knudson, Curtis</td><td class="team-name">Horatio's team</td><td class="ctr num">R1</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#3</td><td class="num">.776</td><td class="num">58</td><td class="num"><span class="zpos">+12.8</span></td></tr>
+        <tr><td class="ctr num">#24</td><td class="ctr num">2</td><td class="player">Hammon, Jairus</td><td class="team-name">Gideon's team</td><td class="ctr num">R4</td><td class="ctr num"><span class="zpos">▲2</span></td><td class="num"><span class="zneg">−2</span></td><td class="ctr num">#45</td><td class="num">.605</td><td class="num">43</td><td class="num"><span class="zpos">+2.1</span></td></tr>
+        <tr class="rd-break"><td class="ctr num">#25</td><td class="ctr num">3</td><td class="player">Williams, Evan</td><td class="team-name">Gideon's team</td><td class="ctr num">R2</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#15</td><td class="num">.698</td><td class="num">53</td><td class="num"><span class="zpos">+7.6</span></td></tr>
+        <tr><td class="ctr num">#26</td><td class="ctr num">3</td><td class="player">Timpson, Treyton</td><td class="team-name">Horatio's team</td><td class="ctr num">R6</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zneg">−3</span></td><td class="ctr num">#69</td><td class="num">.554</td><td class="num">74</td><td class="num"><span class="zneg">−0.0</span></td></tr>
+        <tr><td class="ctr num">#27</td><td class="ctr num">3</td><td class="player">Hammon, Brayden</td><td class="team-name">Sefton's team</td><td class="ctr num">R4</td><td class="ctr num"><span class="zpos">▲2</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#42</td><td class="num">.604</td><td class="num">48</td><td class="num"><span class="zpos">+2.4</span></td></tr>
+        <tr><td class="ctr num">#28</td><td class="ctr num">3</td><td class="player">Dockstader, Bryan</td><td class="team-name">Elliot's team</td><td class="ctr num">R4</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#44</td><td class="num">.600</td><td class="num">50</td><td class="num"><span class="zpos">+2.3</span></td></tr>
+        <tr><td class="ctr num">#29</td><td class="ctr num">3</td><td class="player">Timpson, Kayden</td><td class="team-name">Claude's team</td><td class="ctr num">R9</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zneg">−6</span></td><td class="ctr num">#102</td><td class="num">.491</td><td class="num">53</td><td class="num"><span class="zneg">−3.4</span></td></tr>
+        <tr><td class="ctr num">#30</td><td class="ctr num">3</td><td class="player">Knudson, Nathan</td><td class="team-name">Michael's team</td><td class="ctr num">R3</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#31</td><td class="num">.651</td><td class="num">43</td><td class="num"><span class="zpos">+4.1</span></td></tr>
+        <tr><td class="ctr num">#31</td><td class="ctr num">3</td><td class="player">Timpson, Donald</td><td class="team-name">Seth's team</td><td class="ctr num">R5</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zneg">−2</span></td><td class="ctr num">#59</td><td class="num">.571</td><td class="num">49</td><td class="num"><span class="zpos">+0.8</span></td></tr>
+        <tr><td class="ctr num">#32</td><td class="ctr num">3</td><td class="player">Williams, Carl</td><td class="team-name">Ephraims Daniel's team</td><td class="ctr num">R4</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#47</td><td class="num">.605</td><td class="num">38</td><td class="num"><span class="zpos">+1.9</span></td></tr>
+        <tr><td class="ctr num">#33</td><td class="ctr num">3</td><td class="player">Hammon, Aryck</td><td class="team-name">Caleb's team</td><td class="ctr num">R2</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#18</td><td class="num">.711</td><td class="num">45</td><td class="num"><span class="zpos">+7.0</span></td></tr>
+        <tr><td class="ctr num">#34</td><td class="ctr num">3</td><td class="player">Dockstader Boyds, Daniel</td><td class="team-name">Boyds Daniel's team</td><td class="ctr num">R6</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−3</span></td><td class="ctr num">#67</td><td class="num">.556</td><td class="num">27</td><td class="num"><span class="zpos">+0.0</span></td></tr>
+        <tr><td class="ctr num">#35</td><td class="ctr num">3</td><td class="player">Hammon, Stafford</td><td class="team-name">Stafford's team</td><td class="ctr num">R2</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#23</td><td class="num">.674</td><td class="num">46</td><td class="num"><span class="zpos">+5.5</span></td></tr>
+        <tr><td class="ctr num">#36</td><td class="ctr num">3</td><td class="player">Dockstader Marvins, Jeremy</td><td class="team-name">Jeremy's team</td><td class="ctr num">R3</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#29</td><td class="num">.667</td><td class="num">39</td><td class="num"><span class="zpos">+4.4</span></td></tr>
+        <tr class="rd-break"><td class="ctr num">#37</td><td class="ctr num">4</td><td class="player">Timpson, Taylor</td><td class="team-name">Jeremy's team</td><td class="ctr num">R5</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#53</td><td class="num">.571</td><td class="num">84</td><td class="num"><span class="zpos">+1.4</span></td></tr>
+        <tr><td class="ctr num">#38</td><td class="ctr num">4</td><td class="player">Hammon, Bruce</td><td class="team-name">Stafford's team</td><td class="ctr num">R5</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#55</td><td class="num">.581</td><td class="num">43</td><td class="num"><span class="zpos">+1.1</span></td></tr>
+        <tr><td class="ctr num">#39</td><td class="ctr num">4</td><td class="player">Williams, Ben</td><td class="team-name">Boyds Daniel's team</td><td class="ctr num">R6</td><td class="ctr num"><span class="zneg">▼2</span></td><td class="num"><span class="zneg">−2</span></td><td class="ctr num">#71</td><td class="num">.548</td><td class="num">42</td><td class="num"><span class="zneg">−0.3</span></td></tr>
+        <tr><td class="ctr num">#40</td><td class="ctr num">4</td><td class="player">Williams, Matt</td><td class="team-name">Caleb's team</td><td class="ctr num">R4</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#41</td><td class="num">.609</td><td class="num">46</td><td class="num"><span class="zpos">+2.5</span></td></tr>
+        <tr><td class="ctr num">#41</td><td class="ctr num">4</td><td class="player">Dockstader Ephraims, Daniel <span class="muted">· SS</span></td><td class="team-name">Ephraims Daniel's team</td><td class="ctr num">R6</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−2</span></td><td class="ctr num">#65</td><td class="num">.558</td><td class="num">43</td><td class="num"><span class="zpos">+0.1</span></td></tr>
+        <tr><td class="ctr num">#42</td><td class="ctr num">4</td><td class="player">Horsley, Dylan</td><td class="team-name">Seth's team</td><td class="ctr num">R9</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−5</span></td><td class="ctr num">#101</td><td class="num">.417</td><td class="num">24</td><td class="num"><span class="zneg">−3.3</span></td></tr>
+        <tr><td class="ctr num">#43</td><td class="ctr num">4</td><td class="player">Dockstader, Sidney</td><td class="team-name">Michael's team</td><td class="ctr num">R5</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#49</td><td class="num">.613</td><td class="num">31</td><td class="num"><span class="zpos">+1.8</span></td></tr>
+        <tr><td class="ctr num">#44</td><td class="ctr num">4</td><td class="player">Timpson Rays, Jonathan</td><td class="team-name">Claude's team</td><td class="ctr num">R3</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#30</td><td class="num">.640</td><td class="num">50</td><td class="num"><span class="zpos">+4.3</span></td></tr>
+        <tr><td class="ctr num">#45</td><td class="ctr num">4</td><td class="player">Hammon, Roy</td><td class="team-name">Elliot's team</td><td class="ctr num">R9</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zneg">−5</span></td><td class="ctr num">#103</td><td class="num">.478</td><td class="num">46</td><td class="num"><span class="zneg">−3.5</span></td></tr>
+        <tr><td class="ctr num">#46</td><td class="ctr num">4</td><td class="player">Knudson, Preston</td><td class="team-name">Sefton's team</td><td class="ctr num">R5</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#50</td><td class="num">.591</td><td class="num">44</td><td class="num"><span class="zpos">+1.6</span></td></tr>
+        <tr><td class="ctr num">#47</td><td class="ctr num">4</td><td class="player">White, Curt</td><td class="team-name">Horatio's team</td><td class="ctr num">R1</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+3</span></td><td class="ctr num">#10</td><td class="num">.750</td><td class="num">44</td><td class="num"><span class="zpos">+8.6</span></td></tr>
+        <tr><td class="ctr num">#48</td><td class="ctr num">4</td><td class="player">Hammon, Jason</td><td class="team-name">Gideon's team</td><td class="ctr num">R6</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−2</span></td><td class="ctr num">#64</td><td class="num">.600</td><td class="num">10</td><td class="num"><span class="zpos">+0.5</span></td></tr>
+        <tr class="rd-break"><td class="ctr num">#49</td><td class="ctr num">5</td><td class="player">Dockstader, Kyle</td><td class="team-name">Gideon's team</td><td class="ctr num">R6</td><td class="ctr num"><span class="zpos">▲2</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#66</td><td class="num">.559</td><td class="num">34</td><td class="num"><span class="zpos">+0.1</span></td></tr>
+        <tr><td class="ctr num">#50</td><td class="ctr num">5</td><td class="player">Hammon Legrands, Benjiman</td><td class="team-name">Horatio's team</td><td class="ctr num">R8</td><td class="ctr num"><span class="zneg">▼4</span></td><td class="num"><span class="zneg">−3</span></td><td class="ctr num">#92</td><td class="num">.510</td><td class="num">51</td><td class="num"><span class="zneg">−2.3</span></td></tr>
+        <tr><td class="ctr num">#51</td><td class="ctr num">5</td><td class="player">Knudson, Daniel</td><td class="team-name">Sefton's team</td><td class="ctr num">R5</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#60</td><td class="num">.571</td><td class="num">42</td><td class="num"><span class="zpos">+0.7</span></td></tr>
+        <tr><td class="ctr num">#52</td><td class="ctr num">5</td><td class="player">Horsley, Max</td><td class="team-name">Elliot's team</td><td class="ctr num">R4</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#38</td><td class="num">.612</td><td class="num">49</td><td class="num"><span class="zpos">+2.8</span></td></tr>
+        <tr><td class="ctr num">#53</td><td class="ctr num">5</td><td class="player">Hammon, Avery</td><td class="team-name">Claude's team</td><td class="ctr num">R7</td><td class="ctr num"><span class="zpos">▲2</span></td><td class="num"><span class="zneg">−2</span></td><td class="ctr num">#80</td><td class="num">.525</td><td class="num">40</td><td class="num"><span class="zneg">−1.2</span></td></tr>
+        <tr><td class="ctr num">#54</td><td class="ctr num">5</td><td class="player">Barlow Jr, John</td><td class="team-name">Michael's team</td><td class="ctr num">R10</td><td class="ctr num"><span class="zneg">▼2</span></td><td class="num"><span class="zneg">−5</span></td><td class="ctr num">#112</td><td class="num">.424</td><td class="num">33</td><td class="num"><span class="zneg">−4.3</span></td></tr>
+        <tr><td class="ctr num">#55</td><td class="ctr num">5</td><td class="player">Cawley, Seth</td><td class="team-name">Seth's team</td><td class="ctr num">R7</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−2</span></td><td class="ctr num">#82</td><td class="num">.516</td><td class="num">31</td><td class="num"><span class="zneg">−1.2</span></td></tr>
+        <tr><td class="ctr num">#56</td><td class="ctr num">5</td><td class="player">Timpson, Teancum</td><td class="team-name">Ephraims Daniel's team</td><td class="ctr num">R11</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zneg">−6</span></td><td class="ctr num">#122</td><td class="num">.453</td><td class="num">53</td><td class="num"><span class="zneg">−5.4</span></td></tr>
+        <tr><td class="ctr num">#57</td><td class="ctr num">5</td><td class="player">Hammon, Ryan</td><td class="team-name">Caleb's team</td><td class="ctr num">R1</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">+4</span></td><td class="ctr num">#11</td><td class="num">.744</td><td class="num">43</td><td class="num"><span class="zpos">+8.1</span></td></tr>
+        <tr><td class="ctr num">#58</td><td class="ctr num">5</td><td class="player">Dockstader, Steven</td><td class="team-name">Boyds Daniel's team</td><td class="ctr num">R3</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">+2</span></td><td class="ctr num">#35</td><td class="num">.667</td><td class="num">30</td><td class="num"><span class="zpos">+3.4</span></td></tr>
+        <tr><td class="ctr num">#59</td><td class="ctr num">5</td><td class="player">Hammon, Gerard</td><td class="team-name">Stafford's team</td><td class="ctr num">R6</td><td class="ctr num"><span class="zpos">▲3</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#70</td><td class="num">.550</td><td class="num">40</td><td class="num"><span class="zneg">−0.2</span></td></tr>
+        <tr><td class="ctr num">#60</td><td class="ctr num">5</td><td class="player">Hammon, Curtis</td><td class="team-name">Jeremy's team</td><td class="ctr num">R3</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">+2</span></td><td class="ctr num">#26</td><td class="num">.647</td><td class="num">51</td><td class="num"><span class="zpos">+4.7</span></td></tr>
+        <tr class="rd-break"><td class="ctr num">#61</td><td class="ctr num">6</td><td class="player">Williams, Wesley</td><td class="team-name">Jeremy's team</td><td class="ctr num">R2</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+4</span></td><td class="ctr num">#17</td><td class="num">.721</td><td class="num">43</td><td class="num"><span class="zpos">+7.1</span></td></tr>
+        <tr><td class="ctr num">#62</td><td class="ctr num">6</td><td class="player">Williams, Charles</td><td class="team-name">Stafford's team</td><td class="ctr num">R2</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+4</span></td><td class="ctr num">#20</td><td class="num">.647</td><td class="num">68</td><td class="num"><span class="zpos">+6.3</span></td></tr>
+        <tr><td class="ctr num">#63</td><td class="ctr num">6</td><td class="player">Williams, Seth</td><td class="team-name">Boyds Daniel's team</td><td class="ctr num">R9</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−3</span></td><td class="ctr num">#105</td><td class="num">.480</td><td class="num">50</td><td class="num"><span class="zneg">−3.7</span></td></tr>
+        <tr><td class="ctr num">#64</td><td class="ctr num">6</td><td class="player">Timpson, Merlek</td><td class="team-name">Caleb's team</td><td class="ctr num">R7</td><td class="ctr num"><span class="zpos">▲2</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#77</td><td class="num">.538</td><td class="num">52</td><td class="num"><span class="zneg">−0.8</span></td></tr>
+        <tr><td class="ctr num">#65</td><td class="ctr num">6</td><td class="player">Dockstader, Noah</td><td class="team-name">Ephraims Daniel's team</td><td class="ctr num">R5</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#51</td><td class="num">.582</td><td class="num">55</td><td class="num"><span class="zpos">+1.5</span></td></tr>
+        <tr><td class="ctr num">#66</td><td class="ctr num">6</td><td class="player">Hammon, Porter</td><td class="team-name">Seth's team</td><td class="ctr num">R6</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#62</td><td class="num">.568</td><td class="num">44</td><td class="num"><span class="zpos">+0.6</span></td></tr>
+        <tr><td class="ctr num">#67</td><td class="ctr num">6</td><td class="player">Williams, Leslie</td><td class="team-name">Michael's team</td><td class="ctr num">R5</td><td class="ctr num"><span class="zneg">▼2</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#52</td><td class="num">.595</td><td class="num">37</td><td class="num"><span class="zpos">+1.5</span></td></tr>
+        <tr><td class="ctr num">#68</td><td class="ctr num">6</td><td class="player">Musser, Moroni</td><td class="team-name">Claude's team</td><td class="ctr num">R8</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zneg">−2</span></td><td class="ctr num">#90</td><td class="num">.500</td><td class="num">40</td><td class="num"><span class="zneg">−2.2</span></td></tr>
+        <tr><td class="ctr num">#69</td><td class="ctr num">6</td><td class="player">Horsley, Lizzy</td><td class="team-name">Elliot's team</td><td class="ctr num">R10</td><td class="ctr num"><span class="zpos">▲2</span></td><td class="num"><span class="zneg">−4</span></td><td class="ctr num">#119</td><td class="num">.464</td><td class="num">56</td><td class="num"><span class="zneg">−5.1</span></td></tr>
+        <tr><td class="ctr num">#70</td><td class="ctr num">6</td><td class="player">Timpson, Seth</td><td class="team-name">Sefton's team</td><td class="ctr num">R2</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+4</span></td><td class="ctr num">#22</td><td class="num">.682</td><td class="num">44</td><td class="num"><span class="zpos">+5.6</span></td></tr>
+        <tr><td class="ctr num">#71</td><td class="ctr num">6</td><td class="player">Zitting, Aaron</td><td class="team-name">Horatio's team</td><td class="ctr num">R4</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+2</span></td><td class="ctr num">#48</td><td class="num">.605</td><td class="num">38</td><td class="num"><span class="zpos">+1.9</span></td></tr>
+        <tr><td class="ctr num">#72</td><td class="ctr num">6</td><td class="player">Timpson, Justin</td><td class="team-name">Gideon's team</td><td class="ctr num">R7</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#83</td><td class="num">.516</td><td class="num">31</td><td class="num"><span class="zneg">−1.2</span></td></tr>
+        <tr class="rd-break"><td class="ctr num">#73</td><td class="ctr num">7</td><td class="player">Barlow, Benjiman</td><td class="team-name">Gideon's team</td><td class="ctr num">R5</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">+2</span></td><td class="ctr num">#58</td><td class="num">.571</td><td class="num">49</td><td class="num"><span class="zpos">+0.8</span></td></tr>
+        <tr><td class="ctr num">#74</td><td class="ctr num">7</td><td class="player">Williams, Anthony</td><td class="team-name">Horatio's team</td><td class="ctr num">R4</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zpos">+3</span></td><td class="ctr num">#40</td><td class="num">.614</td><td class="num">44</td><td class="num"><span class="zpos">+2.6</span></td></tr>
+        <tr><td class="ctr num">#75</td><td class="ctr num">7</td><td class="player">Barlow, Riley</td><td class="team-name">Sefton's team</td><td class="ctr num">R3</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+4</span></td><td class="ctr num">#36</td><td class="num">.617</td><td class="num">47</td><td class="num"><span class="zpos">+2.9</span></td></tr>
+        <tr><td class="ctr num">#76</td><td class="ctr num">7</td><td class="player">Stubbs, Larry</td><td class="team-name">Elliot's team</td><td class="ctr num">R4</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+3</span></td><td class="ctr num">#46</td><td class="num">.640</td><td class="num">25</td><td class="num"><span class="zpos">+2.1</span></td></tr>
+        <tr><td class="ctr num">#77</td><td class="ctr num">7</td><td class="player">Timpson, Lexi</td><td class="team-name">Claude's team</td><td class="ctr num">R8</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#94</td><td class="num">.500</td><td class="num">44</td><td class="num"><span class="zneg">−2.4</span></td></tr>
+        <tr><td class="ctr num">#78</td><td class="ctr num">7</td><td class="player">Timpson, Hyrum</td><td class="team-name">Michael's team</td><td class="ctr num">R8</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#91</td><td class="num">.455</td><td class="num">22</td><td class="num"><span class="zneg">−2.2</span></td></tr>
+        <tr><td class="ctr num">#79</td><td class="ctr num">7</td><td class="player">Darger, Nephi</td><td class="team-name">Seth's team</td><td class="ctr num">R9</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zneg">−2</span></td><td class="ctr num">#108</td><td class="num">.444</td><td class="num">36</td><td class="num"><span class="zneg">−4.0</span></td></tr>
+        <tr><td class="ctr num">#80</td><td class="ctr num">7</td><td class="player">Timpson, Deborah</td><td class="team-name">Ephraims Daniel's team</td><td class="ctr num">R6</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#63</td><td class="num">.571</td><td class="num">35</td><td class="num"><span class="zpos">+0.6</span></td></tr>
+        <tr><td class="ctr num">#81</td><td class="ctr num">7</td><td class="player">Hammon, Nathan</td><td class="team-name">Caleb's team</td><td class="ctr num">R7</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#74</td><td class="num">.500</td><td class="num">6</td><td class="num"><span class="zneg">−0.3</span></td></tr>
+        <tr><td class="ctr num">#82</td><td class="ctr num">7</td><td class="player">Naylor, Adam</td><td class="team-name">Boyds Daniel's team</td><td class="ctr num">R10</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zneg">−3</span></td><td class="ctr num">#118</td><td class="num">.370</td><td class="num">27</td><td class="num"><span class="zneg">−5.0</span></td></tr>
+        <tr><td class="ctr num">#83</td><td class="ctr num">7</td><td class="player">Naylor, Timothy</td><td class="team-name">Stafford's team</td><td class="ctr num">R7</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#76</td><td class="num">.542</td><td class="num">48</td><td class="num"><span class="zneg">−0.6</span></td></tr>
+        <tr><td class="ctr num">#84</td><td class="ctr num">7</td><td class="player">Williams, Angeline</td><td class="team-name">Jeremy's team</td><td class="ctr num">R8</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#85</td><td class="num">.476</td><td class="num">21</td><td class="num"><span class="zneg">−1.6</span></td></tr>
+        <tr class="rd-break"><td class="ctr num">#85</td><td class="ctr num">8</td><td class="player">Hammon, Paul</td><td class="team-name">Jeremy's team</td><td class="ctr num">R3</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+5</span></td><td class="ctr num">#25</td><td class="num">.773</td><td class="num">22</td><td class="num"><span class="zpos">+4.8</span></td></tr>
+        <tr><td class="ctr num">#86</td><td class="ctr num">8</td><td class="player">Williams, Jerold</td><td class="team-name">Stafford's team</td><td class="ctr num">R5</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+3</span></td><td class="ctr num">#54</td><td class="num">.580</td><td class="num">50</td><td class="num"><span class="zpos">+1.3</span></td></tr>
+        <tr><td class="ctr num">#87</td><td class="ctr num">8</td><td class="player">Dutson, Leroy</td><td class="team-name">Boyds Daniel's team</td><td class="ctr num">R11</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zneg">−3</span></td><td class="ctr num">#128</td><td class="num">.400</td><td class="num">40</td><td class="num"><span class="zneg">−6.2</span></td></tr>
+        <tr><td class="ctr num">#88</td><td class="ctr num">8</td><td class="player">Dutson, Selena</td><td class="team-name">Caleb's team</td><td class="ctr num">R10</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−2</span></td><td class="ctr num">#111</td><td class="num">.469</td><td class="num">49</td><td class="num"><span class="zneg">−4.2</span></td></tr>
+        <tr><td class="ctr num">#89</td><td class="ctr num">8</td><td class="player">Naylor, Brenda</td><td class="team-name">Ephraims Daniel's team</td><td class="ctr num">R10</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−2</span></td><td class="ctr num">#115</td><td class="num">.294</td><td class="num">17</td><td class="num"><span class="zneg">−4.4</span></td></tr>
+        <tr><td class="ctr num">#90</td><td class="ctr num">8</td><td class="player">Timpson, Ammon</td><td class="team-name">Seth's team</td><td class="ctr num">R7</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#75</td><td class="num">.538</td><td class="num">26</td><td class="num"><span class="zneg">−0.4</span></td></tr>
+        <tr><td class="ctr num">#91</td><td class="ctr num">8</td><td class="player">Cawley, Sophia</td><td class="team-name">Michael's team</td><td class="ctr num">R11</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−3</span></td><td class="ctr num">#126</td><td class="num">.389</td><td class="num">36</td><td class="num"><span class="zneg">−6.0</span></td></tr>
+        <tr><td class="ctr num">#92</td><td class="ctr num">8</td><td class="player">Hammon, Brigham</td><td class="team-name">Claude's team</td><td class="ctr num">R7</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#84</td><td class="num">.523</td><td class="num">44</td><td class="num"><span class="zneg">−1.4</span></td></tr>
+        <tr><td class="ctr num">#93</td><td class="ctr num">8</td><td class="player">Timpson, Michael</td><td class="team-name">Elliot's team</td><td class="ctr num">R8</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#87</td><td class="num">.200</td><td class="num">5</td><td class="num"><span class="zneg">−1.8</span></td></tr>
+        <tr><td class="ctr num">#94</td><td class="ctr num">8</td><td class="player">Timpson, Alma</td><td class="team-name">Sefton's team</td><td class="ctr num">R6</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zpos">+2</span></td><td class="ctr num">#61</td><td class="num">.576</td><td class="num">33</td><td class="num"><span class="zpos">+0.7</span></td></tr>
+        <tr><td class="ctr num">#95</td><td class="ctr num">8</td><td class="player">Hammon, Lewis</td><td class="team-name">Horatio's team</td><td class="ctr num">R3</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+5</span></td><td class="ctr num">#34</td><td class="num">.630</td><td class="num">46</td><td class="num"><span class="zpos">+3.5</span></td></tr>
+        <tr><td class="ctr num">#96</td><td class="ctr num">8</td><td class="player">Williams, Tammy</td><td class="team-name">Gideon's team</td><td class="ctr num">R8</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#96</td><td class="num">.500</td><td class="num">46</td><td class="num"><span class="zneg">−2.5</span></td></tr>
+        <tr class="rd-break"><td class="ctr num">#97</td><td class="ctr num">9</td><td class="player">Dockstader, Abe</td><td class="team-name">Gideon's team</td><td class="ctr num">R9</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#107</td><td class="num">.467</td><td class="num">45</td><td class="num"><span class="zneg">−4.0</span></td></tr>
+        <tr><td class="ctr num">#98</td><td class="ctr num">9</td><td class="player">Williams, Marissa</td><td class="team-name">Horatio's team</td><td class="ctr num">R8</td><td class="ctr num"><span class="zneg">▼2</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#86</td><td class="num">.520</td><td class="num">50</td><td class="num"><span class="zneg">−1.7</span></td></tr>
+        <tr><td class="ctr num">#99</td><td class="ctr num">9</td><td class="player">Hammon, Shem</td><td class="team-name">Sefton's team</td><td class="ctr num">R3</td><td class="ctr num"><span class="zpos">▲3</span></td><td class="num"><span class="zpos">+6</span></td><td class="ctr num">#32</td><td class="num">.720</td><td class="num">25</td><td class="num"><span class="zpos">+4.1</span></td></tr>
+        <tr><td class="ctr num">#100</td><td class="ctr num">9</td><td class="player">Hammon, Karen</td><td class="team-name">Elliot's team</td><td class="ctr num">R12</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−3</span></td><td class="ctr num">#143</td><td class="num">.326</td><td class="num">43</td><td class="num"><span class="zneg">−9.9</span></td></tr>
+        <tr><td class="ctr num">#101</td><td class="ctr num">9</td><td class="player">Hammon, Logan</td><td class="team-name">Claude's team</td><td class="ctr num">R9</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#98</td><td class="num">.500</td><td class="num">52</td><td class="num"><span class="zneg">−2.8</span></td></tr>
+        <tr><td class="ctr num">#102</td><td class="ctr num">9</td><td class="player">Hammon Hebers, Benjiman</td><td class="team-name">Michael's team</td><td class="ctr num">R11</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−2</span></td><td class="ctr num">#124</td><td class="num">.286</td><td class="num">21</td><td class="num"><span class="zneg">−5.6</span></td></tr>
+        <tr><td class="ctr num">#103</td><td class="ctr num">9</td><td class="player">Timpson, Joanne Sis</td><td class="team-name">Seth's team</td><td class="ctr num">R10</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#114</td><td class="num">.429</td><td class="num">35</td><td class="num"><span class="zneg">−4.4</span></td></tr>
+        <tr><td class="ctr num">#104</td><td class="ctr num">9</td><td class="player">Naylor, Scott</td><td class="team-name">Ephraims Daniel's team</td><td class="ctr num">R4</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">+5</span></td><td class="ctr num">#39</td><td class="num">.733</td><td class="num">15</td><td class="num"><span class="zpos">+2.7</span></td></tr>
+        <tr><td class="ctr num">#105</td><td class="ctr num">9</td><td class="player">Johnson, Anson</td><td class="team-name">Caleb's team</td><td class="ctr num">R5</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zpos">+4</span></td><td class="ctr num">#57</td><td class="num">.583</td><td class="num">36</td><td class="num"><span class="zpos">+1.0</span></td></tr>
+        <tr><td class="ctr num">#106</td><td class="ctr num">9</td><td class="player">Hammon, J Daunt</td><td class="team-name">Boyds Daniel's team</td><td class="ctr num">R12</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−3</span></td><td class="ctr num">#141</td><td class="num">.316</td><td class="num">38</td><td class="num"><span class="zneg">−9.1</span></td></tr>
+        <tr><td class="ctr num">#107</td><td class="ctr num">9</td><td class="player">Bauer, Cleeson</td><td class="team-name">Stafford's team</td><td class="ctr num">R11</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−2</span></td><td class="ctr num">#129</td><td class="num">.355</td><td class="num">31</td><td class="num"><span class="zneg">−6.2</span></td></tr>
+        <tr><td class="ctr num">#108</td><td class="ctr num">9</td><td class="player">Dockstader Marvins, Daniel</td><td class="team-name">Jeremy's team</td><td class="ctr num">R10</td><td class="ctr num"><span class="zneg">▼2</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#109</td><td class="num">.407</td><td class="num">27</td><td class="num"><span class="zneg">−4.0</span></td></tr>
+        <tr class="rd-break"><td class="ctr num">#109</td><td class="ctr num">10</td><td class="player">Dockstader, Dorothy</td><td class="team-name">Jeremy's team</td><td class="ctr num">R12</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−2</span></td><td class="ctr num">#144</td><td class="num">.279</td><td class="num">43</td><td class="num"><span class="zneg">−11.9</span></td></tr>
+        <tr><td class="ctr num">#110</td><td class="ctr num">10</td><td class="player">Naylor, Sabrina</td><td class="team-name">Stafford's team</td><td class="ctr num">R12</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zneg">−2</span></td><td class="ctr num">#135</td><td class="num">.381</td><td class="num">42</td><td class="num"><span class="zneg">−7.3</span></td></tr>
+        <tr><td class="ctr num">#111</td><td class="ctr num">10</td><td class="player">Hammon, Layla</td><td class="team-name">Boyds Daniel's team</td><td class="ctr num">R10</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#120</td><td class="num">.091</td><td class="num">11</td><td class="num"><span class="zneg">−5.1</span></td></tr>
+        <tr><td class="ctr num">#112</td><td class="ctr num">10</td><td class="player">Hammon, Kyle</td><td class="team-name">Caleb's team</td><td class="ctr num">R11</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#125</td><td class="num">.422</td><td class="num">45</td><td class="num"><span class="zneg">−6.0</span></td></tr>
+        <tr><td class="ctr num">#113</td><td class="ctr num">10</td><td class="player">Cawley, Lorenzo</td><td class="team-name">Ephraims Daniel's team</td><td class="ctr num">R11</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#131</td><td class="num">.308</td><td class="num">26</td><td class="num"><span class="zneg">−6.4</span></td></tr>
+        <tr><td class="ctr num">#114</td><td class="ctr num">10</td><td class="player">Barlow, Royal</td><td class="team-name">Seth's team</td><td class="ctr num">R12</td><td class="ctr num"><span class="zneg">▼2</span></td><td class="num"><span class="zneg">−2</span></td><td class="ctr num">#139</td><td class="num">.313</td><td class="num">32</td><td class="num"><span class="zneg">−7.8</span></td></tr>
+        <tr><td class="ctr num">#115</td><td class="ctr num">10</td><td class="player">Horsley, Rebecca</td><td class="team-name">Michael's team</td><td class="ctr num">R11</td><td class="ctr num"><span class="zneg">▼2</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#121</td><td class="num">.387</td><td class="num">31</td><td class="num"><span class="zneg">−5.2</span></td></tr>
+        <tr><td class="ctr num">#116</td><td class="ctr num">10</td><td class="player">Timpson, Lindsey</td><td class="team-name">Claude's team</td><td class="ctr num">R12</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zneg">−2</span></td><td class="ctr num">#136</td><td class="num">.333</td><td class="num">33</td><td class="num"><span class="zneg">−7.3</span></td></tr>
+        <tr><td class="ctr num">#117</td><td class="ctr num">10</td><td class="player">Ivory, Austin</td><td class="team-name">Elliot's team</td><td class="ctr num">R11</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#130</td><td class="num">.405</td><td class="num">42</td><td class="num"><span class="zneg">−6.3</span></td></tr>
+        <tr><td class="ctr num">#118</td><td class="ctr num">10</td><td class="player">Dockstader, Jayla</td><td class="team-name">Sefton's team</td><td class="ctr num">R7</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zpos">+3</span></td><td class="ctr num">#79</td><td class="num">.526</td><td class="num">38</td><td class="num"><span class="zneg">−1.1</span></td></tr>
+        <tr><td class="ctr num">#119</td><td class="ctr num">10</td><td class="player">Knudson, Jazlin</td><td class="team-name">Horatio's team</td><td class="ctr num">R7</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">+3</span></td><td class="ctr num">#81</td><td class="num">.525</td><td class="num">40</td><td class="num"><span class="zneg">−1.2</span></td></tr>
+        <tr><td class="ctr num">#120</td><td class="ctr num">10</td><td class="player">Barlow, Wallace</td><td class="team-name">Gideon's team</td><td class="ctr num">R7</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+3</span></td><td class="ctr num">#78</td><td class="num">.519</td><td class="num">27</td><td class="num"><span class="zneg">−1.0</span></td></tr>
+        <tr class="rd-break"><td class="ctr num">#121</td><td class="ctr num">11</td><td class="player">Hammon, Douglas</td><td class="team-name">Gideon's team</td><td class="ctr num">R12</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zneg">−1</span></td><td class="ctr num">#134</td><td class="num">.368</td><td class="num">38</td><td class="num"><span class="zneg">−7.1</span></td></tr>
+        <tr><td class="ctr num">#122</td><td class="ctr num">11</td><td class="player">Hammon, David</td><td class="team-name">Horatio's team</td><td class="ctr num">R8</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">+3</span></td><td class="ctr num">#93</td><td class="num">.167</td><td class="num">6</td><td class="num"><span class="zneg">−2.3</span></td></tr>
+        <tr><td class="ctr num">#123</td><td class="ctr num">11</td><td class="player">Musser, Andrew</td><td class="team-name">Sefton's team</td><td class="ctr num">R8</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+3</span></td><td class="ctr num">#88</td><td class="num">.500</td><td class="num">34</td><td class="num"><span class="zneg">−1.9</span></td></tr>
+        <tr><td class="ctr num">#124</td><td class="ctr num">11</td><td class="player">Dockstader, Jarom</td><td class="team-name">Elliot's team</td><td class="ctr num">R8</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">+3</span></td><td class="ctr num">#95</td><td class="num">.486</td><td class="num">35</td><td class="num"><span class="zneg">−2.4</span></td></tr>
+        <tr><td class="ctr num">#125</td><td class="ctr num">11</td><td class="player">Barlow, Violet</td><td class="team-name">Claude's team</td><td class="ctr num">R4</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">+7</span></td><td class="ctr num">#37</td><td class="num">.655</td><td class="num">29</td><td class="num"><span class="zpos">+2.9</span></td></tr>
+        <tr><td class="ctr num">#126</td><td class="ctr num">11</td><td class="player">Timpson, Lorin</td><td class="team-name">Michael's team</td><td class="ctr num">R9</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+2</span></td><td class="ctr num">#99</td><td class="num">.389</td><td class="num">18</td><td class="num"><span class="zneg">−3.0</span></td></tr>
+        <tr><td class="ctr num">#127</td><td class="ctr num">11</td><td class="player">Johnson, Jefferson</td><td class="team-name">Seth's team</td><td class="ctr num">R9</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">+2</span></td><td class="ctr num">#106</td><td class="num">.391</td><td class="num">23</td><td class="num"><span class="zneg">−3.8</span></td></tr>
+        <tr><td class="ctr num">#128</td><td class="ctr num">11</td><td class="player">Darger, Nate</td><td class="team-name">Ephraims Daniel's team</td><td class="ctr num">R11</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#127</td><td class="num">.389</td><td class="num">36</td><td class="num"><span class="zneg">−6.0</span></td></tr>
+        <tr><td class="ctr num">#129</td><td class="ctr num">11</td><td class="player">Knudson, Kaitlyn</td><td class="team-name">Caleb's team</td><td class="ctr num">R9</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">+2</span></td><td class="ctr num">#104</td><td class="num">.381</td><td class="num">21</td><td class="num"><span class="zneg">−3.6</span></td></tr>
+        <tr><td class="ctr num">#130</td><td class="ctr num">11</td><td class="player">Williams, Maureen</td><td class="team-name">Boyds Daniel's team</td><td class="ctr num">R4</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zpos">+7</span></td><td class="ctr num">#43</td><td class="num">.615</td><td class="num">39</td><td class="num"><span class="zpos">+2.4</span></td></tr>
+        <tr><td class="ctr num">#131</td><td class="ctr num">11</td><td class="player">Hammon, Samantha</td><td class="team-name">Stafford's team</td><td class="ctr num">R9</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zpos">+2</span></td><td class="ctr num">#97</td><td class="num">.435</td><td class="num">23</td><td class="num"><span class="zneg">−2.8</span></td></tr>
+        <tr><td class="ctr num">#132</td><td class="ctr num">11</td><td class="player">Dockstader, Marvin</td><td class="team-name">Jeremy's team</td><td class="ctr num">R8</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zpos">+3</span></td><td class="ctr num">#89</td><td class="num">.450</td><td class="num">20</td><td class="num"><span class="zneg">−2.1</span></td></tr>
+        <tr class="rd-break"><td class="ctr num">#133</td><td class="ctr num">12</td><td class="player">Monroy, Samantha</td><td class="team-name">Jeremy's team</td><td class="ctr num">R10</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+2</span></td><td class="ctr num">#113</td><td class="num">.424</td><td class="num">33</td><td class="num"><span class="zneg">−4.3</span></td></tr>
+        <tr><td class="ctr num">#134</td><td class="ctr num">12</td><td class="player">Timpson, Pauline</td><td class="team-name">Stafford's team</td><td class="ctr num">R12</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#140</td><td class="num">.281</td><td class="num">32</td><td class="num"><span class="zneg">−8.8</span></td></tr>
+        <tr><td class="ctr num">#135</td><td class="ctr num">12</td><td class="player">Zitting, Alyssa</td><td class="team-name">Boyds Daniel's team</td><td class="ctr num">R12</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#138</td><td class="num">.300</td><td class="num">30</td><td class="num"><span class="zneg">−7.6</span></td></tr>
+        <tr><td class="ctr num">#136</td><td class="ctr num">12</td><td class="player">Timpson, Sarah</td><td class="team-name">Caleb's team</td><td class="ctr num">R10</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+2</span></td><td class="ctr num">#117</td><td class="num">.406</td><td class="num">32</td><td class="num"><span class="zneg">−4.8</span></td></tr>
+        <tr><td class="ctr num">#137</td><td class="ctr num">12</td><td class="player">Hammon, Bowen</td><td class="team-name">Ephraims Daniel's team</td><td class="ctr num">R12</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#142</td><td class="num">.325</td><td class="num">40</td><td class="num"><span class="zneg">−9.2</span></td></tr>
+        <tr><td class="ctr num">#138</td><td class="ctr num">12</td><td class="player">Hammon, Sharon</td><td class="team-name">Seth's team</td><td class="ctr num">R10</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="zpos">+2</span></td><td class="ctr num">#110</td><td class="num">.407</td><td class="num">27</td><td class="num"><span class="zneg">−4.0</span></td></tr>
+        <tr><td class="ctr num">#139</td><td class="ctr num">12</td><td class="player">Barlow, Amie Z</td><td class="team-name">Michael's team</td><td class="ctr num">R11</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#132</td><td class="num">.321</td><td class="num">28</td><td class="num"><span class="zneg">−6.5</span></td></tr>
+        <tr><td class="ctr num">#140</td><td class="ctr num">12</td><td class="player">Hammon, Sean</td><td class="team-name">Claude's team</td><td class="ctr num">R10</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">+2</span></td><td class="ctr num">#116</td><td class="num">.439</td><td class="num">41</td><td class="num"><span class="zneg">−4.7</span></td></tr>
+        <tr><td class="ctr num">#141</td><td class="ctr num">12</td><td class="player">Wood, Lincoln</td><td class="team-name">Elliot's team</td><td class="ctr num">R9</td><td class="ctr num"><span class="zpos">▲1</span></td><td class="num"><span class="zpos">+3</span></td><td class="ctr num">#100</td><td class="num">.448</td><td class="num">29</td><td class="num"><span class="zneg">−3.1</span></td></tr>
+        <tr><td class="ctr num">#142</td><td class="ctr num">12</td><td class="player">Dockstader, Isabel</td><td class="team-name">Sefton's team</td><td class="ctr num">R11</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="zpos">+1</span></td><td class="ctr num">#123</td><td class="num">.400</td><td class="num">35</td><td class="num"><span class="zneg">−5.4</span></td></tr>
+        <tr><td class="ctr num">#143</td><td class="ctr num">12</td><td class="player">Williams, Heather</td><td class="team-name">Horatio's team</td><td class="ctr num">R12</td><td class="ctr num"><span class="muted">=</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#133</td><td class="num">.390</td><td class="num">41</td><td class="num"><span class="zneg">−6.7</span></td></tr>
+        <tr><td class="ctr num">#144</td><td class="ctr num">12</td><td class="player">Wood, Becky</td><td class="team-name">Gideon's team</td><td class="ctr num">R12</td><td class="ctr num"><span class="zneg">▼1</span></td><td class="num"><span class="muted">=</span></td><td class="ctr num">#137</td><td class="num">.250</td><td class="num">24</td><td class="num"><span class="zneg">−7.3</span></td></tr>
+                        </tbody>
+                        <caption>
+                            The whole draft, audited — value = (adjusted
+                            average − league .555) × at-bats; true round =
+                            value rank dealt into rounds of twelve; Move is
+                            measured against the July 17 edition's true
+                            rounds. Shortstops are tagged SS: their price
+                            bought defense this table cannot see, so read
+                            their red entries gently.
+                        </caption>
+                    </table>
+                </div>
+            </section>
+
             <section id="watch">
                 <div class="plate">
-                    <span>Ledger Nº 13 · The Next Slate</span><span class="pg">July 31</span>
+                    <span>Ledger Nº 14 · The Next Slate</span><span class="pg">July 31</span>
                 </div>
                 <h2><a href="#watch">The bill collectors' hour</a></h2>
                 <p class="lede">

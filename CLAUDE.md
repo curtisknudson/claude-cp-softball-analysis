@@ -262,7 +262,7 @@ What stays stable underneath — the spine:
   every edition, whatever form their sections take. Every table carries an h3 anchor. Module
   ids that recur keep their names across editions (`scoreboard`, `weeklies`, `arcs`, `rebound`,
   `clubhouse`, `chase`, `crown-history`, `arcs-table`, `value`, `value-movers`, `club-<slug>`,
-  `gauntlet`).
+  `gauntlet`, `full-docket`).
 - **The reference back**: standings, race, records, dream team, and a find-yourself surface
   (currently the clubhouse roster tables) appear in some form every edition. Anything deeper
   (full docket, round rooms, draft board…) may **rest** — say where it rests (the archive), and
@@ -310,7 +310,7 @@ What stays stable underneath — the spine:
   gauntlet AND alibi kept, and three "fortafternoon" typos left over from the night→afternoon
   rename repaired at archive time.)
 - **2026-07-24 — THE LEDGER**: accounts-desk broadsheet — serif voice, monospaced figures,
-  double rules and dotted leaders, section heads numbered "Ledger Nº 1…13". Same background
+  double rules and dotted leaders, section heads numbered "Ledger Nº 1…14". Same background
   tokens as the tabloid (deliberate: the validated arc palette stays valid); the identity
   change is typographic. Cover story = the standings, not the race: **`invoice`** (one-off,
   `emit_invoice`, sub-id `statement`) — a statement of account addressed to whichever club
@@ -338,16 +338,22 @@ What stays stable underneath — the spine:
   injury-report parody (hand-written, no emitter; lines from the digest) teasing the
   editor's brothers and Sam Guy — see the gag ledger for the owner facts and the tone
   mandate. Debuted between `weeklies` and `records`, then moved up to sit directly after
-  `mw-benchmark`/`second-opinion` (owner request) — the front now runs a continuous
-  medical block: benchmark → the doctor's chart → the ward. Third late addition (same day): **`the-disclaimer`**,
+  `mw-benchmark` (owner request) — the front now runs a continuous
+  medical block: benchmark → the ward. Third late addition (same day): **`the-disclaimer`**,
   an h3 notice at the foot of `scoreboard` recording the overturned-in-spirit home run in
   the upset game (owner facts in the gag ledger; linked from the upset ticket). Fourth
   late addition (same day): **`mw-benchmark`** — the Mike Williams Benchmark honor roll, placed
   directly after `thousand-club` and before `invoice` (owner wants it high); hand-written,
   numbers from the stats file via a FEMALE_GIVEN query — see the gag ledger for the
-  framing mandate and the Sidney/Leslie caveat. Fifth late addition (same day):
-  **`second-opinion`** — the Dr. Ben Williams prescription-pad coda at the foot of
-  `mw-benchmark` (owner facts in the gag ledger).
+  framing mandate and the Sidney/Leslie caveat. Fifth late addition (2026-07-30, owner
+  request): **`full-docket`** RETURNS from the archive as a recurring reference module —
+  `emit_full_docket` (all 144 players in snake-draft order: Pick, Rd, True Rd, Move vs the
+  previous edition, Gap verdict, League # = value rank, Season/AB/Value), registered
+  between VALUE DESK and WATCH; on the page it is Ledger Nº 13 (the Next Slate renumbered
+  to Nº 14), with the `.table-scroll.tall` sticky-header pane ported from the 07-10 CSS.
+  The id came OFF the retired list — same meaning as its archive appearances, so the
+  revival is legal; the masthead sub no longer lists the docket as resting. When this
+  edition archives, the docket stays (season reference, not foreshadowing).
 
 **Retired ids** (pre-2026-07-17; they resolve in the archives, never reuse for new meanings):
 `the-week, week-bats, temperature, glance, draft-board, sleepers, teams, second-look,
@@ -355,7 +361,8 @@ missing-pages, what-changed, team-sheets, verdict, round-rooms, dynasty, hot-bat
 week-co, playing-time, perfect-weeks, team-box, tier-1, tier-2, team-notes, report-card,
 mined-rounds, caused-outs, clean-hands, iron-horses, league-shape, movers, streaks,
 dynasty-week, bookkeeping, team-picks, team-week, priced-right, bargains, didnt-justify,
-captains-mirror, full-docket, outliers, round-1…round-12`.
+captains-mirror, outliers, round-1…round-12`. (`full-docket` left this list 2026-07-30 —
+revived, same meaning, as a recurring module.)
 
 ## Gag ledger (keep bits consistent and escalating, not reset)
 
@@ -443,19 +450,13 @@ captains-mirror, full-docket, outliers, round-1…round-12`.
   is the standing disclaimer. Statuses (DAY-TO-DAY / PROBABLE / QUESTIONABLE / SUSPICIOUSLY
   FIT) are the desk's own. Recurring only if Curtis feeds it; escalate the charts honestly
   (a bad afternoon = a setback in physio, a hot one = medically unexplained).
-- **The Second Opinion** (debuted 2026-07-24, owner request 2026-07-29; `second-opinion`,
-  an h3 coda at the foot of `mw-benchmark` — moved there from `trainers-table` at the
-  owner's request — styled as a prescription pad, `.rx-card`; the lead-in frames it as a
-  medical review of the benchmark's condition, referred to the league's only physician,
-  who is also a Williams): **owner
-  facts: Ben Williams (Boyds Daniel's team, R4) is a doctor — a great one; his father is
-  Charles "Charlie" Williams (Stafford's team), born 1958 (owner-supplied 2026-07-29,
-  correcting an earlier "65" — he's 67–68 in the 2026 season; the pages print "born 1958"
-  / "b. 1958" rather than guessing which side of his birthday he's on).** The bit: praise
-  the doctoring, roast the batting — the physician who can treat everyone but the hitter
-  in his own mirror, while dad posts league-leading workloads in his late sixties. The father-son link is owner-sourced, not in
-  the data. If it recurs: a Ben hot week = "responding to treatment"; Charlie stays the
-  elder-statesman engine alongside Ryan Hammon.
+- **Charlie Williams** (Charles Williams, Stafford's team): **born 1958** — owner-supplied
+  2026-07-29, correcting an earlier "65"; he's 67–68 in the 2026 season, so if his age ever
+  prints, write "born 1958" / "b. 1958" rather than guessing which side of his birthday he's
+  on. The elder-statesman engine alongside Ryan Hammon — league-leading workloads in his
+  late sixties. (A prescription-pad physician bit that debuted alongside this fact was
+  scrubbed from the edition and from this file at the owner's request, 2026-07-30 — do not
+  revive it, and print no family links for Charlie beyond the surname-based dynasty ledger.)
 - **The schedule alibi is dead** (2026-07-28 audit): the league batted *better* against the
   harder slates. If a club or player blames the schedule in a future edition, cite the audit
   ("the alibi desk settled this in July") instead of re-running it — unless the verdict has

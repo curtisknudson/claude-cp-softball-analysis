@@ -3126,6 +3126,41 @@ def emit_value_desk(c):
         )
 
 
+def emit_full_docket(c):
+    cur, prev = c["cur"], c["prev"]
+    po = {(q["team"], q["pick"]): q for q in prev}
+    ranked = sorted(cur, key=lambda p: (-p["value"], -p["avg"], -p["ab"], p["name"]))
+    vrank = {id(p): i for i, p in enumerate(ranked, 1)}
+    just = sum(1 for p in cur if p["vround"] <= p["pick"])
+    exact = sum(1 for p in cur if p["vround"] == p["pick"])
+    print(
+        f"<!-- FULL DOCKET (id full-docket): all {len(cur)} players in true "
+        f"snake-draft order; League # = value rank; Move = true round vs the "
+        f"previous edition; justified (true round <= drafted round) "
+        f"{just}/{len(cur)}, priced exactly right {exact} -->"
+    )
+    prev_rd = None
+    for p in sorted(cur, key=lambda q: q["pickno"]):
+        brk = (
+            ' class="rd-break"' if prev_rd is not None and p["pick"] != prev_rd else ""
+        )
+        prev_rd = p["pick"]
+        m = po[(p["team"], p["pick"])]["vround"] - p["vround"]
+        print(
+            f'        <tr{brk}><td class="ctr num">#{p["pickno"]}</td>'
+            f'<td class="ctr num">{p["pick"]}</td>'
+            f'<td class="player">{pname(p)}</td>'
+            f'<td class="team-name">{team_label(p["team"])}</td>'
+            f'<td class="ctr num">R{p["vround"]}</td>'
+            f'<td class="ctr num">{arrow(m)}</td>'
+            f'<td class="num">{gapspan(p)}</td>'
+            f'<td class="ctr num">#{vrank[id(p)]}</td>'
+            f'<td class="num">{disp(p)}</td>'
+            f'<td class="num">{p["ab"]}</td>'
+            f'<td class="num">{vspan(p["value"])}</td></tr>'
+        )
+
+
 TEAM_RECORD_CATS = {"team_best", "team_worst", "team_co"}
 
 
@@ -3221,7 +3256,9 @@ def emit_watch(c):
 
 # Page order for the 2026-07-24 edition (The Ledger). ALIBI retired — the
 # audit was a one-off (emit_alibi stays defined in case the verdict ever
-# flips); INVOICE and DEBITS are this edition's one-off features.
+# flips); INVOICE and DEBITS are this edition's one-off features. FULL
+# DOCKET returned 2026-07-30 (owner request) as the closing reference
+# table ahead of WATCH.
 AFTERNOON_EMITTERS = [
     ("INVOICE", emit_invoice),
     ("SCOREBOARD", emit_scoreboard),
@@ -3236,6 +3273,7 @@ AFTERNOON_EMITTERS = [
     ("STANDINGS", emit_standings_afternoon),
     ("GAUNTLET", emit_gauntlet),
     ("VALUE DESK", emit_value_desk),
+    ("FULL DOCKET", emit_full_docket),
     ("WATCH", emit_watch),
 ]
 

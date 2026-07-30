@@ -478,6 +478,27 @@
                 transform: rotate(-6deg);
             }
 
+            /* ── the Mike Williams Benchmark ── */
+            tr.wline > td {
+                border-top: 2px dashed var(--accent);
+                border-bottom: 2px dashed var(--accent);
+                background: var(--tint);
+                text-align: center;
+                font-family: var(--mono);
+                font-size: 0.66rem;
+                letter-spacing: 0.22em;
+                text-transform: uppercase;
+                color: var(--accent);
+                padding: 6px 8px;
+            }
+            tr.bench > td {
+                color: var(--muted);
+            }
+            tr.bench .player,
+            tr.bench .num {
+                color: var(--muted);
+            }
+
             /* ── tickets (scoreboard entries) ── */
             .tickets {
                 display: grid;
@@ -790,6 +811,7 @@
 
             <nav class="contents" aria-label="Contents">
                 <a href="#thousand-club">The 1.000 Club</a><span class="sep">·</span>
+                <a href="#mw-benchmark">Mike Williams Benchmark</a><span class="sep">·</span>
                 <a href="#invoice">The Invoice</a><span class="sep">·</span>
                 <a href="#scoreboard">The Day's Entries</a><span class="sep">·</span>
                 <a href="#debits">The Debits</a><span class="sep">·</span>
@@ -845,6 +867,70 @@
                     average than of the age. Membership is strictly
                     week-to-week: the club closes the moment an out is made.
                 </p>
+            </section>
+
+            <section id="mw-benchmark">
+                <div class="plate">
+                    <span>Ledger Special · The Mike Williams Benchmark</span><span class="pg">Est. July 24</span>
+                </div>
+                <h2><a href="#mw-benchmark">Above the benchmark: the women outbatting the first round</a></h2>
+                <p class="dek">
+                    Baseball has the Mendoza Line. As of this edition, this
+                    league has <strong>the Mike Williams Benchmark</strong>, set at
+                    .556 — the current altitude of Michael Williams:
+                    first-round pick, captain, shortstop — and every woman
+                    batting above it is, by the desk's official arithmetic,
+                    outbatting the first round of the draft. The desk
+                    congratulates the outperformers and reminds the
+                    benchmark that having a league standard named after you
+                    is its own kind of immortality.
+                </p>
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr><th class="ctr">Lg rank</th><th>Player</th><th>Club</th><th class="ctr">Drafted</th><th class="num">Season</th><th class="num">AB</th></tr>
+                        </thead>
+                        <tbody>
+        <tr class="hl"><td class="ctr num">#29</td><td class="player">Barlow, Violet</td><td class="team-name">Claude's team</td><td class="ctr num">R11</td><td class="num big">.655</td><td class="num">29</td></tr>
+        <tr class="hl"><td class="ctr num">#39</td><td class="player">Williams, Maureen</td><td class="team-name">Boyds Daniel's team</td><td class="ctr num">R11</td><td class="num big">.615</td><td class="num">39</td></tr>
+        <tr class="hl"><td class="ctr num">#63</td><td class="player">Timpson, Deborah</td><td class="team-name">Ephraims Daniel's team</td><td class="ctr num">R7</td><td class="num big">.571</td><td class="num">35</td></tr>
+        <tr class="wline"><td colspan="6">The Mike Williams Benchmark · .556</td></tr>
+        <tr class="bench"><td class="ctr num">#68</td><td class="player">Williams, Michael <span class="muted">· SS · the benchmark</span></td><td class="team-name">Michael's team</td><td class="ctr num">R1</td><td class="num">.556</td><td class="num">27</td></tr>
+                        </tbody>
+                        <caption>
+                            Confirmed women of the league batting above
+                            Michael Williams's season average, best first.
+                            Rosters carry two women by rule; nothing in the
+                            rule requires this.
+                        </caption>
+                    </table>
+                </div>
+                <ul class="notes">
+                    <li>
+                        <strong>Deborah Timpson cleared the benchmark from six
+                        rounds of draft further back.</strong> Ephraims
+                        Daniel's club spent a seventh-round pick on her; a
+                        first was spent on the benchmark. The draft market,
+                        the desk observes, continues to misprice women.
+                    </li>
+                    <li>
+                        <strong>The two biggest draft bargains in the entire
+                        league are on this list.</strong> Violet Barlow and
+                        Maureen Williams both went in the eleventh round and
+                        both bat, by the value desk's arithmetic, like
+                        fourth-rounders — the two most underdrafted players
+                        in the book, of any gender. The coed rule was
+                        written to make sure the women were included; the
+                        women, evidently, had bigger plans.
+                    </li>
+                    <li>
+                        <strong>In fairness to the benchmark:</strong>
+                        shortstop is the league's premium defensive post,
+                        and a glove buys things no batting column can see.
+                        The desk extends this courtesy in full — and notes,
+                        courteously, that Debbie Timpson does not need it.
+                    </li>
+                </ul>
             </section>
 
             <section id="invoice">

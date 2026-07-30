@@ -339,7 +339,11 @@ What stays stable underneath — the spine:
   from the digest) teasing the editor's brothers and Sam Guy — see the gag ledger for the
   owner facts and the tone mandate. Third late addition (same day): **`the-disclaimer`**,
   an h3 notice at the foot of `scoreboard` recording the overturned-in-spirit home run in
-  the upset game (owner facts in the gag ledger; linked from the upset ticket).
+  the upset game (owner facts in the gag ledger; linked from the upset ticket). Fourth
+  late addition (same day): **`mw-benchmark`** — the Mike Williams Benchmark honor roll, placed
+  directly after `thousand-club` and before `invoice` (owner wants it high); hand-written,
+  numbers from the stats file via a FEMALE_GIVEN query — see the gag ledger for the
+  framing mandate and the Sidney/Leslie caveat.
 
 **Retired ids** (pre-2026-07-17; they resolve in the archives, never reuse for new meanings):
 `the-week, week-bats, temperature, glance, draft-board, sleepers, teams, second-look,
@@ -412,6 +416,19 @@ captains-mirror, full-docket, outliers, round-1…round-12`.
   the testimony beside it. The note ends with a standing vow to re-raise the matter "in
   every future edition in which these two clubs appear on the same line" — HONOR IT: any
   future Horatio-vs-Claude line gets a dry callback.
+- **The Mike Williams Benchmark** (debuted 2026-07-24 as "The Williams Line," renamed same
+  day at the owner's request): the Mendoza-Line parody — a "league benchmark" set at Michael Williams's season average (.556 at debut;
+  R1, captain, SS), with an honor-roll table of every confirmed woman batting above it
+  (women rows shaded, a dashed `.wline` row draws the benchmark, Mike sits muted beneath as
+  "the benchmark"). At debut: Violet Barlow (.655), Maureen Williams (.615), Deborah
+  Timpson (.571 — the owner asked for Debbie by name). **Framing mandate: FEMALE
+  EMPOWERMENT** — celebrate the women (the Violet/Maureen top-two-underdrafted fact is the
+  engine), crack wise at Mike gently; never "batting better than a girl" energy. The SS
+  courtesy is extended per house rule, with the kicker "Debbie Timpson does not need it."
+  Selection is computed from `FEMALE_GIVEN` + rank above Michael's — **Sidney Dockstader
+  and Leslie Williams (both on Michael's OWN roster) also sat above the line at debut but
+  are on the never-guess-gender list; ask Curtis before ever adding them.** If the bit
+  recurs, the benchmark moves with Mike's average — recompute honestly.
 - **The Trainer's Table** (debuted 2026-07-24, owner request 2026-07-29): the editor's
   brothers teased as men of eighty outperforming their charts — **owner facts: Derrick
   Knudson has a weak ankle; Nathan Knudson cramps constantly; Levi Knudson is heavier set

@@ -1431,16 +1431,16 @@ def race_history(snaps, min_ab=10):
 # that date must reproduce it exactly; a mismatch means an upstream data
 # revision — investigate before printing. Update both the rows and the AS_OF
 # date whenever an edition publishes a new board.
-RECORDS_PUBLISHED_AS_OF = datetime.date(2026, 7, 17)
+RECORDS_PUBLISHED_AS_OF = datetime.date(2026, 7, 24)
 RECORDS_PUBLISHED = [
     ("hot_week", "Timpson, Cuervo", 0.957),
     ("cold_week", "Dockstader, Dorothy", 0.154),
     ("team_best", "Youre Saying Theres A Chance", 0.700),
-    ("team_worst", "The Good Guys", 0.421),
-    ("family_best", "Knudson", 0.700),
+    ("team_worst", "The Playas", 0.356),
+    ("family_best", "Cawley", 0.800),
     ("workload", "Timpson, Taylor", 30),
-    ("team_co", "The Good Guys", 9),
-    ("player_co", ("Hammon, Roy", "Dockstader, Noah"), 3),
+    ("team_co", "Youre Saying Theres A Chance", 10),
+    ("player_co", "Williams, Charles", 4),
 ]
 
 RECORD_CATS = [
@@ -2518,6 +2518,135 @@ def ordinal(n):
     return f"{n}{'th' if 10 <= n % 100 <= 20 else {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th')}"
 
 
+def emit_invoice(c):
+    """One-off cover module (2026-07-24): a statement of account, addressed to
+    whoever leads the standings. Every line item is computed; nothing is
+    addressed to a hard-coded club."""
+    s = c["st"][0]
+    t = s["team"]
+    py = pythag(s)
+    luck = s["win_pct"] - py
+    bat, brank, _ = team_batting(c["cur"])
+    sos = sos_rows(c["games"], c["st"], c["dcur"])
+    pos = next(i for i, r in enumerate(sos, 1) if r["team"] == t)
+    sosp = next(r["sosp"] for r in sos if r["team"] == t)
+    soft = (
+        '<span class="muted"> · the softest in the league</span>'
+        if pos == len(sos)
+        else f' <span class="muted">· {ordinal(pos)} hardest of {len(sos)}</span>'
+    )
+    afternoon_gs = [g for g in team_games(c["gpast"], t) if g["d"] > c["dprev"]]
+    res = " · ".join(
+        f'{g["result"]} {g["us"]}–{g["them"]} vs {team_label(g["opp"])}'
+        for g in afternoon_gs
+    )
+    print(
+        f"<!-- INVOICE (id invoice): statement of account for {team_label(t)}, "
+        f"the standings leader -->"
+    )
+
+    def item(label, value, cls=""):
+        print(
+            f'        <tr{cls}><td class="player">{label}</td>'
+            f'<td class="num">{value}</td></tr>'
+        )
+
+    mv_html = ""
+    if c["ranks"]:
+        was = c["ranks"][t]
+        if was != s["rank"]:
+            mv_html = f' <span class="muted">(was {ordinal(was)})</span>'
+    item(
+        "The standing",
+        f'<strong>{ordinal(s["rank"])}</strong> of 12 · '
+        f'{s["w"]}-{s["l"]}-{s["t"]}{mv_html}',
+    )
+    item("Win percentage", A(s["win_pct"]))
+    item("Runs scored · runs allowed", f'{s["pf"]} · {s["pa"]}')
+    item("Pythagorean expectation", A(py))
+    item("League batting rank", f'{ordinal(brank[t])} at {A(bat[t])}')
+    item("Slate played to date (SOS)", f"{A(sosp)}{soft}")
+    item(f'The afternoon of {c["dcur"].strftime("%B")} {c["dcur"].day}', res)
+    if c["prev_st"]:
+        ps = next((x for x in c["prev_st"] if x["team"] == t), None)
+        if ps is not None:
+            pl = ps["win_pct"] - pythag(ps)
+            item(
+                f'Balance carried forward '
+                f'<span class="muted">(at {c["dprev"].strftime("%B")} {c["dprev"].day})</span>',
+                signed(pl, G(pl)),
+            )
+    item(
+        "<strong>Balance due — luck, the gap between the record and the runs</strong>",
+        f'<span class="big">{signed(luck, G(luck))}</span>',
+        ' class="due"',
+    )
+
+
+def emit_debits(c):
+    """One-off module (2026-07-24): the caused-out ledger for an afternoon when
+    the league's CO rate spiked. Club ledger worst-first, then the individual
+    debits (every +2 or worse) and the erased (every hit cancelled)."""
+    rows, tw, cur, prev = c["rows"], c["tw"], c["cur"], c["prev"]
+    wab = sum(r["dab"] for r in rows)
+    wco = sum(r["dco"] for r in rows)
+    oab = sum(p["ab"] for p in prev)
+    oco = sum(p["co"] for p in prev)
+    nab = sum(p["ab"] for p in cur)
+    nco = sum(p["co"] for p in cur)
+    print(
+        f"<!-- DEBITS (id debits): the caused-out ledger — {wco} CO on {wab} "
+        f"afternoon AB ({wco / wab:.3f}/AB vs {oco / oab:.3f} season-to-date "
+        f"coming in); season now {nco} CO on {nab} AB -->"
+    )
+    season_co = {}
+    for p in cur:
+        season_co[p["team"]] = season_co.get(p["team"], 0) + p["co"]
+    worst = max(r["dco"] for r in tw)
+    for r in sorted(tw, key=lambda r: (-r["dco"], r["team"])):
+        cls = (
+            ' class="lo"'
+            if r["dco"] == worst
+            else (' class="hl"' if r["dco"] == 0 else "")
+        )
+        line = f'{r["dh"]}-for-{r["dab"]}' + (
+            f' <span class="muted">· {r["dco"]} CO</span>' if r["dco"] else ""
+        )
+        print(
+            f'        <tr{cls}><td class="player">{team_label(r["team"])}</td>'
+            f'<td class="num">{line}</td>'
+            f'<td class="num">+{r["dco"]}</td>'
+            f'<td class="num">{r["dco"] / r["dab"] * 100:.1f}</td>'
+            f'<td class="num">{season_co[r["team"]]}</td></tr>'
+        )
+    ind = sorted(
+        (r for r in rows if r["dco"] >= 2),
+        key=lambda r: (-r["dco"], -r["n"]["co"], r["name"]),
+    )
+    erased = sorted(
+        (
+            r
+            for r in rows
+            if r["dab"] >= 4 and r["dh"] > 0 and r["dh"] == r["dco"] and r not in ind
+        ),
+        key=lambda r: r["name"],
+    )
+    print(
+        "\n<!-- DEBITS individuals (same section): every +2 or worse, then the "
+        "erased — a full afternoon whose every hit was cancelled (rd-break "
+        "starts the erased) -->"
+    )
+    for j, r in enumerate(ind + erased):
+        brk = ' class="rd-break"' if j == len(ind) else ""
+        print(
+            f'        <tr{brk}><td class="player">{r["name"]}</td>'
+            f'<td class="team-name">{team_label(r["team"])}</td>'
+            f'<td class="num">{week_line(r, html=True)}</td>'
+            f'<td class="num">+{r["dco"]}</td>'
+            f'<td class="num">{r["n"]["co"]}</td></tr>'
+        )
+
+
 def emit_scoreboard(c):
     print("<!-- SCOREBOARD (id scoreboard): the afternoon's games in time order; tags computed -->")
     print('<div class="tickets">')
@@ -3067,7 +3196,7 @@ def emit_records_board(c):
         print(
             f'        <tr><td class="player">{title}</td>'
             f'<td class="num big">{val}</td><td>{names}</td>'
-            f'<td><span class="muted">NEW CATEGORY</span></td></tr>'
+            f'<td><span class="muted">—</span></td></tr>'
         )
 
 
@@ -3090,19 +3219,23 @@ def emit_watch(c):
             )
 
 
+# Page order for the 2026-07-24 edition (The Ledger). ALIBI retired — the
+# audit was a one-off (emit_alibi stays defined in case the verdict ever
+# flips); INVOICE and DEBITS are this edition's one-off features.
 AFTERNOON_EMITTERS = [
+    ("INVOICE", emit_invoice),
     ("SCOREBOARD", emit_scoreboard),
+    ("DEBITS", emit_debits),
     ("CROWN", emit_crown),
     ("WEEKLIES", emit_weeklies),
+    ("RECORDS", emit_records_board),
     ("ARCS SVG", emit_arcs_svg),
     ("ARCS TABLE", emit_arcs_table),
     ("REBOUND", emit_rebound),
     ("CLUBHOUSE", emit_clubhouse),
     ("STANDINGS", emit_standings_afternoon),
     ("GAUNTLET", emit_gauntlet),
-    ("ALIBI", emit_alibi),
     ("VALUE DESK", emit_value_desk),
-    ("RECORDS", emit_records_board),
     ("WATCH", emit_watch),
 ]
 

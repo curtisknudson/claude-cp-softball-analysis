@@ -23,8 +23,8 @@ analytics snippet). Every page is static, hand-authored HTML with inline CSS, se
 The data pipeline is deliberately boring:
 
 1. The league's numbers are harvested from cpsoftball.com into CSV snapshots — batting stats
-   (`0717-stats.csv`), standings (`0717-standings.csv`), and the full game schedule with every
-   final score (`0717-schedule.csv`, reconciled *exactly* against the standings before anything
+   (`0724-stats.csv`), standings (`0724-standings.csv`), and the full game schedule with every
+   final score (`0724-schedule.csv`, reconciled *exactly* against the standings before anything
    is trusted).
 2. `analysis.py` reads the snapshots (plus the whole history) and prints a digest of *every*
    number the page could want — z-scores, draft value, afternoon swings, awards, streaks, games
@@ -40,11 +40,12 @@ editions' era.)
 
 ```bash
 # just this week's numbers
-python3 analysis.py 0717-stats.csv
+python3 analysis.py 0724-stats.csv
 
 # the full edition run: history, game results, standings, the afternoon desk
-python3 analysis.py 0717-stats.csv --history 0612-stats.csv 0703-stats.csv 0710-stats.csv \
-  --games 0717-schedule.csv --standings 0717-standings.csv --prev-standings 0710-standings.csv
+python3 analysis.py 0724-stats.csv --history 0612-stats.csv 0703-stats.csv 0710-stats.csv \
+  0717-stats.csv \
+  --games 0724-schedule.csv --standings 0724-standings.csv --prev-standings 0717-standings.csv
 
 # the same, emitting every page module for the current edition
 python3 analysis.py ... --html-afternoon
@@ -83,9 +84,10 @@ wanted to see how far an LLM can carry a project, you're welcome to open a PR.
 Things that would be great to have:
 
 - **New statistics.** The script knows draft value, z-scores by round, Pythagorean luck,
-  multi-snapshot arcs, and — as of the July 17 edition — every game result: streaks, games back,
-  head-to-head, and a game-level record book. Open doors now: strength of *remaining* schedule,
-  a playoff-picture math section, and new chart forms for future rotating fronts.
+  multi-snapshot arcs, every game result (streaks, games back, head-to-head, a game-level record
+  book), and — as of the July 24 edition — strength of schedule, played and remaining. Open doors
+  now: a playoff-picture math section, clinch/elimination math for the August run-in, and new
+  chart forms for future rotating fronts.
 - **Design and accessibility.** The CSS is hand-written and lives inline in each page. Light and
   dark mode, the mobile breakpoint, table scrolling, contrast, focus states — all fair game.
 - **Bugs in the numbers.** If a figure on a page looks wrong, it probably is, and a bug report with

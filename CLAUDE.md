@@ -32,7 +32,7 @@ the site.
 | `analysis.py` | **The single source of truth for every number on every page.** Stdlib-only Python 3; digests + per-module HTML emitters (`--html-afternoon` registry, legacy `--html-tables` kept frozen for the archives' era) |
 | `pyrightconfig.json` | `typeCheckingMode: "standard"` — 0 errors / 0 warnings must hold. basedpyright's default mode fires ~1,500 false `reportUnknown*` on this plain-dict script; standard is the right mode. Schema is enforced at **runtime** (loaders exit loudly) |
 | `CNAME` | GitHub Pages custom-domain file (`softball.best`) — never edit or delete |
-| `favicon.svg` · `apple-touch-icon.png` · `og.png` | Site chrome (og.png referenced absolutely as `https://softball.best/og.png` from every page's meta block) |
+| `favicon.svg` · `apple-touch-icon.png` · `og.png` | Site chrome (og.png referenced absolutely as `https://softball.best/og.png` from every page's meta block). An edition MAY ship a special OG card as `og-YYYY-MM-DD.png` (first: `og-2026-07-24.png`, the "Ryan Hammon bat 1.000" tease, rendered with Pillow in the site palette scanned from og.png) — only that edition's index points at it; when the edition archives it keeps its card, and the next index reverts to og.png unless it ships its own |
 
 ## The data
 
@@ -70,6 +70,11 @@ Facts that hold for every snapshot (the script asserts them and dies loudly if v
   trusting**: formula holds per row (site rounds half up — exact halves are not errors); totals
   equal the page's Season Summary footer; `(team, draft_pick)` unique 12×12; ranks 1–144.
   Then `python3 analysis.py MMDD-stats.csv` must exit 0 with no WARN.
+- Counters can be revised **downward** site-side between snapshots (0724: Merlek Timpson's CO
+  went 2→1, and the page's reprinted AVG confirmed the revision). Cross-check the new harvest
+  against the previous CSV on (team, pick); a formula-confirmed revision is a note for the
+  handoff, not an error — but an unconfirmed decrease is a misread. (Revisions also surface as
+  oddities downstream: Merlek's afternoon printed `4-for-6 · -1 CO`.)
 - Grab standings the same day: standings.php → `MMDD-standings.csv` (loader asserts W+L+T=GP,
   PF/PA balance, win% = (W+T/2)/GP).
 
@@ -301,7 +306,38 @@ What stays stable underneath — the spine:
   (`emit_alibi`; sub-ids `defense-ledger`, `chase-slates`, `case-sean`). Both fed by the
   SCHEDULE DESK digest block. When this edition archives, the gauntlet stays (the fixture
   list was known on the data date — it is a ledger, not foreshadowing); only `watch` gets
-  deleted per the archive rule.
+  deleted per the archive rule. (Archived 2026-07-29 as 2026-07-17.html — watch deleted,
+  gauntlet AND alibi kept, and three "fortafternoon" typos left over from the night→afternoon
+  rename repaired at archive time.)
+- **2026-07-24 — THE LEDGER**: accounts-desk broadsheet — serif voice, monospaced figures,
+  double rules and dotted leaders, section heads numbered "Ledger Nº 1…13". Same background
+  tokens as the tabloid (deliberate: the validated arc palette stays valid); the identity
+  change is typographic. Cover story = the standings, not the race: **`invoice`** (one-off,
+  `emit_invoice`, sub-id `statement`) — a statement of account addressed to whichever club
+  leads the standings (record, win%, pyth, LUCK as "balance due", SOS played, bat rank, the
+  afternoon's results, balance carried forward from prev standings) — the invoice-gag payoff
+  ("First place, on credit"). **`debits`** (one-off, `emit_debits`, sub-ids `debits-clubs`,
+  `debits-players`) — the caused-out epidemic ledger (club table worst-first with clean
+  sheets shaded, individual table +2-or-worse then the erased). Page order: invoice,
+  scoreboard (ticket entries, hand-written t-notes), debits, race (crown held), weeklies,
+  records (promoted to the front of book — three records fell), arcs (5 snapshots; emphasis
+  reassigned to Stafford/Sefton/Horatio, a page-CSS edit), rebound, clubhouse, standings,
+  gauntlet, value, watch. `alibi` retired from the registry (one-off, done; `emit_alibi`
+  stays defined in case the verdict ever flips). Game-record rows now print a muted "—"
+  status (the "NEW CATEGORY" labels were a debut-edition artifact). Late addition
+  (2026-07-29, owner request): **`thousand-club`** — a framed bulletin (`.bulletin`) of two
+  punch-card membership cards (fields incl. a deadpan Age line, punched-hole rows, a rotated
+  1.000 stamp), hand-written with no emitter (numbers transcribed from the digest's PERFECT
+  WEEKS lines), celebrating the reopened 1.000 club and Ryan Hammon's forty-plus perfect
+  afternoon. Placed ABOVE Ledger Nº 1, directly after the contents nav — the owner wants it
+  the first thing readers see this edition. The edition also ships a special OG card,
+  `og-2026-07-24.png` ("Ryan Hammon bat 1.000" · seven punches · AGE: FORTY-PLUS
+  (UNDISPUTED)) — og:image/twitter:image point at it; every share of this edition is the
+  tease. Revert og:image to og.png next edition (or ship a new card). Second late addition
+  (same day): **`trainers-table`** — "Ledger Special · The Trainer's Table," an
+  injury-report parody between `weeklies` and `records` (hand-written, no emitter; lines
+  from the digest) teasing the editor's brothers and Sam Guy — see the gag ledger for the
+  owner facts and the tone mandate.
 
 **Retired ids** (pre-2026-07-17; they resolve in the archives, never reuse for new meanings):
 `the-week, week-bats, temperature, glance, draft-board, sleepers, teams, second-look,
@@ -314,28 +350,60 @@ captains-mirror, full-docket, outliers, round-1…round-12`.
 ## Gag ledger (keep bits consistent and escalating, not reset)
 
 - **The caused-out tragedy** (Gideon's team): act four (2026-07-17) was "a remission" — +3 on
-  the afternoon, season 24 still league-worst. Track act five honestly; remissions end or hold.
-- **The recusal bit** (Curtis Knudson, site owner): budget ≤ 2 per edition, vary the wording
-  ("declines to recuse himself" / "offers no further comment"). 2026-07-17 used both: the
-  crown chase (he sits third) and the dynasty note (his family lost the first-family title to
-  the Williamses the same afternoon).
+  the afternoon, season 24 still league-worst. Act five (2026-07-24): +1, tied for the day's
+  gentlest line — "the remission entered its second week" — season 25 still league-worst.
+  Track act six honestly; remissions end or hold.
+- **The recusal bit** (Curtis Knudson, site owner): budget ≤ 2 per edition, vary the wording.
+  2026-07-17 used "declines to recuse himself" (crown chase) and "offers no further comment"
+  (dynasty). 2026-07-24 used the debits page (13-for-14 · 3 CO — "entered under assets and
+  liabilities alike; he declines to recuse himself from either column") and the dynasty note
+  (the Knudsons took the first-family title BACK, .618 to the Williams .594 — "records the
+  finding and offers no further comment"); the crown section pointedly played him straight
+  ("the desk refers readers to the debits page").
 - **Sean Hammon's fairy tale is CLOSED** (2026-07-17: hitless afternoon, lost the R12 Dream Team
   seat to Sharon Hammon; "the mean he was regressing toward is above him"). Do not resurrect
   without a genuine second act — a comeback would BE the story, not the gag. The 2026-07-28
   alibi audit **acquitted** his June of schedule inflation (hot block vs the D2/D4 defenses;
   his club never met Michael's team; slate 11.19 ≈ league mean) — "the audit merely corrects
   the cause of death." The file stays closed; cite the audit rather than reopening it.
+  2026-07-24: he REBOUNDED in the ledger (3-for-6, .500 vs his .429) — handled in one dry
+  line ("the desk notes the pulse and moves on"), file still closed. A .500 afternoon is not
+  a second act.
 - **Becky Wood, #144**: "still technically a bargain" is now "doing heavy lifting" (0-for-5,
   #139). 2026-07-28: the audit found she has also faced the league's softest slate (12.36 opp
-  RA/G, most generous among 15+ AB regulars) — "no alibi in either direction." Keep tracking;
-  never invent numbers for her.
-- **The invoice** (Stafford's team's luck): opened +.243 (July 10), **first installment
-  collected** 2026-07-17 (+.200, slid #2→#4). Each edition: pay it down or re-inflate it, with
-  the actual Luck number.
-- **New seeds from 2026-07-17**: "the league owes Ephraims Daniel's club" (luck −.251 while
-  their captain won Bat of the Afternoon); Jeremy's team "the quietest hot team in the league"
-  (won six straight while batting worst on the day); "the 1.000 club is closed" (first
-  zero-perfect afternoon). Use them only when the new data feeds them.
+  RA/G, most generous among 15+ AB regulars) — "no alibi in either direction." 2026-07-24:
+  1-for-4, swing exactly .000 against her own .250, rank #141 — "files another extension."
+  Keep tracking; never invent numbers for her.
+- **The invoice** (Stafford's team's luck): opened +.243 (July 10), first installment
+  collected 2026-07-17 (+.200, slid #2→#4). **2026-07-24 — THE PAYOFF: re-inflated to +.220
+  AND took first place** (2-0 day, the 11–10 escape past Caleb's club; SOS played .423,
+  softest in the league) — the whole edition ("The Ledger") was built around the bill.
+  Each edition: pay it down or re-inflate it, with the actual Luck number. The rematch
+  collateral: Caleb–Stafford twice more (Jul 31, Aug 14), Jeremy–Stafford never yet met
+  (first meeting Jul 31).
+- **New seeds from 2026-07-17**, updated 2026-07-24: "the league owes Ephraims Daniel's club"
+  — PAID AGAIN (luck −.233 worst in book; batted .627, second-best of the day, and went 0-2
+  to run the slide to five). Jeremy's team "the quietest hot team" — the bill came due:
+  streak stretched to a record 7 then snapped the same afternoon, season line down .621→.576
+  while the standings barely noticed. "The 1.000 club is closed" — REOPENED 2026-07-24 with
+  two members (Gideon Hammon 6-for-6, Ryan Hammon 7-for-7); the club now opens and closes by
+  the week, and got its own front-of-book bulletin box (`thousand-club`) at the owner's
+  request (2026-07-29). **Owner fact: Ryan Hammon is over 40** — the bit is the forty-plus
+  elder running circles around the young guys, prouder of the 1.000 than of the birthdays.
+  Keep the age qualitative ("forty-plus") unless Curtis ever supplies a number. New seed:
+  **the Cawley family record** — .800, best family week ever, set by a
+  family of three with one bat swinging (Lorenzo 4-for-5; Seth and Sophia sat) — the
+  smallest-family absurdity is the bit; keep it honest.
+- **The Trainer's Table** (debuted 2026-07-24, owner request 2026-07-29): the editor's
+  brothers teased as men of eighty outperforming their charts — **owner facts: Derrick
+  Knudson has a weak ankle; Nathan Knudson cramps constantly; Levi Knudson is heavier set
+  with weak knees (and is the Slamma Jammas' SHORTSTOP — the best joke writes itself)** —
+  plus Sam Guy, included "for fun" with **no ailment supplied: never invent one for him**;
+  he is the "suspiciously fit control group." Tone mandate from the owner: "nothing
+  tasteless" — keep it kind; the caption's "the batting is real; the medicine is editorial"
+  is the standing disclaimer. Statuses (DAY-TO-DAY / PROBABLE / QUESTIONABLE / SUSPICIOUSLY
+  FIT) are the desk's own. Recurring only if Curtis feeds it; escalate the charts honestly
+  (a bad afternoon = a setback in physio, a hot one = medically unexplained).
 - **The schedule alibi is dead** (2026-07-28 audit): the league batted *better* against the
   harder slates. If a club or player blames the schedule in a future edition, cite the audit
   ("the alibi desk settled this in July") instead of re-running it — unless the verdict has

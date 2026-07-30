@@ -449,10 +449,11 @@ captains-mirror, full-docket, outliers, round-1…round-12`.
   medical review of the benchmark's condition, referred to the league's only physician,
   who is also a Williams): **owner
   facts: Ben Williams (Boyds Daniel's team, R4) is a doctor — a great one; his father is
-  Charles "Charlie" Williams (Stafford's team), age 65 exactly (owner-supplied, printable,
-  unlike Ryan's qualitative "forty-plus").** The bit: praise the doctoring, roast the
-  batting — the physician who can treat everyone but the hitter in his own mirror, while
-  dad posts league-leading workloads at 65. The father-son link is owner-sourced, not in
+  Charles "Charlie" Williams (Stafford's team), born 1958 (owner-supplied 2026-07-29,
+  correcting an earlier "65" — he's 67–68 in the 2026 season; the pages print "born 1958"
+  / "b. 1958" rather than guessing which side of his birthday he's on).** The bit: praise
+  the doctoring, roast the batting — the physician who can treat everyone but the hitter
+  in his own mirror, while dad posts league-leading workloads in his late sixties. The father-son link is owner-sourced, not in
   the data. If it recurs: a Ben hot week = "responding to treatment"; Charlie stays the
   elder-statesman engine alongside Ryan Hammon.
 - **The schedule alibi is dead** (2026-07-28 audit): the league batted *better* against the

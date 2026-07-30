@@ -337,7 +337,9 @@ What stays stable underneath — the spine:
   (same day): **`trainers-table`** — "Ledger Special · The Trainer's Table," an
   injury-report parody between `weeklies` and `records` (hand-written, no emitter; lines
   from the digest) teasing the editor's brothers and Sam Guy — see the gag ledger for the
-  owner facts and the tone mandate.
+  owner facts and the tone mandate. Third late addition (same day): **`the-disclaimer`**,
+  an h3 notice at the foot of `scoreboard` recording the overturned-in-spirit home run in
+  the upset game (owner facts in the gag ledger; linked from the upset ticket).
 
 **Retired ids** (pre-2026-07-17; they resolve in the archives, never reuse for new meanings):
 `the-week, week-bats, temperature, glance, draft-board, sleepers, teams, second-look,
@@ -394,6 +396,22 @@ captains-mirror, full-docket, outliers, round-1…round-12`.
   **the Cawley family record** — .800, best family week ever, set by a
   family of three with one bat swinging (Lorenzo 4-for-5; Seth and Sophia sat) — the
   smallest-family absurdity is the bit; keep it honest.
+- **The Disclaimer** (2026-07-24 edition, owner facts 2026-07-29): in the Jul 24
+  Horatio-vs-Claude upset (the 3:30 South game, 7–5), **the umpire ruled a home run foul;
+  the batting club objected; SOME on the other team agree it was a bad call; the umpire
+  acknowledged the bad call. Per the owner, Horatio's team should have won.** Owner
+  refinement (same day): do NOT claim the winning club agrees they should have won, and do
+  NOT infer the umpire's or the opponents' feelings — print acknowledgments as facts, no
+  attitudes. Filed as `the-disclaimer`, an h3 notice at the foot of the scoreboard,
+  linked from the upset ticket's t-note. **Tone (owner's instruction, 2026-07-29: "make it
+  seem like I'm a little more jaded"): strained neutrality** — the editor bats for the
+  wronged club, and the desk insists it is calm at slightly elevated volume ("Fine.
+  Entered." / "a neutrality unrelated to which club the editor bats for"). Rules of the
+  bit: the umpire stays anonymous and is treated kindly (acknowledgment stated as fact,
+  never dramatized); the score/standings/data NEVER change — the ledger prints the game as officiated and
+  the testimony beside it. The note ends with a standing vow to re-raise the matter "in
+  every future edition in which these two clubs appear on the same line" — HONOR IT: any
+  future Horatio-vs-Claude line gets a dry callback.
 - **The Trainer's Table** (debuted 2026-07-24, owner request 2026-07-29): the editor's
   brothers teased as men of eighty outperforming their charts — **owner facts: Derrick
   Knudson has a weak ankle; Nathan Knudson cramps constantly; Levi Knudson is heavier set

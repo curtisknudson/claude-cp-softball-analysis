@@ -1431,15 +1431,15 @@ def race_history(snaps, min_ab=10):
 # that date must reproduce it exactly; a mismatch means an upstream data
 # revision — investigate before printing. Update both the rows and the AS_OF
 # date whenever an edition publishes a new board.
-RECORDS_PUBLISHED_AS_OF = datetime.date(2026, 7, 24)
+RECORDS_PUBLISHED_AS_OF = datetime.date(2026, 8, 7)
 RECORDS_PUBLISHED = [
     ("hot_week", "Timpson, Cuervo", 0.957),
     ("cold_week", "Dockstader, Dorothy", 0.154),
     ("team_best", "Youre Saying Theres A Chance", 0.700),
     ("team_worst", "The Playas", 0.356),
     ("family_best", "Cawley", 0.800),
-    ("workload", "Timpson, Taylor", 30),
-    ("team_co", "Youre Saying Theres A Chance", 10),
+    ("workload", "Hammon, Stafford", 46),
+    ("team_co", "The Ellites", 16),
     ("player_co", "Williams, Charles", 4),
 ]
 
@@ -2519,9 +2519,12 @@ def ordinal(n):
 
 
 def emit_invoice(c):
-    """One-off cover module (2026-07-24): a statement of account, addressed to
-    whoever leads the standings. Every line item is computed; nothing is
-    addressed to a hard-coded club."""
+    """Recurring module (debuted 2026-07-24; re-set as a paper document
+    2026-08-12): a statement of account, addressed to whoever leads the
+    standings. Emits the whole document — letterhead, addressee, dotted-leader
+    line items, the period's results as their own docket, the balance-due
+    band, and the terms fine print. Every value is computed; the stamp is the
+    edition's one hand-written word, per the t-note pattern."""
     s = c["st"][0]
     t = s["team"]
     py = pythag(s)
@@ -2536,51 +2539,83 @@ def emit_invoice(c):
         else f' <span class="muted">· {ordinal(pos)} hardest of {len(sos)}</span>'
     )
     afternoon_gs = [g for g in team_games(c["gpast"], t) if g["d"] > c["dprev"]]
-    res = " · ".join(
-        f'{g["result"]} {g["us"]}–{g["them"]} vs {team_label(g["opp"])}'
-        for g in afternoon_gs
-    )
     print(
         f"<!-- INVOICE (id invoice): statement of account for {team_label(t)}, "
         f"the standings leader -->"
     )
 
-    def item(label, value, cls=""):
-        print(
-            f'        <tr{cls}><td class="player">{label}</td>'
-            f'<td class="num">{value}</td></tr>'
-        )
+    def line(label, value):
+        print(f"        <div class=\"st-line\"><dt>{label}</dt><dd>{value}</dd></div>")
 
     mv_html = ""
     if c["ranks"]:
         was = c["ranks"][t]
         if was != s["rank"]:
             mv_html = f' <span class="muted">(was {ordinal(was)})</span>'
-    item(
+    print('<div class="statement">')
+    print(
+        '    <div class="st-head"><span class="st-brand">CP Softball · the desk '
+        f'of accounts</span><span class="st-no">Statement of account · the '
+        f'{c["pnoun"]} of {c["pdates"]}</span></div>'
+    )
+    print(
+        f'    <div class="st-to"><span class="st-tag">Billed to</span>'
+        f'<strong>{team_label(t)}</strong> — occupant, first place'
+        f'\n        <div class="st-stamp" aria-hidden="true"><!-- one hand-written stamp --></div>'
+        f"\n    </div>"
+    )
+    print('    <dl class="st-lines">')
+    line(
         "The standing",
         f'<strong>{ordinal(s["rank"])}</strong> of 12 · '
         f'{s["w"]}-{s["l"]}-{s["t"]}{mv_html}',
     )
-    item("Win percentage", A(s["win_pct"]))
-    item("Runs scored · runs allowed", f'{s["pf"]} · {s["pa"]}')
-    item("Pythagorean expectation", A(py))
-    item("League batting rank", f'{ordinal(brank[t])} at {A(bat[t])}')
-    item("Slate played to date (SOS)", f"{A(sosp)}{soft}")
-    item(f'The afternoon of {c["dcur"].strftime("%B")} {c["dcur"].day}', res)
+    line("Win percentage", A(s["win_pct"]))
+    line("Runs scored · runs allowed", f'{s["pf"]} · {s["pa"]}')
+    line("Pythagorean expectation", A(py))
+    line("League batting rank", f'{ordinal(brank[t])} at {A(bat[t])}')
+    line("Slate played to date (SOS)", f"{A(sosp)}{soft}")
+    print("    </dl>")
+    print('    <div class="st-games">')
+    print(
+        f'        <div class="st-games-label">Results on account · '
+        f'{len(afternoon_gs)} games</div>'
+    )
+    print("        <ul>")
+    res_cls = {"W": "win", "L": "loss", "T": "tie"}
+    for g in afternoon_gs:
+        print(
+            f'            <li><span class="st-res {res_cls[g["result"]]}">{g["result"]}</span>'
+            f'<span class="st-score">{g["us"]}–{g["them"]}</span>'
+            f'<span class="st-opp">vs {team_label(g["opp"])}</span></li>'
+        )
+    print("        </ul>")
+    print("    </div>")
     if c["prev_st"]:
         ps = next((x for x in c["prev_st"] if x["team"] == t), None)
         if ps is not None:
             pl = ps["win_pct"] - pythag(ps)
-            item(
+            print('    <dl class="st-lines">')
+            line(
                 f'Balance carried forward '
                 f'<span class="muted">(at {c["dprev"].strftime("%B")} {c["dprev"].day})</span>',
                 signed(pl, G(pl)),
             )
-    item(
-        "<strong>Balance due — luck, the gap between the record and the runs</strong>",
-        f'<span class="big">{signed(luck, G(luck))}</span>',
-        ' class="due"',
+            print("    </dl>")
+    print(
+        f'    <div class="st-due"><span class="st-due-label"><strong>Balance due</strong> '
+        f'<span class="muted">— luck, the gap between the record and the runs</span></span>'
+        f'<span class="st-due-amt">{signed(luck, G(luck))}</span></div>'
     )
+    print(
+        '    <p class="st-fine">Terms: luck = winning percentage minus the '
+        "Pythagorean expectation (defined under the standings) — a large "
+        "positive balance means winning games the run totals don't explain. "
+        "SOS played = the mean of each opponent's winning percentage in its "
+        "other games. Every line above is computed from the book; the desk "
+        "adds nothing but the stamp.</p>"
+    )
+    print("</div>")
 
 
 def emit_debits(c):
@@ -2724,7 +2759,7 @@ def emit_weeklies(c):
     print('<div class="weeklies">')
     b = aw["bat"][0]
     card(
-        "Bat of the Afternoon", b["name"], team_label(b["team"]),
+        f'Bat of the {c["pnoun"].title()}', b["name"], team_label(b["team"]),
         f'{week_line(b, html=True)} — <strong>{b["hae"]:+.1f} hits</strong> above '
         f'their own book (line {A(b["o"]["avg"])})',
         " · ".join(f'{r["name"]} {r["hae"]:+.1f}' for r in aw["bat"][1:3]),
@@ -2739,7 +2774,7 @@ def emit_weeklies(c):
     v = aw["vacuum"][0]
     card(
         "The Vacuum", v["name"], team_label(v["team"]),
-        f'+{v["dco"]} caused outs on a {week_line(v, html=True)} afternoon — '
+        f'+{v["dco"]} caused outs on a {week_line(v, html=True)} {c["pnoun"]} — '
         f'season total now <strong>{v["n"]["co"]}</strong>',
         " · ".join(f'{r["name"]} +{r["dco"]}' for r in aw["vacuum"][1:3]),
     )
@@ -2754,14 +2789,14 @@ def emit_weeklies(c):
     rate = A(ir["rate"]) if ir["rate"] is not None else "—"
     card(
         "The Iron Week", ir["name"], team_label(ir["team"]),
-        f'{week_line(ir, html=True)} — {rate}, the afternoon\'s biggest workload '
+        f'{week_line(ir, html=True)} — {rate}, the {c["pnoun"]}\'s biggest workload '
         f'(season AB {ir["o"]["ab"]} → {ir["n"]["ab"]})',
         " · ".join(f'{r["name"]} +{r["dab"]}' for r in aw["iron"][1:3]),
     )
     sw = aw["sweep"]
     card(
         "Clean Sweep", " · ".join(team_label(r["team"]) for r in sw) or "nobody",
-        "zero caused outs on the afternoon",
+        f'zero caused outs on the {c["pnoun"]}',
         " · ".join(f'{r["dh"]}-for-{r["dab"]}' for r in sw),
         "",
     )
@@ -2917,7 +2952,7 @@ def emit_clubhouse(c):
             f'{s["w"]}-{s["l"]}-{s["t"]} · GB {gb_str(c["gb"][t])} · '
             f'afternoon {arrow(mv)} · streak {c["stk"].get(t, "—")} · '
             f'luck {signed(luck, luck_txt)}</div>\n'
-            f'      <div class="c-line">The afternoon: {res} — '
+            f'      <div class="c-line">The {c["pnoun"]}: {res} — '
             f'{r["dh"]}-for-{r["dab"]}'
             + (f' · {r["dco"]} CO' if r["dco"] else "")
             + f' ({A(r["rate"])}) against a {A(r["line"])} season line</div>\n'
@@ -2966,8 +3001,9 @@ def emit_clubhouse(c):
             )
         print(
             f"      </tbody>\n      <caption>{team_label(t)}, player by player. "
-            f"Form reads the last three periods against the player's own line "
-            f"(↗ up, → flat, ↘ down, · sat).</caption>\n    </table>\n  </div>"
+            f"Form reads each period of the season against the player's own "
+            f"line, oldest first (↗ up, → flat, ↘ down, · sat).</caption>\n"
+            f"    </table>\n  </div>"
         )
 
 
@@ -3194,7 +3230,7 @@ def emit_records_board(c):
                 for h, _ in row["last_holders"]
             )
             extra = (
-                f' <span class="muted">this afternoon: '
+                f' <span class="muted">this {c["pnoun"]}: '
                 f'{fmtv(row["cat"], row["last"])} ({who})</span>'
             )
         print(
@@ -3254,26 +3290,29 @@ def emit_watch(c):
             )
 
 
-# Page order for the 2026-07-24 edition (The Ledger). ALIBI retired — the
-# audit was a one-off (emit_alibi stays defined in case the verdict ever
-# flips); INVOICE and DEBITS are this edition's one-off features. FULL
-# DOCKET returned 2026-07-30 (owner request) as the closing reference
-# table ahead of WATCH.
+# Page order for the 2026-08-07 edition (The Double Issue — the league
+# posted the Jul 31 and Aug 7 afternoons as one snapshot). The hand-written
+# front of book (notice, seventeen, thousand-club, eh-benchmark) sits above
+# CROWN and carries no emitters, per the bulletin precedent. INVOICE
+# recurs — the statement re-addresses itself to whoever leads the
+# standings, which is the whole gag; DEBITS recurs while the caused-out
+# epidemic lasts. ALIBI stays retired (emit_alibi defined in case the
+# verdict ever flips).
 AFTERNOON_EMITTERS = [
-    ("INVOICE", emit_invoice),
-    ("SCOREBOARD", emit_scoreboard),
-    ("DEBITS", emit_debits),
     ("CROWN", emit_crown),
+    ("SCOREBOARD", emit_scoreboard),
     ("WEEKLIES", emit_weeklies),
     ("RECORDS", emit_records_board),
-    ("ARCS SVG", emit_arcs_svg),
-    ("ARCS TABLE", emit_arcs_table),
+    ("DEBITS", emit_debits),
     ("REBOUND", emit_rebound),
     ("CLUBHOUSE", emit_clubhouse),
     ("STANDINGS", emit_standings_afternoon),
+    ("INVOICE", emit_invoice),
     ("GAUNTLET", emit_gauntlet),
     ("VALUE DESK", emit_value_desk),
     ("FULL DOCKET", emit_full_docket),
+    ("ARCS SVG", emit_arcs_svg),
+    ("ARCS TABLE", emit_arcs_table),
     ("WATCH", emit_watch),
 ]
 
@@ -3289,6 +3328,12 @@ def html_afternoon(snaps, games, st, prev_st):
     tw = team_week_rows(prev, cur, st, prev_st)
     nd, nby = next_afternoon(games, dcur)
     gpast = [g for g in games if g["d"] <= dcur]
+    # The period is usually one game day ("the afternoon of August 7") but the
+    # league can post two weeks at once (first case: 0807 = Jul 31 + Aug 7).
+    # Every emitter that names the period in visible text reads these.
+    pdays = sorted({g["d"] for g in completed(games) if dprev < g["d"] <= dcur})
+    pnoun = "afternoon" if len(pdays) <= 1 else "fortnight"
+    pdates = " and ".join(f'{d.strftime("%B")} {d.day}' for d in pdays)
     ctx = dict(
         snaps=snaps,
         dcur=dcur,
@@ -3301,6 +3346,8 @@ def html_afternoon(snaps, games, st, prev_st):
         games=games,
         gpast=gpast,
         afternoon=[g for g in completed(games) if dprev < g["d"] <= dcur],
+        pnoun=pnoun,
+        pdates=pdates,
         st=st,
         prev_st=prev_st,
         ranks={s["team"]: s["rank"] for s in prev_st} if prev_st else {},

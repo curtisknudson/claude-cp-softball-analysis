@@ -424,7 +424,9 @@ What stays stable underneath — the spine:
   Owner asked for the pressure tease OBLIQUE, never direct; if Cuervo re-enters the top
   four, the re-check-in is the story; **`blotter`** (after the cover) and **`in-memoriam`**
   (after the Divide) — the two `.record` cards of the conduct file (Tammy's ejection,
-  Gideon's bat — see the gag ledger); **`paternal-approval`** — "The Family Desk," Form 3B
+  Gideon's bat — see the gag ledger); **`citation`** (after the crown) — the Horatio
+  Williams proclamation, Citation Nº 1 (see the gag ledger for the grand-slam testimony
+  and the never-let-him-gloat rule); **`paternal-approval`** — "The Family Desk," Form 3B
   (the Ben/Charlie Williams father-son bit, on the invoice stationery — see the gag
   ledger; on the page it sits directly AFTER the Divide, closing the family suite);
   **`dewegeli-divide`** (briefly
@@ -604,6 +606,18 @@ revived, same meaning, as a recurring module.)
   Elliot (.548) serene, Gideon (a hit off the crown) splintering lumber. Track both bits
   honestly: ejection Nº 2 whenever it comes; Gideon's next fortnight is either "the new bat
   answers" or "the bat was not the problem."
+- **The Citation / Horatio Williams** (owner request 2026-08-12): **owner facts — Horatio hit
+  TWO GRAND SLAMS on the afternoon of August 7** (the book has no home-run column, so the
+  desk prints them as SWORN TESTIMONY, same device as the disclaimer — never fold them into
+  any computed number), **and he is saintly humble: won't say a bad word, would never gloat.
+  The standing rule: the desk gloats FOR him; never portray Horatio boasting, complaining,
+  or even accepting the praise** ("disputed only, and inevitably, by its honoree"). The form:
+  a berry-double-framed PROCLAMATION (id `citation`, `.citation`, placed after the crown) —
+  eyebrow "By order of the desk · Citation Nº 1," ornament row ❧ ❦ ❧, WHEREAS clauses
+  (numbers real: .780/#3, 14-for-17, most runs scored + fewest allowed, pyth .786 league
+  best), a NOW-THEREFORE resolve band, and an attest line. Numbered device — Citation Nº 2
+  awaits whoever earns it; if Horatio does something modest again, that is not news, that is
+  Tuesday.
 - **Sam Guy & Cuervo Timpson are BROTHERS** (owner fact, 2026-08-12) — different surnames,
   same club (Seth's team); never speculate in print about why the names differ. The 0807
   crown section is built on the fact: the fortnight one brother checked out of the leaders'

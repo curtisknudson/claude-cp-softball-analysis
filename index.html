@@ -1062,6 +1062,79 @@
                 color: var(--muted);
             }
 
+            /* ── the citation (a proclamation, berry-framed) ── */
+            .citation {
+                max-width: 640px;
+                margin: 44px auto 0;
+                border: 3px double var(--accent);
+                padding: 6px;
+                background: var(--paper);
+            }
+            .cit-inner {
+                border: 1px solid var(--accent);
+                background: var(--tint);
+                padding: 18px 26px 16px;
+                text-align: center;
+            }
+            .cit-eyebrow {
+                font-family: var(--mono);
+                font-size: 0.6rem;
+                letter-spacing: 0.2em;
+                text-transform: uppercase;
+                color: var(--accent);
+            }
+            .cit-orns {
+                color: var(--accent);
+                font-size: 1.25rem;
+                letter-spacing: 0.6em;
+                margin: 8px 0 2px;
+                line-height: 1;
+            }
+            .citation h2 {
+                margin: 4px 0 6px;
+                font-size: clamp(1.5rem, 4.5vw, 2rem);
+            }
+            .cit-sub {
+                margin: 0 0 12px;
+                font-style: italic;
+                color: var(--muted);
+                font-size: 0.9rem;
+            }
+            .cit-whereas {
+                list-style: none;
+                margin: 0;
+                padding: 0;
+                text-align: left;
+            }
+            .cit-whereas li {
+                margin: 10px 0;
+                font-size: 0.93rem;
+                line-height: 1.6;
+            }
+            .cit-whereas .w {
+                font-family: var(--mono);
+                font-size: 0.66rem;
+                letter-spacing: 0.14em;
+                text-transform: uppercase;
+                color: var(--accent);
+                margin-right: 4px;
+            }
+            .cit-resolve {
+                border-top: 1px solid var(--accent);
+                border-bottom: 1px solid var(--accent);
+                margin: 14px 0 10px;
+                padding: 10px 8px;
+                font-size: 0.96rem;
+                line-height: 1.6;
+            }
+            .cit-attest {
+                font-family: var(--mono);
+                font-size: 0.62rem;
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+                color: var(--muted);
+            }
+
             /* ── tickets (scoreboard entries) ── */
             .tickets {
                 display: grid;
@@ -1470,6 +1543,7 @@
                 <a href="#in-memoriam">In Memoriam</a><span class="sep">·</span>
                 <a href="#paternal-approval">The Family Desk</a><span class="sep">·</span>
                 <a href="#race">The Crown</a><span class="sep">·</span>
+                <a href="#citation">The Citation</a><span class="sep">·</span>
                 <a href="#scoreboard">Scoreboard</a><span class="sep">·</span>
                 <a href="#weeklies">The Weeklies</a><span class="sep">·</span>
                 <a href="#records">The Record Book</a><span class="sep">·</span>
@@ -1956,6 +2030,46 @@
                             left.
                         </caption>
                     </table>
+                </div>
+            </section>
+
+            <section id="citation" class="citation">
+                <div class="cit-inner">
+                    <div class="cit-eyebrow">By order of the desk · Citation Nº 1</div>
+                    <div class="cit-orns" aria-hidden="true">❧ ❦ ❧</div>
+                    <h2><a href="#citation">For Horatio Williams, who would never mention it</a></h2>
+                    <p class="cit-sub">Prepared without the subject's cooperation, which was withheld politely.</p>
+                    <ul class="cit-whereas">
+                        <li><span class="w">Whereas</span> the book records a
+                        .780 season — third in the league, an arm's reach
+                        from the crown — and a 14-for-17 fortnight, and
+                        every witness the desk could find reports the
+                        subject crediting, in order: his teammates, the
+                        weather, and the other team;</li>
+                        <li><span class="w">Whereas</span> his club has
+                        scored more runs than any in the league and allowed
+                        fewer per game than any in the league, and its
+                        captain has claimed credit for exactly none of
+                        it;</li>
+                        <li><span class="w">Whereas</span> two grand slams
+                        left his bat on the afternoon of August 7 — a fact
+                        the book keeps no column for and the man has no
+                        words for, so the desk prints sworn testimony where
+                        the statistics fail;</li>
+                        <li><span class="w">Whereas</span> the ledger's own
+                        arithmetic — a Pythagorean expectation of .786, the
+                        league's best — insists his club is even better
+                        than its standing, an argument the subject cannot
+                        be induced to make on his own behalf;</li>
+                    </ul>
+                    <p class="cit-resolve">
+                        <strong>Now, therefore, be it resolved:</strong>
+                        the desk will do the gloating he declines to do.
+                        Let the record carry the numbers, the testimony
+                        carry the slams, and the man carry on exactly as he
+                        is. So cited.
+                    </p>
+                    <div class="cit-attest">Attested by those present · disputed only, and inevitably, by its honoree</div>
                 </div>
             </section>
 

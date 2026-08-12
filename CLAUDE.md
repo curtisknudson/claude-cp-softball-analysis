@@ -33,6 +33,8 @@ the site.
 | `pyrightconfig.json` | `typeCheckingMode: "standard"` — 0 errors / 0 warnings must hold. basedpyright's default mode fires ~1,500 false `reportUnknown*` on this plain-dict script; standard is the right mode. Schema is enforced at **runtime** (loaders exit loudly) |
 | `CNAME` | GitHub Pages custom-domain file (`softball.best`) — never edit or delete |
 | `favicon.svg` · `apple-touch-icon.png` · `og.png` | Site chrome (og.png referenced absolutely as `https://softball.best/og.png` from every page's meta block). An edition MAY ship a special OG card as `og-YYYY-MM-DD.png` (first: `og-2026-07-24.png`, the "Ryan Hammon bat 1.000" tease, rendered with Pillow in the site palette scanned from og.png) — only that edition's index points at it; when the edition archives it keeps its card, and the next index reverts to og.png unless it ships its own |
+| `dewegeli.png` | **The site's first content photograph** (owner-supplied 2026-08-12): Karl Franz Dewegeli Jr., 190×343 — the portrait framed in the Dewegeli Divide module (`.divide-fig`). Keep it when the edition archives; never crop, filter, or re-encode it |
+| `yggr-og.png` | The **house-ad card** (1200×630, downloaded from yggr.xyz/images/og.png, 2026-08-12): "yggr — coffee for sats," the owner's company. Used by every `.adv` unit; self-hosted on purpose — never hotlink it |
 
 ## The data
 
@@ -50,12 +52,28 @@ Facts that hold for every snapshot (the script asserts them and dies loudly if v
   **Never match players by name across snapshots** — names get corrected between uploads
   (known case: "Williams Moroni" → "Musser, Moroni", Pliggas R6). The script flags joined rows
   whose names disagree.
+- **Players can be REPLACED mid-season; the (team, pick) slot carries on** with its cumulative
+  counters (known case, owner-confirmed 2026-08-12: Layla Hammon left the league and Emmerson
+  Hammon took the Slamma Jammas R10 slot — surfaced at 0807, where the slot's season line mixes
+  both players; the 0724→0807 delta, 3-for-9, is Emmerson's play). So a cross-snapshot name
+  mismatch is either a site-side correction or a replacement — ask Curtis which before anything
+  prints. The slot's draft price bought the ORIGINAL pick; a replacement inherits the ledger,
+  not the draft verdict — say so if their value line ever prints. (The site spells the new
+  player "Emmerson"; the CSVs transcribe the site.)
 - Surnames can be two words and given names multi-token; in the no-comma schema you cannot split
   names on whitespace — the script recovers the split by joining on (team, pick).
 - Team names carry a "The " prefix except "Youre Saying Theres A Chance".
 - **Display averages transcribe the FILE, never a recompute** — the site rounds half **up**
   (13-for-16 = .8125 prints **.813**); Python's round-half-even says .812. `disp()` in
   analysis.py exists for exactly this; the page must never show a .812-style artifact.
+
+**The 0807 snapshot is a DOUBLE WEEK (the asterisk):** the league posted two weeks of stats at
+once — the Jul 31 and Aug 7 afternoons — and no snapshot exists between them; per Curtis it is
+filed as `0807-*.csv`. Every 0724→0807 "period" stat therefore pools TWO afternoons (four games
+per club, roughly double the usual AB volume). The schedule still carries per-game scores, but
+batting cannot be attributed to either afternoon separately — never invent a per-afternoon
+split, and say the two dates (not "the afternoon of Aug 7") when that period's numbers print.
+Scale AB gates and any per-afternoon framing accordingly when the 0807 edition builds.
 
 ## Harvesting stats (source: https://cpsoftball.com/stats.php)
 
@@ -82,8 +100,10 @@ Facts that hold for every snapshot (the script asserts them and dies loudly if v
 
 First harvested 2026-07-24 as `0717-schedule.csv` — **all 120 season games** (72 completed
 through Jul 17 + the full future slate: Jul 24, Jul 31, Aug 7, Aug 14). Game days so far (all 2:30–7:30 PM):
-Jun 5, 12, 19, Jul 3, 10, 17 — note there were NO games the week of Jun 26, so snapshots and
-afternoons don't align 1:1; trust the date inventory, not assumptions. Each game day: 12 games,
+Jun 5, 12, 19, Jul 3, 10, 17, 24, 31, Aug 7 (Aug 14 remains) — note there were NO games the
+week of Jun 26, and the 0807 stats snapshot covers TWO game days (see the double-week note in
+The data), so snapshots and afternoons don't align 1:1; trust the date inventory, not
+assumptions. Each game day: 12 games,
 two fields (North/South), 2:30–7:30 PM, every club playing twice. **The session is an
 AFTERNOON, never "the night"** (owner's correction, 2026-07-24 — this edition briefly shipped
 in the working tree as "the Night Final" and was renamed before publishing).
@@ -166,8 +186,11 @@ Hammon #24, Sean Hammon #140, **Becky Wood #144 — the last pick of the draft**
 (swaps in the best-value woman from the cheapest rounds, tags `· coed`; prints `legal as-is`
 when no swap needed — true on 2026-07-17: Maureen Williams and Jayla Dockstader make it on
 value). Gender via `FEMALE_GIVEN`. **Confirmed male despite ambiguous names: Taylor (Timpson)
-and Riley (Barlow).** If Avery, Kendall, Sidney, Leslie, or J Daunt ever matter for the rule,
-ask Curtis; never guess a gender into print.
+and Riley (Barlow).** If Avery, Kendall, Sidney, Leslie, J Daunt, or Emmerson (Hammon, Slamma
+Jammas R10 — a NEW player who replaced Layla Hammon when she left the league, per Curtis
+2026-08-12) ever matter for the rule, ask Curtis; never guess a gender into print. ("Layla"
+stays in `FEMALE_GIVEN` — she was real and appears in pre-0807 snapshots; the Slamma Jammas
+stay coed-legal either way: Maureen Williams and Alyssa Zitting.)
 
 ## Analysis conventions
 
@@ -255,9 +278,34 @@ the June/July archives.)
 
 What stays stable underneath — the spine:
 
-- **Masthead** with kicker (source · data date · compiled date), edition nav linking every
-  archive, and a one-paragraph methodology sub naming the adjusted average. **GoatCounter**
-  before `</body>`. A compact contents nav.
+- **Masthead** with kicker (source · data date · compiled date). **Owner amendment
+  2026-08-12: the masthead carries NO methodology sub and NO editions nav** — the masthead
+  runs kicker → nameplate → sponsor strip and gets straight to the sections; the
+  methodology lives only in the footnote, and the editions nav sits at the BOTTOM of the
+  page (directly above the footnote), where the footnote's editions list also remains.
+  **GoatCounter** before `</body>`. A compact contents nav.
+- **House advertisements** (standing feature, owner request 2026-08-12): `.adv` units for
+  **yggr — coffee for sats** (the owner's coffee company, https://yggr.xyz; card image
+  `yggr-og.png`), placed roughly every three sections with the last one after `watch` as the
+  classic back-cover ad (six placements at debut). Rules: every unit wears the honest
+  "Advertisement" eyebrow — the labeling IS part of the joke; copy is desk-voiced and riffs
+  on the neighboring section; **no digits in ad copy** (keeps the de-dup and display gates
+  clean); **never claim a player endorses the product**; the one standing disclosure lives in
+  the invoice-adjacent ad ("bitcoin-priced coffee from the editor's other desk … the desk
+  drinks the inventory"). Write FRESH copy each edition — same-y test applies to ads too.
+  Ads archive with their edition: period advertising is part of the artifact. The masthead
+  also carries a **presenting-sponsor strip** (`.sponsor`, berry-ruled, directly under the
+  nameplate; owner request 2026-08-12): the yggr card image at ~136px beside an eyebrow
+  ("This Double Issue is presented by") and the line "yggr · coffee for sats — the paper is
+  free; the coffee is priced in bitcoin." The whole strip is one link. Re-word each edition
+  ("presented by" is the constant; the quip rotates), swap the edition name in the eyebrow.
+  **COPY RULE (owner, 2026-08-12): never write "bean(s)" in any yggr copy — it is always
+  "coffee."** **Informative beats (owner, 2026-08-12): the ads must carry, spread ONE per ad
+  so the one-liners stay primary: (1) checkout is quick/easy — "a few clicks"; (2) a Cash
+  App holding bitcoin checks out in a few taps; (3) payment rides the Bitcoin Lightning
+  Network; (4) local delivery is free; (5) the myth-buster — people see "bitcoin" and assume
+  they can't check out, and they can ("if you can read a box score, you can check out").**
+  Rotate which ad carries which beat each edition.
 - **The anchor contract:** `race`, `standings`, `records`, `watch`, and `dream-team` exist on
   every edition, whatever form their sections take. Every table carries an h3 anchor. Module
   ids that recur keep their names across editions (`scoreboard`, `weeklies`, `arcs`, `rebound`,
@@ -354,6 +402,67 @@ What stays stable underneath — the spine:
   The id came OFF the retired list — same meaning as its archive appearances, so the
   revival is legal; the masthead sub no longer lists the docket as resting. When this
   edition archives, the docket stays (season reference, not foreshadowing).
+- **2026-08-07 — THE DOUBLE ISSUE** (built 2026-08-12): newsweekly combined number
+  ("Combined Nº 6–7 · Two afternoons, one paper") for the league's two-weeks-at-once posting.
+  Identity: condensed display caps (`--display: Avenir Next Condensed…`) over the house serif,
+  berry accent, doubled rules; background + arc tokens unchanged (palette stays valid). A
+  **"Notice to Subscribers"** box (id `notice`, above the contents nav) carries the apology gag
+  AND the methodology asterisk in one breath: fortnight figures pool Jul 31 + Aug 7;
+  per-afternoon splits do not exist. analysis.py emitters became **period-aware** (`pnoun` /
+  `pdates` in the html ctx — visible text says "fortnight" when the period spans 2+ game days
+  and auto-reverts to "afternoon" next single-Friday edition). Hand-written front of book:
+  **`seventeen`** (the cover, one-off) — Michael Williams 17-for-17 · 1 CO = .941, with
+  `.cover-tiles` stat tiles; **`thousand-club`** (bulletin, now recurring) — Nathan Knudson's
+  punched card beside Mike's 17-punch card stamped VOID; **`departures`** (one-off, could
+  recur when a long tenure ends) — "The Departures Desk," headline **"Cuervo's Crashout"**
+  (owner's title, 2026-08-12 — the one place the tease is allowed to be loud; the prose stays
+  oblique), a hotel-register bit for Cuervo Timpson's fall from the leaders' table: a
+  `.reg-strip` of five rank tiles (Jul 3 #1 crown ·
+  Jul 10 #1 crown · Jul 17 #4 · Jul 24 #3 · Aug 7 #7 checked-out, debit-tinted) over one
+  short dek — "no incident on file, luggage carried without assistance, forwarding address
+  of seventh… The suite above is now available. The pressure is included in the rate."
+  Owner asked for the pressure tease OBLIQUE, never direct; if Cuervo re-enters the top
+  four, the re-check-in is the story; **`blotter`** (after the cover) and **`in-memoriam`**
+  (after the Divide) — the two `.record` cards of the conduct file (Tammy's ejection,
+  Gideon's bat — see the gag ledger); **`paternal-approval`** — "The Family Desk," Form 3B
+  (the Ben/Charlie Williams father-son bit, on the invoice stationery — see the gag
+  ledger; on the page it sits directly AFTER the Divide, closing the family suite);
+  **`dewegeli-divide`** (briefly
+  `eh-benchmark` in the working tree — renamed before publishing, owner request 2026-08-12) —
+  the benchmark re-chartered from Mike (vacated at .705) to **Elliot Hammon, .548** — also
+  captain, R1, SS, so the charter transferred intact — and renamed **the Dewegeli Divide**
+  for his great-grandfather, with the Karl Franz Dewegeli Jr. portrait (`dewegeli.png`)
+  framed beside the honor roll (`mw-benchmark` id now resolves only in the 07-24 archive;
+  never reuse it). Registry order: crown, scoreboard (24 tickets split into
+  `scoreboard-jul31` / `scoreboard-aug7` date groups), weeklies, records, debits (recurring
+  while the CO epidemic lasts), rebound (+ the Becky Wood charter note), clubhouse, standings,
+  **invoice (now recurring — "second notice," auto-addressed to whoever leads)**, gauntlet,
+  value, full-docket, arcs (6 snapshots; emphasis reassigned Jeremy/Stafford/Horatio =
+  arc-1/2/3, page-CSS only), watch (the Aug 14 season finale — the Jeremy–Caleb 3:30 pennant
+  decider — plus the Disclaimer vow honored with a dry callback linking
+  `2026-07-24.html#the-disclaimer`). **The invoice was REDESIGNED mid-edition (owner request,
+  2026-08-12): `emit_invoice` now emits a full stationery document** — letterhead, "Billed
+  to" addressee, dotted-leader `dl` line items, a **results-on-account docket** (one chip
+  per game — this is what fixed the old layout, which crammed all four results into one
+  nowrap table cell and broke on both desktop and mobile), the balance-due band, and terms
+  fine print; the rotated stamp is the module's one hand-written word per the t-note pattern
+  (`<!-- one hand-written stamp -->`; this edition: "Second notice", in debit red at the
+  house −6°). Future editions inherit the document form; the 07-24 archive keeps the old
+  table markup, frozen. The records section referees the double week honestly:
+  workload +46 (Stafford) broke a mark itself set across June's two-Friday block —
+  like-for-like; team CO +16 (Ellites) broke a single-afternoon mark — the real asterisk.
+  Clubhouse Form now shows every period (five glyphs; emitter caption made count-agnostic).
+  **The edition ships its own OG card, `og-2026-08-07.png`** (owner request, 2026-08-12): the
+  Dewegeli Divide tease — Karl's framed portrait at left, the dashed Divide diagram at right
+  (honor roll above the line, "Elliot Hammon — R1, captain, shortstop" below it), footer "He
+  crossed an ocean so he could watch this." Rendered with Pillow (scratchpad venv — Pillow is
+  NOT installed system-wide) in the Double Issue palette; fonts Avenir Next Condensed Heavy /
+  Menlo / Georgia Italic; og:image + twitter:image point at it. Revert to og.png next edition
+  unless it ships its own card; the card stays with this edition when it archives. **House
+  ads debut this edition** (six `.adv` units for yggr — see the standing-feature bullet in
+  the spine). When this edition archives: delete `watch` only (the back-cover ad after it
+  moves up to close the page); the notice, cover, bulletin, divide, Form 3B, debits, invoice,
+  gauntlet, docket, portrait, and ads all stay.
 
 **Retired ids** (pre-2026-07-17; they resolve in the archives, never reuse for new meanings):
 `the-week, week-bats, temperature, glance, draft-board, sleepers, teams, second-look,
@@ -369,8 +478,16 @@ revived, same meaning, as a recurring module.)
 - **The caused-out tragedy** (Gideon's team): act four (2026-07-17) was "a remission" — +3 on
   the afternoon, season 24 still league-worst. Act five (2026-07-24): +1, tied for the day's
   gentlest line — "the remission entered its second week" — season 25 still league-worst.
-  Track act six honestly; remissions end or hold.
+  **Act six (2026-08-07): the remission held (+5, gentlest among the big-volume clubs) and the
+  disease found two new hosts — the season board is now a THREE-WAY tie at 30 (Gideon's,
+  Elliot's, Michael's clubs), with Elliot's club setting the +16 fortnight record on the way
+  in. "The original patient is merely tied for worst, which the desk supposes is what recovery
+  looks like around here."** Act seven: the tie breaks one way or the other; report it
+  straight.
 - **The recusal bit** (Curtis Knudson, site owner): budget ≤ 2 per edition, vary the wording.
+  2026-08-07 spends: the crown notes (he sits fifth at the fourth-place average on the same
+  at-bats — "the desk prints the coincidence and vacates the paragraph") and the Dream Team R2
+  seat he now holds ("publish the table and exit the paragraph. He has.").
   2026-07-17 used "declines to recuse himself" (crown chase) and "offers no further comment"
   (dynasty). 2026-07-24 used the debits page (13-for-14 · 3 CO — "entered under assets and
   liabilities alike; he declines to recuse himself from either column") and the dynasty note
@@ -385,32 +502,40 @@ revived, same meaning, as a recurring module.)
   the cause of death." The file stays closed; cite the audit rather than reopening it.
   2026-07-24: he REBOUNDED in the ledger (3-for-6, .500 vs his .429) — handled in one dry
   line ("the desk notes the pulse and moves on"), file still closed. A .500 afternoon is not
-  a second act.
+  a second act. 2026-08-07: another 3-for-6 .500 fortnight — passed in TOTAL SILENCE (silence
+  is a valid handling; the file needs no annual report).
 - **Becky Wood, #144**: "still technically a bargain" is now "doing heavy lifting" (0-for-5,
   #139). 2026-07-28: the audit found she has also faced the league's softest slate (12.36 opp
   RA/G, most generous among 15+ AB regulars) — "no alibi in either direction." 2026-07-24:
   1-for-4, swing exactly .000 against her own .250, rank #141 — "files another extension."
-  Keep tracking; never invent numbers for her.
-- **The invoice** (Stafford's team's luck): opened +.243 (July 10), first installment
-  collected 2026-07-17 (+.200, slid #2→#4). **2026-07-24 — THE PAYOFF: re-inflated to +.220
-  AND took first place** (2-0 day, the 11–10 escape past Caleb's club; SOS played .423,
-  softest in the league) — the whole edition ("The Ledger") was built around the bill.
-  Each edition: pay it down or re-inflate it, with the actual Luck number. The rematch
-  collateral: Caleb–Stafford twice more (Jul 31, Aug 14), Jeremy–Stafford never yet met
-  (first meeting Jul 31).
-- **New seeds from 2026-07-17**, updated 2026-07-24: "the league owes Ephraims Daniel's club"
-  — PAID AGAIN (luck −.233 worst in book; batted .627, second-best of the day, and went 0-2
-  to run the slide to five). Jeremy's team "the quietest hot team" — the bill came due:
-  streak stretched to a record 7 then snapped the same afternoon, season line down .621→.576
-  while the standings barely noticed. "The 1.000 club is closed" — REOPENED 2026-07-24 with
-  two members (Gideon Hammon 6-for-6, Ryan Hammon 7-for-7); the club now opens and closes by
-  the week, and got its own front-of-book bulletin box (`thousand-club`) at the owner's
-  request (2026-07-29). **Owner fact: Ryan Hammon is over 40** — the bit is the forty-plus
-  elder running circles around the young guys, prouder of the 1.000 than of the birthdays.
-  Keep the age qualitative ("forty-plus") unless Curtis ever supplies a number. New seed:
-  **the Cawley family record** — .800, best family week ever, set by a
-  family of three with one bat swinging (Lorenzo 4-for-5; Seth and Sophia sat) — the
-  smallest-family absurdity is the bit; keep it honest.
+  2026-08-07: 1-for-7, season down to .226, rank #141 — the bit now lives in the rebound
+  notes as the "tracked by charter" clause ("'still technically a bargain' survives on the
+  technicality alone — she still out-ranks three names in the book"). Keep tracking; never
+  invent numbers for her.
+- **The invoice** (the luck account — now attached to the CHAIR, not the man): opened +.243
+  on Stafford's club (July 10), installment collected 2026-07-17 (+.200), re-inflated to
+  +.220 with first place attached 2026-07-24. **2026-08-07 — COLLECTED AND TRANSFERRED:**
+  Stafford's club dropped 3 of 4 (lost the Caleb rematch 8–7 AND the first-ever Jeremy
+  meeting 16–10), fell #1→#5, balance written down to +.094 — and the statement re-issued
+  itself to the new leaders: Jeremy's club, luck +.149 (league's highest), SOS played .421
+  (league's softest). "The first invoice in league history to follow the chair rather than
+  the man." The module is now RECURRING (emit_invoice auto-addresses the standings leader).
+  Collateral on file: Jeremy–Caleb meet head-to-head Aug 14 3:30 South, ½ game apart — the
+  pennant decider; Stafford–Caleb close their season series at 2:30 the same day.
+- **New seeds from 2026-07-17**, updated 2026-08-07: "the league owes Ephraims Daniel's club"
+  — AN INSTALLMENT PAID: two wins in the fortnight (as many as the whole season prior),
+  including the 17–15 UPSET of then-#1 Stafford's club ("the desk records a payment"); luck
+  still league-worst −.156, so the debt survives. Jeremy's team "the quietest hot team" —
+  RESOLVED LOUD: 4–0 fortnight, took first place #5→#1 while captain/SS Boyds Jeremy sat
+  every game (the Ghost at rank #13) — new seed: **"took first from the bench."** "The 1.000
+  club": 2026-08-07 membership = Nathan Knudson alone (6-for-6 — the cramping brother; the
+  physio-desk crossover is the bit) with Michael Williams DENIED at the door (17-for-17 ·
+  1 CO = .941 — the VOID card, longest application in club history); Gideon's and Ryan's
+  memberships lapsed silently. The bulletin box is now a recurring module. **Owner fact:
+  Ryan Hammon is over 40** — keep the age qualitative ("forty-plus") unless Curtis supplies
+  a number. **The Cawley family record** — .800 HELD at 2026-08-07 while the same three
+  Cawleys finished the fortnight dead last among the nine families ("both facts in the same
+  drawer"); the smallest-family absurdity is the bit; keep it honest.
 - **The Disclaimer** (2026-07-24 edition, owner facts 2026-07-29): in the Jul 24
   Horatio-vs-Claude upset (the 3:30 South game, 7–5), **the umpire ruled a home run foul;
   the batting club objected; SOME on the other team agree it was a bad call; the umpire
@@ -426,20 +551,73 @@ revived, same meaning, as a recurring module.)
   never dramatized); the score/standings/data NEVER change — the ledger prints the game as officiated and
   the testimony beside it. The note ends with a standing vow to re-raise the matter "in
   every future edition in which these two clubs appear on the same line" — HONOR IT: any
-  future Horatio-vs-Claude line gets a dry callback.
-- **The Mike Williams Benchmark** (debuted 2026-07-24 as "The Williams Line," renamed same
-  day at the owner's request): the Mendoza-Line parody — a "league benchmark" set at Michael Williams's season average (.556 at debut;
-  R1, captain, SS), with an honor-roll table of every confirmed woman batting above it
-  (women rows shaded, a dashed `.wline` row draws the benchmark, Mike sits muted beneath as
-  "the benchmark"). At debut: Violet Barlow (.655), Maureen Williams (.615), Deborah
-  Timpson (.571 — the owner asked for Debbie by name). **Framing mandate: FEMALE
-  EMPOWERMENT** — celebrate the women (the Violet/Maureen top-two-underdrafted fact is the
-  engine), crack wise at Mike gently; never "batting better than a girl" energy. The SS
-  courtesy is extended per house rule, with the kicker "Debbie Timpson does not need it."
-  Selection is computed from `FEMALE_GIVEN` + rank above Michael's — **Sidney Dockstader
-  and Leslie Williams (both on Michael's OWN roster) also sat above the line at debut but
-  are on the never-guess-gender list; ask Curtis before ever adding them.** If the bit
-  recurs, the benchmark moves with Mike's average — recompute honestly.
+  future Horatio-vs-Claude line gets a dry callback. **Honored 2026-08-07** (the clubs share
+  the Aug 14 5:30 line in `watch`; the callback links `2026-07-24.html#the-disclaimer` and
+  re-states the "calm entirely unrelated to which club the editor bats for"). NOTE: they
+  actually PLAY Aug 14 — the season-final edition's scoreboard ticket for that game must
+  carry the callback too.
+- **The Benchmark / THE DEWEGELI DIVIDE** (debuted 2026-07-24 as "The Williams Line," renamed
+  the Mike Williams Benchmark same day; re-chartered 2026-08-07 to Elliot Hammon's .548;
+  **renamed THE DEWEGELI DIVIDE at the owner's request, 2026-08-12** — after **Karl Franz
+  Dewegeli Jr., Elliot's great-grandfather, an Ellis Island immigrant** (owner facts +
+  photo supplied same day; canonical spelling "Karl Franz Dewegeli Jr." — the owner's message
+  contained typo variants, do not propagate them). Elliot's name stays prominent: he DRAWS the
+  Divide (h2, wline row, bench row all carry him); the module id is `dewegeli-divide`
+  (`eh-benchmark` was renamed before ever publishing — it never shipped, so it is not a
+  retired id). The portrait (`dewegeli.png`, `.divide-fig`, floated right / centered on
+  mobile) runs with the Ellis Island caption: the brave ancestor who crossed an ocean for his
+  posterity "now keeps his appointed watch over the divide that bears the family name,
+  checking in … on how his great-grandson Elliot is coming along at the plate. The desk
+  prints the figure below and lets the family settle it privately." Tone: the ancestor is
+  treated with full reverence — ALL the teasing lands on Elliot; never mock Karl, the
+  immigration, or the family. Elsewhere on the page the bit's handle is "the Divide" /
+  "draws the Divide."): the Mendoza-Line parody — a "league benchmark"
+  set at the season average of the league's lowest-batting FIRST-ROUND pick, with an
+  honor-roll table of every confirmed woman batting above it (women rows shaded, a dashed
+  `.wline` row draws the benchmark, the namesake sits muted beneath as "the benchmark").
+  Mike Williams vacated by batting 17-for-17 and rising to .705/#17 — "the benchmark is
+  dead; long live the benchmark"; the succession itself is now part of the bit ("the
+  instrument survives its founder"). Elliot is ALSO captain + R1 + SS, so the charter
+  transferred intact. Elliot-specific material used 2026-08-07 (don't repeat, escalate):
+  drafted himself #4 overall; the only R1 pick with negative value (−0.7); his club set the
+  +16 CO record and tied the season-worst 30. Honor roll at re-charter: Violet .585,
+  Deborah .571, Maureen .568. **Framing mandate: FEMALE EMPOWERMENT** — celebrate the women
+  (the discount-round engine), tease the namesake with warmth ("Encouraging precedent,
+  freely offered" — Mike's escape is the roadmap). SS courtesy extended per house rule,
+  kicker "Debbie Timpson does not need it" is tradition now. Selection = `FEMALE_GIVEN` +
+  rank above the namesake's — **Sidney Dockstader and Leslie Williams sat above the line
+  again at 0807 but stay OFF (owner's explicit call, 2026-08-12: "leave them off"; still on
+  the never-guess list).** The benchmark moves with its namesake's average — and the
+  namesake itself changes whenever a new R1 pick bats lowest; recompute both honestly.
+- **The conduct file** (both entries owner-supplied 2026-08-12, both from GIDEON'S clubhouse —
+  the pattern line is part of the bit): **(1) Tammy Williams took the season's FIRST
+  EJECTION** — no particulars supplied; never invent when/why/which game; the desk "records
+  the milestone, not the particulars, which remain between her and the umpire" (id
+  `blotter`, a `.record` card with debit trim, placed right after the cover). **(2) Gideon
+  Hammon BROKE HIS BAT in anger** — and **Gideon is Elliot's OLDER BROTHER**, making him
+  Karl Franz Dewegeli Jr.'s great-grandson too (owner authorized the rope-in). Filed as an
+  equipment OBITUARY (id `in-memoriam`, `.memorial` — a proper black-bordered mourning
+  notice, prettied at owner request 2026-08-12: 5px black band + inner hairline, centered,
+  berry printer's ornament ❦, and the punchline promoted to a ruled EPITAPH band — "It had
+  done nothing wrong — the average is the proof"; placed directly after the Divide).
+  The standing joke: **composure in the Hammon line runs inverse to batting average** —
+  Elliot (.548) serene, Gideon (a hit off the crown) splintering lumber. Track both bits
+  honestly: ejection Nº 2 whenever it comes; Gideon's next fortnight is either "the new bat
+  answers" or "the bat was not the problem."
+- **Sam Guy & Cuervo Timpson are BROTHERS** (owner fact, 2026-08-12) — different surnames,
+  same club (Seth's team); never speculate in print about why the names differ. The 0807
+  crown section is built on the fact: the fortnight one brother checked out of the leaders'
+  table (Cuervo's Crashout), the other took the batting crown while their club went 0-4.
+  The section's devices, both reusable: the **crown-hero card** (`.crown-hero` — huge display
+  name + the average in accent, chips beneath: club / AB / 0 CO all season / hardest slate)
+  and **THE WIRE** (`.wire` — a telegram "as received": TO the clubhouse, COPY to "Mr. C.
+  Timpson — family; lately of the leaders' table"; body in caps with berry STOPs — "GETTING
+  ON BASE REMAINS LEGAL AND POSSIBLE STOP … NO FURTHER INSTRUCTIONS, ONLY THE EXAMPLE STOP").
+  **Rule for invented artifacts: the footer must say the desk wrote it** ("Mr. Guy sent no
+  actual wire; the batting was considered sufficient") — same principle as the invoice stamp
+  and the physio statuses: numbers real, paperwork editorial, stated as such. h2 is
+  deliberately declarative ("Sam Guy is the best bat in this league. It's official.") —
+  owner wanted the emphasis loud, 2026-08-12.
 - **The Trainer's Table** (debuted 2026-07-24, owner request 2026-07-29): the editor's
   brothers teased as men of eighty outperforming their charts — **owner facts: Derrick
   Knudson has a weak ankle; Nathan Knudson cramps constantly; Levi Knudson is heavier set
@@ -449,14 +627,45 @@ revived, same meaning, as a recurring module.)
   tasteless" — keep it kind; the caption's "the batting is real; the medicine is editorial"
   is the standing disclaimer. Statuses (DAY-TO-DAY / PROBABLE / QUESTIONABLE / SUSPICIOUSLY
   FIT) are the desk's own. Recurring only if Curtis feeds it; escalate the charts honestly
-  (a bad afternoon = a setback in physio, a hot one = medically unexplained).
+  (a bad afternoon = a setback in physio, a hot one = medically unexplained). 2026-08-07: no
+  standalone section (no new owner material) — recurred via callbacks only, and they landed
+  big: **Sam Guy, the control group, TOOK THE BATTING CROWN** ("the file stays open; the
+  chart stays blank; the suspicion stays warranted"), and Nathan Knudson's 6-for-6 made him
+  the 1.000 Club's sole member ("upgraded to medically unexplained"). Levi's setback
+  (5-for-11, −.269 swing) went unremarked — banked for the ward's next convening.
+  **New owner facts (2026-08-12): Nathan is the owner's brother, and Derrick is Nathan's
+  OLDER (and more injured) brother.** The sibling-rivalry seed planted this edition: Nathan's
+  perfect fortnight vaulted him past Derrick for the first time the desk can see — they now
+  sit ADJACENT in the league table (#21/#22 at 0807; at 0724 it was Derrick #15, Nathan #30) —
+  card field "Next of kin: Derrick Knudson, older brother — #22, one rung down at last."
+  The cramping rhetoric is now the UNION-SHOP bit (muscles staging "whole-body work stoppages
+  without notice … and management batted a flawless fortnight anyway"; medical file: "cramps —
+  whole-body, unannounced, and 0-for-6 at stopping him"). Standing line to honor and escalate:
+  **"Membership, like family seniority, is reviewed weekly"** — track the brothers' order
+  every edition now; if Derrick retakes the rung, that is the story.
 - **Charlie Williams** (Charles Williams, Stafford's team): **born 1958** — owner-supplied
   2026-07-29, correcting an earlier "65"; he's 67–68 in the 2026 season, so if his age ever
   prints, write "born 1958" / "b. 1958" rather than guessing which side of his birthday he's
   on. The elder-statesman engine alongside Ryan Hammon — league-leading workloads in his
   late sixties. (A prescription-pad physician bit that debuted alongside this fact was
   scrubbed from the edition and from this file at the owner's request, 2026-07-30 — do not
-  revive it, and print no family links for Charlie beyond the surname-based dynasty ledger.)
+  revive it; no medical bits for Charlie, ever.) **Family-links rule AMENDED 2026-08-12:**
+  the owner supplied one link — **Ben Williams (Boyds Daniel's team, 3B) is Charlie's SON** —
+  and it is fair game (see "A Father's Disappointment" below). No OTHER family links for
+  Charlie may be printed or inferred beyond the surname-based dynasty ledger.
+- **A Father's Disappointment / Form 3B** (debuted 2026-08-07 edition, owner request
+  2026-08-12): the family desk's "application for paternal approval" — Ben Williams,
+  applicant; Charles Williams, reviewing officer. **Owner facts: Ben is Charlie's son; Ben
+  showed up to play IN JEANS; Ben plays THIRD BASE** (positions aren't in the data — 3B is
+  owner-supplied; the form number "Form 3B" is the joke). Built on the invoice stationery
+  (`.statement` classes reused; stamp "SEE ME"; finding "WITHHELD" in the due band).
+  Conditions for reapplication, per the owner: bat better (nearer the family line) and hold
+  "a position of greater consequence than third base"; the fine print adds "trousers."
+  Tone rules: ALL teasing lands on Ben; Charlie is never quoted and never files —
+  the standing line is "the father has filed nothing, and did not need to" (same
+  no-invented-attitudes principle as the umpire). Track honestly: if Ben's line climbs
+  toward Charlie's, the form gets re-reviewed on the page; the jeans remain a permanent
+  exhibit either way.
 - **The schedule alibi is dead** (2026-07-28 audit): the league batted *better* against the
   harder slates. If a club or player blames the schedule in a future edition, cite the audit
   ("the alibi desk settled this in July") instead of re-running it — unless the verdict has

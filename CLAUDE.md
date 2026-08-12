@@ -635,9 +635,13 @@ revived, same meaning, as a recurring module.)
   (5-for-11, −.269 swing) went unremarked — banked for the ward's next convening.
   **New owner facts (2026-08-12): Nathan is the owner's brother, and Derrick is Nathan's
   OLDER (and more injured) brother.** The sibling-rivalry seed planted this edition: Nathan's
-  perfect fortnight vaulted him past Derrick for the first time the desk can see — they now
-  sit ADJACENT in the league table (#21/#22 at 0807; at 0724 it was Derrick #15, Nathan #30) —
-  card field "Next of kin: Derrick Knudson, older brother — #22, one rung down at last."
+  perfect fortnight vaulted him past Derrick — they now sit ADJACENT in the league table
+  (#21/#22 at 0807; at 0724 it was Derrick #15, Nathan #30). **The rung has TRADED all
+  season** (Nathan above at 0612 and 0710; Derrick above at 0703, 0717, 0724) — never print
+  "first time"; the prose says "retaking a family rung the two have traded all summer," and
+  the dek names Derrick EXPLICITLY (readers were confused by the unnamed-brother version;
+  owner fix 2026-08-12). Card field: "Next of kin: Derrick Knudson, older brother — #22,
+  one rung down this edition."
   The cramping rhetoric is now the UNION-SHOP bit (muscles staging "whole-body work stoppages
   without notice … and management batted a flawless fortnight anyway"; medical file: "cramps —
   whole-body, unannounced, and 0-for-6 at stopping him"). Standing line to honor and escalate:

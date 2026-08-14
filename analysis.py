@@ -20,8 +20,12 @@ column to catch format drift.
 """
 
 import argparse
+import bisect
 import csv
+import dataclasses
 import datetime
+import itertools
+import json
 import math
 import re
 import statistics
@@ -1405,6 +1409,254 @@ def alibi_verdict(snaps, games, st):
     )
 
 
+# ---------------------------------------------------------------- playoff desk
+# The Scenario Simulator (the 2026-08-14 playoff extra). The league posted a
+# 12-club double-elimination bracket at cpsoftball.com/playoffs.php (Aug
+# 21–22): seeds 1–4 draw first-round byes, seeds 5–12 play an opening
+# round (5v12, 6v11, 7v10, 8v9), and the byes host the winners (1 gets
+# W4, 2 gets W3, 3 gets W2, 4 gets W1). Seeding follows the standings, so
+# the final afternoon IS the seeding afternoon — this desk enumerates
+# every remaining W/T/L future and reports what can still happen.
+# Honesty limits: seeding here is by points (2W + T — the win% ordering
+# once every club has the same games played); the league's tiebreaker is
+# NOT in the book, so every bound is computed twice — optimistic (all
+# ties break for the club) and pessimistic (all ties break against it) —
+# and anything between the bounds is tiebreak territory, said wherever
+# these numbers print.
+
+
+@dataclasses.dataclass
+class PlayoffRow:
+    """One club's enumerated postseason arithmetic (see playoff_futures)."""
+
+    team: str
+    pts: int  # current points, 2W + T
+    lo_pts: int  # points if the club loses out
+    hi_pts: int  # points if the club wins out
+    best: int  # best reachable seed (optimistic tiebreaks)
+    worst: int  # worst reachable seed (pessimistic tiebreaks)
+    bye_opt: int  # futures with a seed <= 4 read optimistically
+    bye_pes: int  # futures with a seed <= 4 read pessimistically
+    top_opt: int  # futures in which no club finishes above them on points
+    need_bye: list[int] | None  # per-game outcome forced in every opt-bye future
+    need_best: list[int] | None  # ... in every best-seed future (-1 = varies)
+
+
+@dataclasses.dataclass
+class PlayoffDesk:
+    total: int  # 3 ** len(slate)
+    slate: list[dict]  # the unplayed games, schedule order
+    teams: list[str]  # standings order (= current seed order)
+    rows: list[PlayoffRow]  # same order as teams
+    final_gp: int | None  # uniform games-played at season's end, if uniform
+
+
+def playoff_futures(st, games):
+    """Enumerate every W/T/L outcome of the remaining SCHEDULED games.
+
+    Returns None when nothing is scheduled, or when more than 13 games
+    remain (3^n futures — this is a final-afternoon instrument, not a
+    midseason one). Otherwise a PlayoffDesk, one PlayoffRow per club in
+    standings order.
+    """
+    slate = [g for g in games if g["status"] == "SCHEDULED"]
+    if not slate:
+        return None
+    if len(slate) > 13:
+        print(
+            f"NOTICE: {len(slate)} games still scheduled — the playoff desk "
+            "enumerates only a final slate of 13 or fewer games",
+            file=sys.stderr,
+        )
+        return None
+    teams = [s["team"] for s in st]
+    idx = {t: i for i, t in enumerate(teams)}
+    base = [2 * s["w"] + s["t"] for s in st]
+    n, m = len(teams), len(slate)
+    ga = [idx[g["a"]] for g in slate]
+    gb = [idx[g["b"]] for g in slate]
+    left = [0] * n
+    for gi in range(m):
+        left[ga[gi]] += 1
+        left[gb[gi]] += 1
+    best = [n + 1] * n
+    worst = [0] * n
+    bye_opt = [0] * n
+    bye_pes = [0] * n
+    top_opt = [0] * n
+    need_bye: list[list[int] | None] = [None] * n
+    need_best: list[list[int] | None] = [None] * n
+    rng, grng = range(n), range(m)
+    for outcome in itertools.product((0, 1, 2), repeat=m):
+        pts = base[:]
+        for gi in grng:
+            o = outcome[gi]
+            if o == 0:
+                pts[ga[gi]] += 2
+            elif o == 2:
+                pts[gb[gi]] += 2
+            else:
+                pts[ga[gi]] += 1
+                pts[gb[gi]] += 1
+        order = sorted(pts)
+        for i in rng:
+            p = pts[i]
+            opt = 1 + n - bisect.bisect_right(order, p)
+            pes = n - bisect.bisect_left(order, p)
+            if opt < best[i]:
+                best[i] = opt
+                need_best[i] = list(outcome)
+            elif opt == best[i]:
+                nb = need_best[i]
+                assert nb is not None
+                for gi in grng:
+                    if nb[gi] != outcome[gi]:
+                        nb[gi] = -1
+            if pes > worst[i]:
+                worst[i] = pes
+            if pes <= 4:
+                bye_pes[i] += 1
+            if opt <= 4:
+                bye_opt[i] += 1
+                nb = need_bye[i]
+                if nb is None:
+                    need_bye[i] = list(outcome)
+                else:
+                    for gi in grng:
+                        if nb[gi] != outcome[gi]:
+                            nb[gi] = -1
+            if opt == 1:
+                top_opt[i] += 1
+    rows = [
+        PlayoffRow(
+            team=teams[i],
+            pts=base[i],
+            lo_pts=base[i],
+            hi_pts=base[i] + 2 * left[i],
+            best=best[i],
+            worst=worst[i],
+            bye_opt=bye_opt[i],
+            bye_pes=bye_pes[i],
+            top_opt=top_opt[i],
+            need_bye=need_bye[i],
+            need_best=need_best[i],
+        )
+        for i in rng
+    ]
+    gps = {st[i]["gp"] + left[i] for i in rng}
+    return PlayoffDesk(
+        total=3**m,
+        slate=slate,
+        teams=teams,
+        rows=rows,
+        final_gp=gps.pop() if len(gps) == 1 else None,
+    )
+
+
+def playoff_needs(fut, cond):
+    """The results forced in every future a condition tracker survived:
+    ['X over Y', 'X–Y tie', ...] — [] when nothing is forced, None when no
+    future satisfied the predicate at all (the thing is impossible)."""
+    if cond is None:
+        return None
+    out = []
+    for gi, o in enumerate(cond):
+        if o == -1:
+            continue
+        g = fut.slate[gi]
+        if o == 0:
+            out.append(f"{g['a']} over {g['b']}")
+        elif o == 2:
+            out.append(f"{g['b']} over {g['a']}")
+        else:
+            out.append(f"{g['a']}–{g['b']} tie")
+    return out
+
+
+def playoff_pair_race(fut, ta, tb):
+    """Two clubs' own remaining games, jointly enumerated: (a-ahead,
+    b-ahead, level-on-points, combos). Exact even when the pair share a
+    game or an opponent — the union of their games is what's enumerated."""
+    own = [
+        gi
+        for gi, g in enumerate(fut.slate)
+        if ta in (g["a"], g["b"]) or tb in (g["a"], g["b"])
+    ]
+    ia = fut.teams.index(ta)
+    ib = fut.teams.index(tb)
+    ahead = behind = level = 0
+    for outcome in itertools.product((0, 1, 2), repeat=len(own)):
+        pa, pb = fut.rows[ia].pts, fut.rows[ib].pts
+        for gi, o in zip(own, outcome):
+            g = fut.slate[gi]
+            for team, gain in ((g["a"], (2, 1, 0)[o]), (g["b"], (0, 1, 2)[o])):
+                if team == ta:
+                    pa += gain
+                elif team == tb:
+                    pb += gain
+        if pa > pb:
+            ahead += 1
+        elif pa < pb:
+            behind += 1
+        else:
+            level += 1
+    return ahead, behind, level, 3 ** len(own)
+
+
+def playoff_digest(st, games):
+    """The PLAYOFF DESK digest block (prints nothing off-season / midseason)."""
+    fut = playoff_futures(st, games)
+    if not fut:
+        return
+    total = fut.total
+    print(
+        f"\n--- PLAYOFF DESK ({len(fut.slate)} games unplayed -> {total:,} "
+        "futures; seeds by points = 2W+T; opt/pes = every tie breaks for/against "
+        "the club) ---"
+    )
+    if fut.final_gp is not None:
+        print(f"  every club finishes at {fut.final_gp} games played")
+    print(
+        f"  {'club':32s} pts (lo-hi)   seed      misses bye in (opt-pes)   shares top seed in"
+    )
+    for r in fut.rows:
+        miss = f"{total - r.bye_opt:,}-{total - r.bye_pes:,}"
+        top = f"{r.top_opt:,}" if r.top_opt else "—"
+        print(
+            f"  {r.team:32s} {r.pts:2d}  ({r.lo_pts:2d}-{r.hi_pts:2d})  "
+            f"{r.best:2d}..{r.worst:2d}  {miss:>21s}   {top:>10s}"
+        )
+    print("  BEST-SEED REQUIREMENTS (results forced in every best-case future):")
+    for r in fut.rows:
+        needs = playoff_needs(fut, r.need_best)
+        assert needs is not None  # the best seed is achieved somewhere by definition
+        body = "; ".join(needs) if needs else "(no single result is forced)"
+        print(f"    {r.team} (best {r.best}): {body}")
+    alive = [r for r in fut.rows if r.bye_opt and r.bye_opt < total]
+    if alive:
+        print("  BYE REQUIREMENTS (results forced in every optimistic-bye future):")
+        for r in alive:
+            needs = playoff_needs(fut, r.need_bye)
+            assert needs is not None
+            body = "; ".join(needs) if needs else "(no single result is forced)"
+            print(f"    {r.team}: {body}")
+    # clubs level on points contesting the bye line: their own games, head to head
+    cont = [r for r in fut.rows if r.best <= 4]
+    for ra, rb in itertools.combinations(cont, 2):
+        if ra.pts == rb.pts and (ra.worst > 4 or rb.worst > 4):
+            a, b, lv, combos = playoff_pair_race(fut, ra.team, rb.team)
+            print(
+                f"  LEVEL AT THE LINE — {ra.team} vs {rb.team} "
+                f"(both {ra.pts} pts): of {combos} own-result combos, "
+                f"{ra.team} ahead in {a}, {rb.team} in {b}, "
+                f"level (tiebreak territory) in {lv}"
+            )
+    print("  R1 BRACKET AS THE TABLE STANDS (5v12, 6v11, 7v10, 8v9; byes 1-4):")
+    order = [r.team for r in fut.rows]
+    for hi, lo in ((4, 11), (5, 10), (6, 9), (7, 8)):
+        print(f"    #{hi + 1} {order[hi]}  vs  #{lo + 1} {order[lo]}")
+
+
 def race_top(players, n=4, min_ab=15):
     """The batting race's top n: [(player, hits back at own volume)]."""
     racers = sorted(
@@ -1831,6 +2083,8 @@ def afternoon_digest(snaps, games, st, prev_st):
     print(f"  {'team':32s} {hdr}")
     for t in sorted(series, key=lambda t: -series[t][-1]):
         print(f"  {t:32s} " + "    ".join(A(v) for v in series[t]))
+
+    playoff_digest(st, games)
 
 
 # ---------------------------------------------------------------- html tables
@@ -3290,15 +3544,95 @@ def emit_watch(c):
             )
 
 
+def emit_playoffs(c):
+    """The playoff desk emitter — the 2026-08-14 playoff extra, v2.
+
+    Two spliced blocks: the clinch-board rows (the paper's static table)
+    and the machine-data JSON island (captain labels and slugs ONLY — raw
+    team names never reach any page, including here). The island feeds the
+    stand-alone Scenario Simulator at playoffs.html —
+    whose entire UI is script-built from this data: current records, the
+    unplayed slate, and the exact enumeration bounds (best/worst seed and
+    the bye-miss counts under optimistic/pessimistic tiebreaks), which the
+    page's own JS enumerator re-derives live as results are wired and
+    checks against these numbers at start-up. Owner authorized page script
+    for this feature (2026-08-14); see CLAUDE.md.
+    """
+    fut = playoff_futures(c["st"], c["games"])
+    if not fut:
+        print("<!-- PLAYOFFS (id playoffs): no unplayed slate — machine idle -->")
+        return
+    total = fut.total
+    print(
+        f"<!-- PLAYOFFS (id playoffs): the playoff desk — {len(fut.slate)} "
+        f"unplayed games, {total:,} futures -->"
+    )
+    print("<!-- clinch rows: now, club, record, best/worst finish, futures missing a bye -->")
+    for r, s in zip(fut.rows, c["st"]):
+        assert r.team == s["team"]
+        mo, mp = total - r.bye_opt, total - r.bye_pes
+        if r.bye_opt == 0:
+            miss = '<span class="muted">all of them</span>'
+        elif mo == mp:
+            miss = f"{mo:,}"
+        else:
+            miss = f"{mo:,}–{mp:,}"
+        print(
+            f'        <tr><td class="ctr num">{s["rank"]}</td>'
+            f'<td class="player">{team_label(r.team)}</td>'
+            f'<td class="num">{s["w"]}-{s["l"]}-{s["t"]}</td>'
+            f'<td class="ctr num">{r.best}</td>'
+            f'<td class="ctr num">{r.worst}</td>'
+            f'<td class="num">{miss}</td></tr>'
+        )
+    data = dict(
+        asof=c["dcur"].strftime("%B ") + str(c["dcur"].day),
+        slate=fut.slate[0]["d"].strftime("%B ") + str(fut.slate[0]["d"].day),
+        gp_final=fut.final_gp,
+        total=total,
+        teams=[
+            dict(
+                s=cap_slug(r.team),
+                label=team_label(r.team),
+                w=s["w"],
+                l=s["l"],
+                t=s["t"],
+                rank=s["rank"],
+                best=r.best,
+                worst=r.worst,
+                mo=total - r.bye_opt,
+                mp=total - r.bye_pes,
+            )
+            for r, s in zip(fut.rows, c["st"])
+        ],
+        games=[
+            dict(
+                time=g["time"].replace(" PM", ""),
+                field=g["field"],
+                a=cap_slug(g["a"]),
+                b=cap_slug(g["b"]),
+            )
+            for g in fut.slate
+        ],
+    )
+    print("<!-- machine data island (captain labels and slugs only; spliced into BOTH pages) -->")
+    print(
+        f'        <script type="application/json" id="machine-data">{json.dumps(data, separators=(",", ":"))}</script>'
+    )
+
+
 # Page order for the 2026-08-07 edition (The Double Issue — the league
-# posted the Jul 31 and Aug 7 afternoons as one snapshot). The hand-written
-# front of book (notice, seventeen, thousand-club, eh-benchmark) sits above
-# CROWN and carries no emitters, per the bulletin precedent. INVOICE
-# recurs — the statement re-addresses itself to whoever leads the
-# standings, which is the whole gag; DEBITS recurs while the caused-out
-# epidemic lasts. ALIBI stays retired (emit_alibi defined in case the
-# verdict ever flips).
+# posted the Jul 31 and Aug 7 afternoons as one snapshot), amended
+# 2026-08-14 with the PLAYOFFS extra at the very top of the page (owner
+# request — gameday scenarios + the interactive bracket; see CLAUDE.md).
+# The hand-written front of book (notice, seventeen, thousand-club,
+# dewegeli-divide) sits above CROWN and carries no emitters, per the
+# bulletin precedent. INVOICE recurs — the statement re-addresses itself
+# to whoever leads the standings, which is the whole gag; DEBITS recurs
+# while the caused-out epidemic lasts. ALIBI stays retired (emit_alibi
+# defined in case the verdict ever flips).
 AFTERNOON_EMITTERS = [
+    ("PLAYOFFS", emit_playoffs),
     ("CROWN", emit_crown),
     ("SCOREBOARD", emit_scoreboard),
     ("WEEKLIES", emit_weeklies),

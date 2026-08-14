@@ -6,8 +6,21 @@ the new numbers are up; Claude harvests them from cpsoftball.com (stats, standin
 2026-07-24 — the full game schedule with scores), and each snapshot becomes a new "edition" of
 the site.
 
-- **No build step, no JS** (single exception: the GoatCounter analytics snippet before `</body>`
-  on every page — `https://cp-softball.goatcounter.com/count`; keep it when creating archives).
+- **No build step; the PAPER pages carry no JS** (exceptions: the GoatCounter analytics
+  snippet before `</body>` on every page — `https://cp-softball.goatcounter.com/count`; keep
+  it when creating archives — and, since 2026-08-14, **owner-authorized interactive script,
+  quarantined to dedicated app pages**: the Scenario Simulator lives at `playoffs.html`, a
+  stand-alone playoff scenario runner with its own broadcast-style design language
+  (deliberate identity break, owner's brief: "not just within the standards of the app…
+  make this fantastic" — then, on seeing v1, a full rejection and rebuild; read **The
+  machine's second design** before touching that page). The standing terms: the owner opts in per feature; every number a
+  script *displays* must derive from an analysis.py-emitted data island
+  (`<script type="application/json">`, captain labels/slugs only — the team-name grep covers
+  app pages too); libraries are **vendored locally, never CDN-hotlinked** (anime.min.js,
+  confetti.min.js — MIT/ISC, in the repo root); the page must degrade to an honest
+  `<noscript>` notice pointing back at the paper; no network calls beyond GoatCounter, no
+  accounts, state in URL hash + localStorage only. The newspaper pages themselves stay
+  script-free and link to the app; do NOT reach for JS on ordinary modules.)
   Every page is hand-authored static HTML with inline CSS. **Inline SVG is allowed** (static
   markup, not script) — the arcs chart is emitted by analysis.py, never hand-drawn.
 - **Custom domain:** the site is served at **https://softball.best/** (the `CNAME` file; GitHub
@@ -35,6 +48,9 @@ the site.
 | `favicon.svg` · `apple-touch-icon.png` · `og.png` | Site chrome (og.png referenced absolutely as `https://softball.best/og.png` from every page's meta block). An edition MAY ship a special OG card as `og-YYYY-MM-DD.png` (first: `og-2026-07-24.png`, the "Ryan Hammon bat 1.000" tease, rendered with Pillow in the site palette scanned from og.png) — only that edition's index points at it; when the edition archives it keeps its card, and the next index reverts to og.png unless it ships its own |
 | `dewegeli.png` | **The site's first content photograph** (owner-supplied 2026-08-12): Karl Franz Dewegeli Jr., 190×343 — the portrait framed in the Dewegeli Divide module (`.divide-fig`). Keep it when the edition archives; never crop, filter, or re-encode it |
 | `yggr-og.png` | The **house-ad card** (1200×630, downloaded from yggr.xyz/images/og.png, 2026-08-12): "yggr — coffee for sats," the owner's company. Used by every `.adv` unit; self-hosted on purpose — never hotlink it |
+| `playoffs.html` | **The Scenario Simulator** (2026-08-14; REBUILT the same day, and renamed from "the Seeding Machine" at the owner's request — see **The machine's second design**) — the stand-alone playoff scenario runner: ask-the-machine question panel answering in plain English, the final twelve as a docket, a live seed table, and a real drawn double-elimination bracket you click through. Own design language (dark scorebug + gold; light scheme included). All numbers from the spliced `machine-data` island; self-checks against it. See the playoffs section below |
+| `anime.min.js` · `confetti.min.js` | Vendored libraries for playoffs.html (anime.js 3.2.2 MIT — FLIP motion; canvas-confetti 1.9.3 ISC — the pennant moment). Local on purpose, never CDN; app pages only, never the paper |
+| `og-playoffs.png` | The simulator's share card (1200×630, Pillow at 3× in a scratchpad venv, simulator palette/fonts — Avenir Next Condensed Heavy + Menlo). **Re-cut 2026-08-14** after the owner called the first one ugly and asked for something clean and inviting for a community post: full-width wordmark banner (SIMULATOR in gold), the pitch "Make your picks. The bracket builds itself.", a gold URL button, and — as the visual — a faithful crop of the bracket the page really draws (the league's actual opening round feeding the actual quarterfinals) with two games already picked, one of them an 11-over-6 upset, ending on a gold "YOUR CALL" grand-final card. It demonstrates the mechanic instead of describing it; keep that principle if it is ever re-cut. Referenced by playoffs.html only |
 
 ## The data
 
@@ -126,6 +142,101 @@ in the working tree as "the Night Final" and was renamed before publishing).
   count") before fetching ranges. Future (SCHEDULED) rows have no numeric gate — confirm them
   with a second independent fetch.
 - **Each edition:** append the new afternoon's finals, refresh/extend future rows, re-run the gate.
+
+## The playoffs (source: https://cpsoftball.com/playoffs.php — first fetched 2026-08-14)
+
+- **12-club double elimination, August 21–22, 22 games as posted** (no if-necessary game in
+  the book). Seeds 1–4 draw first-round byes; the opening round pairs 5v12 (G1), 6v11 (G2),
+  7v10 (G3), 8v9 (G4); the byes host the winners (G5 = 1 v W4, G6 = 2 v W3, G7 = 3 v W2,
+  G8 = 4 v W1); losers thread G9–G21; G22 is the grand final (W15 v W21). The full topology
+  lives, identically, in the page JS `BR` table and the scratch generator used to build the
+  bracket cards — every slot reference points at a lower-numbered game, so one forward pass
+  resolves. **The bracket lists home/away designations — the first the league's paperwork has
+  carried** (the regular-season schedule is listing-order only).
+- **Seeding follows the standings** — the bracket posted before the Aug 14 finale matched the
+  0807 standings exactly (verified). Assume a re-seed after the final afternoon; re-fetch
+  before harvesting playoff results.
+- **analysis.py playoff desk** (added 2026-08-14): `playoff_futures()` exactly enumerates
+  every remaining W/T/L outcome (guard: only when ≤ 13 games are SCHEDULED — a final-slate
+  instrument, NOT midseason; returns None otherwise). Seeding by points (2W+T); the league's
+  tiebreaker is NOT published, so every bound is doubled — optimistic (all ties break for the
+  club) / pessimistic (all against) — and the gap is "tiebreak territory," said wherever the
+  numbers print. **Never guess or invent the tiebreak**; the display convention for
+  hypotheticals is "seated by the August 7 order and flagged ‡." `playoff_digest()` prints
+  the PLAYOFF DESK block at the end of the AFTERNOON DESK digest (seed bounds, bye-miss
+  counts, forced-result requirements via condition intersection, level-pair own-game races,
+  R1 bracket as the table stands); `emit_playoffs` (registered FIRST in AFTERNOON_EMITTERS)
+  emits clinch-board table rows AND the `machine-data` JSON island. **Only the island is
+  live**: it is spliced into playoffs.html, which is the one page carrying playoff
+  material (owner's call, 2026-08-14 — see the edition log). The clinch rows stay in the
+  emitter in case the paper ever wants the board back in ink; today they go unspliced.
+  The island carries asof/slate labels, final GP, the
+  futures total, per-club records + ranks + best/worst seed + bye-miss counts (mo/mp), and
+  the unplayed slate (captain labels + `cap_slug` slugs ONLY — raw team names must never
+  reach any page, the island included).
+- **playoffs.html duties per edition:** the app's JS enumerator re-derives the bounds live
+  and self-checks against the island — for free, because with nothing wired the live
+  enumeration IS the island's numbers; a mismatch warns to console and toasts. Splice the
+  new island in and the whole page follows (the UI is script-built from it). The jsdom
+  suite (session scratchpad, ephemeral) asserted island parity, the clinch column against
+  the paper's printed board digit-for-digit, the state-codec round trip, single-game
+  advancement + downstream unwind, and that a corrupted island trips the self-check;
+  a Python brute force over the same 3^12 futures independently confirmed every
+  scenario-answer number. localStorage keys off the slate date, so a new
+  edition's island auto-invalidates old saved state. After the finale is actually played,
+  the machine's premise is dead: either rebuild it for the playoff rounds (bracket results
+  instead of seeding scenarios) or retire the page to a "the machine has retired" notice —
+  ask Curtis which.
+- Playoff results are NOT yet in any CSV schema — when they land, decide with Curtis how the
+  game book carries them (`MMDD-schedule.csv` has no bracket/game-number column).
+
+### The machine's second design (owner's rejection + rebuild, 2026-08-14)
+
+**The first build shipped and the owner rejected the design outright** — his words: "weirdly
+centered and doesn't make usage of desktop space… noisy and confusing. None of it is clear…
+as an engineer myself didn't feel intuitive or helpful." What he asked for, verbatim in
+substance: a **scenario runner** that **explains the scenario and how to make the scenario in
+plain language**; **updated BRACKETS — not a list that represents brackets**; and the ability
+to **run the playoff scenario too, with the clubs auto-moving through the bracket** as picks
+are made. Mobile still matters, but the desktop must earn its width.
+
+What was wrong (do not rebuild any of it): a 720px column centred on a 1440px screen; a
+phone-style bottom tab bar (Afternoon / Bracket / Odds) that hid two thirds of the causal
+chain behind taps; a "guided run" that showed **one game at a time** on a giant card; a
+"map" view that was really a list of columns of chips; gold, berry, dashed borders, pills
+and a huge ghost numeral all competing at once.
+
+The rebuild's rules, which hold for any future version of this page:
+
+- **One page, one causal chain, no modes.** Read top-to-bottom: a question → today's twelve
+  results → the twelve seeds → the twenty-two game bracket → a champion. Every control is
+  visible at once and every edit updates everything downstream live. No tabs, no wizard.
+- **The bracket is DRAWN, not listed.** Absolute positions computed in JS from a `POS`
+  table (column, row in card units) with SVG connectors generated from the same numbers —
+  never from `getBoundingClientRect`. Winners' road along the top, elimination road along
+  the bottom, grand final at the right where the two converge, the pennant plaque filling
+  the top-right dead space. Clicking a club advances it, drops its opponent to the
+  elimination road, and fills every later game in one forward pass; a pick whose premise
+  changed is dropped rather than left lying (the prophecy unwinds). Loser ("drop") wires are
+  hidden until you hover a game, so the default state stays quiet — the `Loser G5`
+  placeholders already say where clubs come from.
+- **Plain language is a computed output, not decoration.** `sayAnswer` / `sayAfternoon` /
+  `sayBracket` write sentences from the enumeration. The answer panel gives a verdict
+  (*Already settled · In their own hands · Needs help · Only by tiebreak · Cannot happen*),
+  the three exact counts (outright / level on points / missed), **Must happen** (results
+  forced in every qualifying future), **Cannot afford** (outcomes that appear in none of
+  them), **By itself** (whether some arrangement of the club's OWN games settles it, and if
+  not, the clubs that must ALL finish level-or-better in every future where winning out
+  isn't enough — a necessary condition, stated as "only if"), and **Set an afternoon that
+  does it**, which wires a concrete qualifying afternoon into the docket. One sweep of
+  3^n futures serves the seed bounds and the question together (~110ms at n=12).
+- **Three colours, one meaning each, stated in the legend:** gold = advancing / holding a
+  bye; rust = eliminated; berry = level on points, where the unpublished tiebreaker takes
+  over and the machine stops talking. Everything else is neutral. Figures are monospace,
+  prose is not.
+- **The seed table's clinch column reproduces `emit_playoffs`' board digit for digit**
+  (`0–486`, `1,458–13,122`, …) — the live JS enumeration and the Python one must agree,
+  and the jsdom suite asserts it against those literals.
 
 ## Captains (source: https://cpsoftball.com/teams.php — fetched 2026-07-06)
 
@@ -462,9 +573,43 @@ What stays stable underneath — the spine:
   Menlo / Georgia Italic; og:image + twitter:image point at it. Revert to og.png next edition
   unless it ships its own card; the card stays with this edition when it archives. **House
   ads debut this edition** (six `.adv` units for yggr — see the standing-feature bullet in
-  the spine). When this edition archives: delete `watch` only (the back-cover ad after it
-  moves up to close the page); the notice, cover, bulletin, divide, Form 3B, debits, invoice,
-  gauntlet, docket, portrait, and ads all stay.
+  the spine). **THE PAPER CARRIES NO PLAYOFF MATERIAL. (2026-08-14.)** A playoff extra was
+  built into this edition that morning — section id `playoffs` at the top of the page with a
+  launch ticket, stat tiles, the emitted `clinch` board and an `elimination-certificate` —
+  and the owner had **all of it reverted the same day**: "remove any changes to the index.html
+  about the playoffs… just want this confined to its own html page and leave the current
+  edition of the newsletter how it is." index.html was checked back out to its committed
+  state (all 367 added lines were playoff-only: a CSS block, a contents-nav entry, the
+  section, and a footnote passage), so the Double Issue stands exactly as published on
+  2026-08-12. **Consequences to respect:** the paper does not link to playoffs.html at all and
+  should not be made to; `emit_playoffs`' clinch-board rows are currently emitted but spliced
+  nowhere (the `machine-data` island is the live half of that emitter); the ids `playoffs`,
+  `clinch` and `elimination-certificate` never published, so they are free rather than
+  retired; there is no playoff section to delete when this edition archives; and the
+  Certificate of Mathematical Elimination never ran in ink (see the gag ledger). **The
+  gameday feature is the stand-alone page and nothing else:**
+  **playoffs.html** (see the files table and the playoffs section) — the scenario runner:
+  an ask-the-machine panel answering in plain English, the twelve finals as a docket beside
+  a live seed table, and a drawn double-elimination bracket you click through to a confetti
+  pennant. localStorage, favourites/random/clear on both stages. **There is no Share
+  button — the owner had it removed 2026-08-14; the `#f=…` codec stays, because it is what
+  localStorage holds and it still reads a scenario out of an inbound URL. Do not re-add a
+  share affordance unless he asks.** **The page was named "the Seeding Machine" at debut
+  and renamed **the Scenario Simulator** the same day, also at the owner's request; the
+  analysis.py comments and the share card carry the new name. The localStorage key alone
+  still says `seeding-machine-`,
+  deliberately, so readers' saved scenarios survived the rename.** **The
+  page's first design was rejected by the owner the day it shipped and rebuilt from first
+  principles the same day — see "The machine's second design" for what he objected to and
+  the rules that replaced it; do not reach for the tabbed phone-app shape again.** The
+  Disclaimer vow easter egg lives there: any Horatio-vs-Claude bracket line reveals the
+  `#vow` banner linking `2026-07-24.html#the-disclaimer`. The page links out to
+  `index.html` (unanchored) and says plainly in its footer and `<noscript>` that there is no
+  ink edition of the bracket — keep those honest if the paper ever carries playoff material
+  again. When this edition archives: delete `watch` only. playoffs.html is handled
+  separately per "playoffs.html duties" above. The back-cover ad
+  after `watch` moves up to close the page; the notice, cover, bulletin, divide, Form 3B,
+  debits, invoice, gauntlet, docket, portrait, and ads all stay.
 
 **Retired ids** (pre-2026-07-17; they resolve in the archives, never reuse for new meanings):
 `the-week, week-bats, temperature, glance, draft-board, sleepers, teams, second-look,
@@ -690,6 +835,22 @@ revived, same meaning, as a recurring module.)
   actually flipped, which would be a story. Related standing fact: the Gauntlet showed the
   top four all rode sub-.500 slates while Sefton's club (5th) walked the hardest and drew
   the softest run-in — the August run-in is loaded (Caleb–Stafford ×3, Jeremy–Boyds ×3).
+- **The Certificate of Mathematical Elimination** (written for the 2026-08-14 playoff extra
+  and **never published** — the extra was pulled from the paper the same day; the device is
+  unused and Nº 1 is still available to whoever earns it):
+  the Long Shot Desk's official paper — Nº 1 denied Seth's team a first-round bye ("Denied ·
+  by arithmetic" stamp at the house −6°; findings: zero bye futures of 531,441; best
+  available finish ninth, four named results required; disposition "Returned, with sympathy —
+  the batting crown already lives in this clubhouse"). A numbered device like the Citation —
+  **Nº 2 awaits the next club the arithmetic closes on** (candidates: any future clinch/
+  elimination moment worth official paper). Rules: same invented-artifact law as the wire and
+  Form 3B — numbers real (from the playoff desk digest), paperwork editorial, the footer says
+  so ("the application is imaginary — Seth's team asked for nothing, which the desk
+  respects"); filed "to the same drawer as the wire, the invoice, and Form 3B." The
+  Sefton/Stafford four-five coin ("31-31-19 of 81, level in the league office's unpublished
+  hands") is the extra's live cliffhanger — whichever club takes the fourth chair, the next
+  edition reports how the coin landed; if it lands on the 19, the unpublished-tiebreaker
+  mystery finally has a face and IS the story.
 
 ## Weekly update procedure
 

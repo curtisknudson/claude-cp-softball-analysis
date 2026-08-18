@@ -3,10 +3,10 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-        <title>The Scenario Simulator — CP Softball playoffs</title>
+        <title>Playoff Prediction Brackets — CP Softball</title>
         <meta
             name="description"
-            content="Ask what your club needs today, get the answer in plain English, then watch the real playoff bracket redraw itself. Set the twelve final-afternoon results, run the twenty-two game double-elimination bracket, and the clubs move themselves through it."
+            content="The seeds are final. Fill in the league's real twenty-two game double-elimination playoff bracket: pick a winner in any game and the clubs move themselves through, winners forward, losers onto the elimination road, all the way to a pennant."
         />
         <link rel="canonical" href="https://softball.best/playoffs.html" />
         <link rel="icon" type="image/svg+xml" href="favicon.svg" />
@@ -15,10 +15,10 @@
         <meta name="theme-color" content="#f4f3ee" media="(prefers-color-scheme: light)" />
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content="CP Softball" />
-        <meta property="og:title" content="The Scenario Simulator — CP Softball playoffs" />
+        <meta property="og:title" content="Playoff Prediction Brackets — CP Softball" />
         <meta
             property="og:description"
-            content="Ask what your club needs, get it in plain English, and watch the playoff bracket redraw itself. 531,441 futures considered."
+            content="Make your picks. The bracket builds itself — twelve clubs, double elimination, twenty-two games, August 21–22."
         />
         <meta property="og:url" content="https://softball.best/playoffs.html" />
         <meta property="og:image" content="https://softball.best/og-playoffs.png" />
@@ -27,32 +27,36 @@
         <meta property="og:image:height" content="630" />
         <meta
             property="og:image:alt"
-            content="The Scenario Simulator — pick the results, watch the CP Softball playoff bracket redraw itself, run all 22 games to a champion."
+            content="Playoff Prediction Brackets — fill in the CP Softball playoff bracket, all 22 games to a champion."
         />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="The Scenario Simulator — CP Softball playoffs" />
+        <meta name="twitter:title" content="Playoff Prediction Brackets — CP Softball" />
         <meta
             name="twitter:description"
-            content="Ask what your club needs, get it in plain English, and watch the playoff bracket redraw itself."
+            content="Make your picks. The bracket builds itself."
         />
         <meta name="twitter:image" content="https://softball.best/og-playoffs.png" />
         <style>
 /* ══════════════════════════════════════════════════════════════════
-   THE SCENARIO SIMULATOR — CP Softball's playoff bracket simulator.
-   Rebuilt 2026-08-14 from first principles at the owner's direction.
+   PLAYOFF PREDICTION BRACKETS — CP Softball's playoff bracket page.
+   Rebuilt 2026-08-14 from first principles at the owner's direction;
+   narrowed 2026-08-18, once the finale was played, to the one thing left
+   to do — call the bracket.
 
    The page is one causal chain, read top to bottom and left to right:
-       a question  →  today's twelve results  →  the twelve seeds
-                   →  the twenty-two game bracket  →  a champion.
+       the twelve posted seeds  →  the twenty-two game bracket
+                                →  a champion.
    Nothing is hidden behind a tab or a mode. Desktop gets the width the
    bracket actually needs; the phone gets the same page, stacked, with
    the bracket scrolling sideways the way a bracket should.
 
-   Colour carries exactly three meanings and no decoration:
+   Colour carries exactly two meanings and no decoration:
        gold  = advancing / holding a first-round bye
-       rust  = eliminated / out of the running
-       berry = level on points, where the league's unpublished
-               tiebreaker takes over and the machine stops talking.
+       rust  = eliminated, and the summer is over.
+   (Berry was the third — level on points, where the league's unpublished
+   tiebreaker took over. The league has now posted its seeds, so nothing
+   on this page is level any more and the colour has retired with the
+   arithmetic that needed it.)
    ══════════════════════════════════════════════════════════════════ */
 :root {
     --bg: #0b0c11;
@@ -275,285 +279,6 @@ h1 em {
     color: var(--ink);
 }
 
-/* ── the question ── */
-.ask {
-    background: var(--panel);
-    border: 1px solid var(--edge);
-    border-radius: 12px;
-    margin: 22px 0 8px;
-    display: grid;
-    grid-template-columns: minmax(300px, 380px) 1fr;
-}
-.ask-q {
-    padding: 18px 20px 20px;
-    border-right: 1px solid var(--edge);
-}
-.ask-a {
-    padding: 18px 22px 20px;
-    min-width: 0;
-}
-.ask-eyebrow {
-    font-family: var(--mono);
-    font-size: 0.62rem;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--dim);
-    margin-bottom: 12px;
-}
-.ask-line {
-    display: block;
-    margin: 0 0 9px;
-}
-.ask-line .qw {
-    display: block;
-    font-family: var(--mono);
-    font-size: 0.6rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--dim2);
-    margin-bottom: 3px;
-}
-select {
-    width: 100%;
-    background: var(--panel2);
-    border: 1px solid var(--edge2);
-    border-radius: 8px;
-    padding: 9px 10px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-}
-select:focus-visible {
-    outline: 2px solid var(--gold);
-    outline-offset: 1px;
-}
-.verdict {
-    display: inline-block;
-    font-family: var(--mono);
-    font-size: 0.64rem;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    font-weight: 700;
-    border-radius: 5px;
-    padding: 5px 9px;
-    background: var(--panel2);
-    border: 1px solid var(--edge2);
-    color: var(--dim);
-}
-.verdict.good {
-    background: var(--gold);
-    border-color: var(--gold);
-    color: var(--gold-ink);
-}
-.verdict.live {
-    border-color: var(--gold);
-    color: var(--gold);
-}
-.verdict.tb {
-    border-color: var(--berry);
-    color: var(--berry);
-}
-.verdict.dead {
-    border-color: var(--rust);
-    color: var(--rust);
-}
-.ans-lede {
-    font-size: 1.16rem;
-    line-height: 1.4;
-    margin: 12px 0 0;
-    max-width: 60ch;
-}
-.ans-lede .n {
-    font-family: var(--mono);
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-}
-.ans-list {
-    list-style: none;
-    margin: 14px 0 0;
-    padding: 0;
-    display: grid;
-    gap: 8px;
-}
-.ans-list li {
-    display: flex;
-    gap: 10px;
-    align-items: baseline;
-    font-size: 0.97rem;
-    color: var(--dim);
-    line-height: 1.4;
-}
-.ans-list li b {
-    color: var(--ink);
-}
-.ans-list .k {
-    flex: none;
-    width: 96px;
-    font-family: var(--mono);
-    font-size: 0.6rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--dim2);
-    padding-top: 2px;
-}
-.ans-list .must {
-    color: var(--ink);
-}
-.ans-acts {
-    margin-top: 16px;
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    flex-wrap: wrap;
-}
-.ans-note {
-    font-family: var(--mono);
-    font-size: 0.62rem;
-    color: var(--dim2);
-    line-height: 1.6;
-}
-
-/* ── two-up: docket + seeds ── */
-.split {
-    display: grid;
-    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-    gap: 26px;
-    align-items: start;
-}
-.pane-h {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 10px;
-}
-h3 {
-    font-size: 0.72rem;
-    font-family: var(--mono);
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--dim);
-    font-weight: 400;
-    margin: 0;
-}
-.pane-h .btns {
-    display: flex;
-    gap: 6px;
-}
-
-/* the docket */
-.hour {
-    display: grid;
-    grid-template-columns: 58px 1fr 1fr;
-    gap: 8px;
-    align-items: center;
-    padding: 5px 0;
-    border-top: 1px solid var(--edge);
-}
-.hour:first-child {
-    border-top: none;
-}
-.hour-t {
-    font-family: var(--mono);
-    font-size: 0.72rem;
-    color: var(--dim);
-    text-align: right;
-    padding-right: 4px;
-}
-.fields {
-    display: grid;
-    grid-template-columns: 58px 1fr 1fr;
-    gap: 8px;
-    font-family: var(--mono);
-    font-size: 0.56rem;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--dim2);
-    padding-bottom: 4px;
-}
-.gm {
-    display: grid;
-    grid-template-columns: 1fr 34px 1fr;
-    gap: 3px;
-    background: var(--panel);
-    border: 1px solid var(--edge);
-    border-radius: 9px;
-    padding: 3px;
-}
-.gm.set {
-    border-color: var(--edge2);
-}
-.gm-t {
-    background: none;
-    border: 1px solid transparent;
-    border-radius: 6px;
-    padding: 6px 5px;
-    cursor: pointer;
-    text-align: center;
-    line-height: 1.15;
-    min-width: 0;
-}
-.gm-t b {
-    display: block;
-    font-size: 0.9rem;
-    font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.gm-t i {
-    display: block;
-    font-family: var(--mono);
-    font-size: 0.56rem;
-    font-style: normal;
-    color: var(--dim2);
-    margin-top: 1px;
-}
-.gm-t:hover {
-    border-color: var(--edge2);
-}
-.gm-t[aria-pressed="true"] {
-    background: var(--gold);
-    border-color: var(--gold);
-    color: var(--gold-ink);
-}
-.gm-t[aria-pressed="true"] i {
-    color: inherit;
-    opacity: 0.68;
-}
-.gm.set .gm-t[aria-pressed="false"] {
-    opacity: 0.4;
-}
-.gm-x {
-    background: none;
-    border: 1px dashed var(--edge2);
-    border-radius: 6px;
-    font-family: var(--mono);
-    font-size: 0.52rem;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--dim2);
-    cursor: pointer;
-}
-.gm-x[aria-pressed="true"] {
-    background: var(--berry);
-    border-style: solid;
-    border-color: var(--berry);
-    color: #fff;
-    opacity: 1;
-}
-.gm.flash {
-    animation: flash 1.1s ease-out;
-}
-@keyframes flash {
-    from {
-        box-shadow: 0 0 0 2px var(--gold);
-    }
-    to {
-        box-shadow: 0 0 0 2px transparent;
-    }
-}
-
 /* the seed table */
 .tscroll {
     overflow-x: auto;
@@ -584,9 +309,6 @@ table {
     font-size: 0.94rem;
     white-space: nowrap;
 }
-.seeds tr {
-    will-change: transform;
-}
 .seeds .c-seed {
     font-family: var(--mono);
     font-weight: 700;
@@ -605,10 +327,6 @@ table {
     box-shadow: inset 3px 0 0 var(--gold);
     color: var(--gold);
 }
-.seeds .lvl .c-club::after {
-    content: " ‡";
-    color: var(--berry);
-}
 .seeds .out {
     color: var(--dim2);
 }
@@ -622,15 +340,27 @@ table {
     padding: 2px 5px;
     color: var(--gold);
 }
-.miss {
-    font-family: var(--mono);
-    font-size: 0.76rem;
-}
-.miss.none {
+.chip.out {
+    border-color: var(--edge2);
     color: var(--dim2);
 }
-.dd {
-    color: var(--berry);
+.chip.champ {
+    background: var(--gold);
+    color: var(--gold-ink);
+    font-weight: 700;
+}
+.seeds .c-open,
+.seeds .c-live {
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    color: var(--dim);
+}
+.seeds .c-open b {
+    color: var(--ink);
+    font-weight: 700;
+}
+.seeds .c-open .bye-k {
+    color: var(--gold);
 }
 caption,
 .cap {
@@ -642,34 +372,6 @@ caption,
     color: var(--dim2);
     padding-top: 9px;
 }
-.readout {
-    background: var(--panel);
-    border: 1px solid var(--edge);
-    border-radius: 10px;
-    padding: 13px 16px;
-    margin-top: 16px;
-    font-size: 1rem;
-    line-height: 1.45;
-}
-.readout p {
-    margin: 0 0 7px;
-}
-.readout p:last-child {
-    margin-bottom: 0;
-}
-.readout .r-k {
-    font-family: var(--mono);
-    font-size: 0.6rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--gold);
-    display: block;
-    margin-bottom: 5px;
-}
-.readout b {
-    font-weight: 700;
-}
-
 /* ── the bracket ── */
 .bk-bar {
     display: flex;
@@ -920,63 +622,6 @@ caption,
     color: var(--dim);
     line-height: 1.5;
 }
-.field-strip {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
-    gap: 6px;
-    margin-top: 14px;
-}
-.fs {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--panel);
-    border: 1px solid var(--edge);
-    border-radius: 8px;
-    padding: 6px 9px;
-    font-size: 0.9rem;
-}
-.fs .fsd {
-    font-family: var(--mono);
-    font-size: 0.62rem;
-    font-weight: 700;
-    color: var(--dim2);
-    width: 16px;
-    text-align: center;
-    flex: none;
-}
-.fs .fsn {
-    font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.fs .fst {
-    margin-left: auto;
-    font-family: var(--mono);
-    font-size: 0.58rem;
-    color: var(--dim2);
-    flex: none;
-}
-.fs.alive {
-    border-color: var(--edge2);
-}
-.fs.unbeaten {
-    border-color: var(--gold);
-}
-.fs.unbeaten .fst {
-    color: var(--gold);
-}
-.fs.out {
-    opacity: 0.45;
-}
-.fs.out .fsn {
-    text-decoration: line-through;
-}
-.fs.out .fst {
-    color: var(--rust);
-}
-
 /* ── notes, footer, toast ── */
 .vow {
     border: 1px solid var(--berry);
@@ -1031,19 +676,6 @@ footer {
 }
 
 /* ── narrow ── */
-@media (max-width: 1080px) {
-    .ask {
-        grid-template-columns: 1fr;
-    }
-    .ask-q {
-        border-right: none;
-        border-bottom: 1px solid var(--edge);
-    }
-    .split {
-        grid-template-columns: 1fr;
-        gap: 30px;
-    }
-}
 @media (max-width: 620px) {
     body {
         font-size: 16px;
@@ -1059,32 +691,10 @@ footer {
         order: 3;
         width: 100%;
     }
-    .hour,
-    .fields {
-        grid-template-columns: 1fr;
-        gap: 6px;
-    }
-    .hour-t {
-        text-align: left;
-        padding: 2px 0 0;
-        font-size: 0.66rem;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-    }
-    .fields {
-        display: none;
-    }
-    .gm::before {
-        display: none;
-    }
-    .ans-list .k {
-        width: 74px;
-    }
-    .pane-h {
-        flex-wrap: wrap;
-    }
     .seeds td.c-rec,
-    .seeds th.c-rec {
+    .seeds th.c-rec,
+    .seeds td.c-diff,
+    .seeds th.c-diff {
         display: none;
     }
     .seeds td,
@@ -1113,7 +723,7 @@ footer {
     <body>
         <div class="topbar">
             <div class="wrap">
-                <div class="brand">The Scenario <span>Simulator</span></div>
+                <div class="brand">Playoff Prediction <span>Brackets</span></div>
                 <div class="tb-state" id="tb-state">—</div>
                 <div class="tb-acts">
                     <button type="button" class="btn quiet" id="act-reset">Reset</button>
@@ -1124,114 +734,61 @@ footer {
 
         <div class="wrap">
             <div class="lede-row">
-                <h1>Twelve games today. <em>Then the bracket.</em></h1>
+                <h1>The seeds are set. <em>Now call it.</em></h1>
                 <p class="lede">
-                    The final afternoon is <b id="lede-slate">August 14</b>, and
-                    its twelve results are the only thing still deciding the
-                    twelve playoff seeds. Set them below — or ask what your club
-                    needs — and the real bracket redraws itself underneath.
-                    Then run the playoffs too: pick a winner and the clubs move
-                    themselves through, winners forward, losers onto the
-                    elimination road.
+                    The regular season closed on
+                    <b><span class="asof">August 14</span></b>, and the league
+                    has posted its bracket: twelve clubs, double elimination,
+                    twenty-two games over
+                    <b><span class="playdates">August 21–22</span></b>.
+                    There is nothing left to work out — the seeding below is
+                    final, and the only thing still unknown is who wins. Pick a
+                    winner in any game and the clubs move themselves through:
+                    the winner forward along the top, the loser down to the
+                    elimination road, and every game behind them fills itself
+                    in, all the way to a pennant.
                 </p>
             </div>
 
-            <!-- ══ THE QUESTION ══════════════════════════════════════ -->
-            <div class="ask">
-                <div class="ask-q">
-                    <div class="ask-eyebrow">Ask the machine</div>
-                    <label class="ask-line">
-                        <span class="qw">Club</span>
-                        <select id="q-club"></select>
-                    </label>
-                    <label class="ask-line">
-                        <span class="qw">Wants to</span>
-                        <select id="q-goal">
-                            <option value="bye">earn a first-round bye</option>
-                            <option value="first">finish first overall</option>
-                            <option value="ahead">finish ahead of…</option>
-                        </select>
-                    </label>
-                    <label class="ask-line" id="q-other-wrap" hidden>
-                        <span class="qw">Ahead of</span>
-                        <select id="q-other"></select>
-                    </label>
-                </div>
-                <div class="ask-a" id="answer" aria-live="polite">
-                    <span class="verdict">Counting…</span>
-                </div>
-            </div>
-
-            <!-- ══ 01 · THE AFTERNOON ════════════════════════════════ -->
-            <section id="afternoon">
+            <!-- ══ 01 · THE FIELD ═══════════════════════ -->
+            <section id="field">
                 <div class="sec-h">
                     <span class="sec-n">01</span>
-                    <h2>The afternoon</h2>
+                    <h2>The field</h2>
                 </div>
                 <p class="sec-sub">
-                    Twelve games, six hours, two fields, every club playing
-                    twice. Tap a winner — or a tie, which is legal in this
-                    league and legal here. <b>Everything below reacts.</b>
+                    Twelve clubs as they finished, in the order the league
+                    seeded them. The top four drew byes and enter in the
+                    quarterfinals. <b>The last column follows your bracket.</b>
                 </p>
-                <div class="split">
-                    <div>
-                        <div class="pane-h">
-                            <h3>Set the results</h3>
-                            <div class="btns">
-                                <button type="button" class="btn" id="pre-chalk">Favourites</button>
-                                <button type="button" class="btn" id="pre-random">Random</button>
-                                <button type="button" class="btn quiet" id="pre-clear">Clear</button>
-                            </div>
-                        </div>
-                        <div class="fields"><span></span><span>North field</span><span>South field</span></div>
-                        <div id="docket"></div>
-                        <p class="cap">
-                            Records on the buttons are the league table as it
-                            stood on <span class="asof">August 7</span>. Nothing
-                            you set here is sent anywhere — it lives in this
-                            browser.
-                        </p>
-                        <div class="readout" id="readout"></div>
-                    </div>
-                    <div>
-                        <div class="pane-h">
-                            <h3>Where that leaves the seeds</h3>
-                        </div>
-                        <div class="tscroll">
-                            <table class="seeds">
-                                <thead>
-                                    <tr>
-                                        <th class="c-seed">#</th>
-                                        <th>Club</th>
-                                        <th class="c-rec r">Record</th>
-                                        <th class="r">Pts</th>
-                                        <th class="r">Can finish</th>
-                                        <th class="r"><span class="lg">Misses the bye in</span><span class="sm">No bye</span></th>
-                                    </tr>
-                                </thead>
-                                <tbody id="seed-rows"></tbody>
-                            </table>
-                        </div>
-                        <p class="cap">
-                            A win is two points, a tie one; seeds follow the
-                            points. <b>Can finish</b> is the exact best and
-                            worst seed still reachable from the results you have
-                            set, over every combination of the ones you haven't.
-                            <b>Misses the bye in</b> counts the futures that end
-                            without one, read first with every finishing tie
-                            breaking the club's way and then with every one
-                            breaking against it. ‡ marks the gap between those
-                            two readings, and the ‡ beside a club marks it level
-                            on points as things stand: both are territory only
-                            the league's tiebreaker can settle, and the league
-                            has never published it. Level clubs are seated here
-                            by the <span class="asof">August 7</span> order.
-                        </p>
-                    </div>
+                <div class="tscroll">
+                    <table class="seeds">
+                        <thead>
+                            <tr>
+                                <th class="c-seed">#</th>
+                                <th>Club</th>
+                                <th class="c-rec r">Record</th>
+                                <th class="r">Pts</th>
+                                <th class="c-diff r"><span class="lg">Run diff</span><span class="sm">Diff</span></th>
+                                <th><span class="lg">Enters at</span><span class="sm">Opens</span></th>
+                                <th class="r"><span class="lg">In your bracket</span><span class="sm">Yours</span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="seed-rows"></tbody>
+                    </table>
                 </div>
+                <p class="cap">
+                    Record, points and run differential are the league’s final
+                    table for the season, as it stood on
+                    <span class="asof">August 14</span>: a win is two points, a
+                    tie one. The seeding is the league’s own, exactly as
+                    posted — including the two pairs that finished level on
+                    points, which the league separated itself. Nothing you pick
+                    here is sent anywhere; it lives in this browser.
+                </p>
             </section>
 
-            <!-- ══ 02 · THE BRACKET ══════════════════════════════════ -->
+            <!-- ══ 02 · THE BRACKET ═════════════════════ -->
             <section id="bracket">
                 <div class="sec-h">
                     <span class="sec-n">02</span>
@@ -1239,7 +796,7 @@ footer {
                 </div>
                 <p class="sec-sub" id="bk-sub"></p>
                 <div class="bk-bar">
-                    <button type="button" class="btn" id="bk-chalk">Higher seed wins out</button>
+                    <button type="button" class="btn solid" id="bk-chalk">Higher seed wins out</button>
                     <button type="button" class="btn" id="bk-random">Random</button>
                     <button type="button" class="btn quiet" id="bk-clear">Clear bracket</button>
                     <span class="spacer"></span>
@@ -1252,22 +809,21 @@ footer {
                 <div class="bk-scroll">
                     <div class="bk-canvas" id="canvas"></div>
                 </div>
-                <div class="field-strip" id="field"></div>
                 <div class="vow" id="vow" hidden>
-                    The machine has put Horatio's team and Claude's team on the
+                    Your bracket has put Horatio’s team and Claude’s team on the
                     same line again. Per a commitment recorded July 29, the
                     ledger prints games as officiated and
                     <a href="2026-07-24.html#the-disclaimer">the full disclaimer rests in the archive</a>.
                     Calm, as ever.
                 </div>
                 <p class="fine">
-                    The shape is the league's own, as posted: twelve clubs,
+                    The shape is the league’s own, as posted: twelve clubs,
                     double elimination, <span class="playdates">August 21–22</span>,
                     twenty-two games. Byes for the top four; five plays twelve,
                     six plays eleven, seven plays ten, eight plays nine. Lose
                     once and you drop to the elimination road; lose twice and
                     the summer is over. The club listed first in each game is
-                    the home club, which is the first time the league's
+                    the home club, which is the first time the league’s
                     paperwork has carried the designation. Hover a game on a
                     desktop to see where its winner and its loser go next.
                 </p>
@@ -1275,16 +831,14 @@ footer {
 
             <footer>
                 <p class="fine">
-                    Every number here comes from <code>analysis.py</code> run
-                    against the <span class="asof">August 7</span> book and the
-                    league's own schedule; the prophecy is yours. The machine
-                    enumerates outcomes exactly — it does not estimate, simulate
-                    or weight anybody's chances, and where a finish comes down
-                    to a tie on points it says so and stops, because the
-                    league's tiebreaker is not published and the desk does not
-                    guess. Nothing leaves this browser. The season behind all
-                    of it — the standings, the batting race, the record board
-                    and the rest of the numbers — is printed in
+                    The seeding here is the league’s posted bracket, checked
+                    against the final table <code>analysis.py</code> computed
+                    from the season’s own game book; the prophecy is yours.
+                    This page predicts nothing and weights nobody’s chances —
+                    it draws the bracket the league is about to play and lets
+                    you fill it in. Nothing leaves this browser. The season
+                    behind all of it — the standings, the batting race, the
+                    record board and the rest of the numbers — is printed in
                     <a href="index.html">the paper</a>.
                 </p>
             </footer>
@@ -1295,35 +849,39 @@ footer {
         <noscript>
             <div class="wrap">
                 <div class="noscript">
-                    The simulator is script, and your reader has script
-                    off — the desk respects the choice. There is no ink
-                    edition of this page: the seeding arithmetic and the
-                    bracket live here and nowhere else. The season's
-                    numbers — the standings, the batting race, the record
-                    board — are printed in
+                    The bracket is script, and your reader has script off —
+                    the desk respects the choice. There is no ink edition of
+                    this page: the playoff bracket lives here and nowhere
+                    else. The season’s numbers — the standings, the batting
+                    race, the record board — are printed in
                     <a href="index.html">the paper</a>.
                 </div>
             </div>
         </noscript>
 
-        <script type="application/json" id="machine-data">{"asof":"August 7","slate":"August 14","gp_final":20,"total":531441,"teams":[{"s":"jeremy","label":"Jeremy's team","w":14,"l":4,"t":0,"rank":1,"best":1,"worst":5,"mo":0,"mp":486},{"s":"caleb","label":"Caleb's team","w":13,"l":4,"t":1,"rank":2,"best":1,"worst":5,"mo":1458,"mp":13122},{"s":"horatio","label":"Horatio's team","w":13,"l":5,"t":0,"rank":3,"best":1,"worst":5,"mo":7533,"mp":40824},{"s":"sefton","label":"Sefton's team","w":12,"l":6,"t":0,"rank":4,"best":2,"worst":5,"mo":189540,"mp":320031},{"s":"stafford","label":"Stafford's team","w":12,"l":6,"t":0,"rank":5,"best":2,"worst":5,"mo":190998,"mp":320031},{"s":"claude","label":"Claude's team","w":9,"l":8,"t":1,"rank":6,"best":6,"worst":7,"mo":531441,"mp":531441},{"s":"gideon","label":"Gideon's team","w":9,"l":9,"t":0,"rank":7,"best":6,"worst":8,"mo":531441,"mp":531441},{"s":"elliot","label":"Elliot's team","w":7,"l":11,"t":0,"rank":8,"best":7,"worst":10,"mo":531441,"mp":531441},{"s":"michael","label":"Michael's team","w":6,"l":12,"t":0,"rank":9,"best":8,"worst":11,"mo":531441,"mp":531441},{"s":"boyds-daniel","label":"Boyds Daniel's team","w":5,"l":13,"t":0,"rank":10,"best":8,"worst":12,"mo":531441,"mp":531441},{"s":"seth","label":"Seth's team","w":4,"l":14,"t":0,"rank":11,"best":9,"worst":12,"mo":531441,"mp":531441},{"s":"ephraims-daniel","label":"Ephraims Daniel's team","w":3,"l":15,"t":0,"rank":12,"best":10,"worst":12,"mo":531441,"mp":531441}],"games":[{"time":"2:30","field":"North","a":"stafford","b":"caleb"},{"time":"2:30","field":"South","a":"jeremy","b":"boyds-daniel"},{"time":"3:30","field":"North","a":"stafford","b":"boyds-daniel"},{"time":"3:30","field":"South","a":"jeremy","b":"caleb"},{"time":"4:30","field":"North","a":"gideon","b":"claude"},{"time":"4:30","field":"South","a":"horatio","b":"michael"},{"time":"5:30","field":"North","a":"gideon","b":"michael"},{"time":"5:30","field":"South","a":"horatio","b":"claude"},{"time":"6:30","field":"North","a":"sefton","b":"seth"},{"time":"6:30","field":"South","a":"elliot","b":"ephraims-daniel"},{"time":"7:30","field":"North","a":"sefton","b":"ephraims-daniel"},{"time":"7:30","field":"South","a":"elliot","b":"seth"}]}</script>
-        <script src="anime.min.js"></script>
+        <script type="application/json" id="machine-data">{"final":true,"asof":"August 14","days":"August 21\u201322","bracket":[[1,"s5","s12",21],[2,"s6","s11",21],[3,"s7","s10",21],[4,"s8","s9",21],[5,"s1","w4",21],[6,"s2","w3",21],[7,"s3","w2",21],[8,"s4","w1",21],[9,"l1","l4",21],[10,"l2","l3",21],[11,"l5","w9",22],[12,"l6","w10",22],[13,"w5","w6",22],[14,"w7","w8",22],[15,"w13","w14",22],[16,"l7","w11",22],[17,"l8","w12",22],[18,"w16","w17",22],[19,"l13","w18",22],[20,"l14","w19",22],[21,"w20","l15",22],[22,"w15","w21",22]],"teams":[{"s":"jeremy","label":"Jeremy's team","seed":1,"w":15,"l":5,"t":0,"pts":30,"pf":273,"pa":217,"diff":56},{"s":"caleb","label":"Caleb's team","seed":2,"w":14,"l":5,"t":1,"pts":29,"pf":262,"pa":200,"diff":62},{"s":"horatio","label":"Horatio's team","seed":3,"w":14,"l":6,"t":0,"pts":28,"pf":292,"pa":159,"diff":133},{"s":"sefton","label":"Sefton's team","seed":4,"w":14,"l":6,"t":0,"pts":28,"pf":279,"pa":195,"diff":84},{"s":"stafford","label":"Stafford's team","seed":5,"w":13,"l":7,"t":0,"pts":26,"pf":255,"pa":224,"diff":31},{"s":"claude","label":"Claude's team","seed":6,"w":11,"l":8,"t":1,"pts":23,"pf":211,"pa":196,"diff":15},{"s":"gideon","label":"Gideon's team","seed":7,"w":9,"l":11,"t":0,"pts":18,"pf":209,"pa":221,"diff":-12},{"s":"elliot","label":"Elliot's team","seed":8,"w":8,"l":12,"t":0,"pts":16,"pf":225,"pa":248,"diff":-23},{"s":"michael","label":"Michael's team","seed":9,"w":7,"l":13,"t":0,"pts":14,"pf":179,"pa":238,"diff":-59},{"s":"boyds-daniel","label":"Boyds Daniel's team","seed":10,"w":6,"l":14,"t":0,"pts":12,"pf":176,"pa":250,"diff":-74},{"s":"ephraims-daniel","label":"Ephraims Daniel's team","seed":11,"w":4,"l":16,"t":0,"pts":8,"pf":211,"pa":301,"diff":-90},{"s":"seth","label":"Seth's team","seed":12,"w":4,"l":16,"t":0,"pts":8,"pf":159,"pa":282,"diff":-123}]}</script>
         <script src="confetti.min.js"></script>
         <script>
 /* ══════════════════════════════════════════════════════════════════
-   THE SCENARIO SIMULATOR — engine, rebuilt 2026-08-14.
+   PLAYOFF PREDICTION BRACKETS — engine, third cut (2026-08-18).
 
-   Owner-authorised page script (see CLAUDE.md). Every number displayed
-   derives from the machine-data island emitted by analysis.py; the
+   Owner-authorised page script (see CLAUDE.md). The page used to run a
+   seeding machine: the August 14 finale was unplayed, so it enumerated
+   every way the last afternoon could land and said what each club still
+   needed. That afternoon has been played. The seeds are posted, the
+   arithmetic has an answer, and speculating about it would now be
+   fiction — so the whole enumerator, the question panel and the
+   afternoon docket came out, and what is left is the thing the reader
+   actually wants on gameday: the league's real bracket, drawn, with
+   twenty-two games to call.
+
+   Every club and every number displayed derives from the machine-data
+   island emitted by analysis.py (captain labels and slugs only). The
    bracket topology is the league's own, as posted at
-   cpsoftball.com/playoffs.php. The enumerator below re-derives the
-   clinch bounds live and self-checks against the island's numbers at
-   start-up. Libraries: anime.js (the seed table's FLIP reorder) and
-   canvas-confetti (the pennant), both vendored locally. No network
-   calls, no accounts; state lives in the URL hash and localStorage.
-
-   Three layers, in order: pure arithmetic (tableRows / resolveBracket /
-   sweep), plain-English writers (say*), then renderers.
+   cpsoftball.com/playoffs.php and re-verified against it 2026-08-18.
+   Libraries: canvas-confetti for the pennant, vendored locally. No
+   network calls, no accounts; state lives in the URL hash and
+   localStorage.
    ══════════════════════════════════════════════════════════════════ */
 (function () {
     "use strict";
@@ -1333,40 +891,78 @@ footer {
     var order = data.teams.map(function (t) {
         return t.s;
     });
-    var N = order.length;
-    var ix = {};
     var byS = {};
-    data.teams.forEach(function (t, i) {
+    var seedOf = {};
+    var bySeed = {};
+    data.teams.forEach(function (t) {
         byS[t.s] = t;
-        ix[t.s] = i;
+        seedOf[t.s] = t.seed;
+        bySeed["s" + t.seed] = t.s;
     });
+
+    /* The FATAL half of the self-check, run before a single value is used.
+       Structural only: an island that is not twelve clubs seeded 1–12 once
+       each, with a twenty-two game bracket, cannot draw a bracket at all —
+       and a bracket drawn from a hole seats the WRONG club rather than
+       failing. It says so, draws nothing, and stops. (The softer checks —
+       points that disagree with the record — live in selfCheck below, and
+       warn without stopping.) */
+    if (!islandIsSound()) return;
+    function islandIsSound() {
+        var seen = {};
+        var ok =
+            data.final === true &&
+            data.teams.length === 12 &&
+            Array.isArray(data.bracket) &&
+            data.bracket.length === 22;
+        data.teams.forEach(function (t, i) {
+            if (t.seed !== i + 1 || seen[t.seed]) ok = false;
+            seen[t.seed] = 1;
+        });
+        if (ok) return true;
+        if (window.console) console.warn("playoff brackets: island self-check FAILED");
+        var field = document.getElementById("field");
+        var bracket = document.getElementById("bracket");
+        var top = document.getElementById("tb-state");
+        if (field)
+            field.innerHTML =
+                '<div class="noscript">The seeding on this page did not pass its own ' +
+                "check, so the bracket has not been drawn — a bracket with the wrong " +
+                "club in it is worse than no bracket. The season’s numbers are printed in " +
+                '<a href="index.html">the paper</a>.</div>';
+        if (bracket) bracket.innerHTML = "";
+        if (top) top.textContent = "self-check failed";
+        return false;
+    }
+
     var RM =
         typeof window.matchMedia === "function" &&
         window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    // storage key kept from the first build on purpose: renaming it would
-    // throw away scenarios readers have already saved on their phones.
-    var STORE = "seeding-machine-" + data.slate.replace(/\s+/g, "-").toLowerCase();
+    // keyed to the island's own date: a re-cut island retires saved brackets
+    // rather than resolving old picks against seeds that have moved.
+    var STORE = "cp-playoff-bracket-" + data.asof.replace(/\s+/g, "-").toLowerCase();
 
-    /* ── the league's posted bracket: [game, home slot, away slot, day].
-       s5 = the fifth seed; w4 / l4 = the winner / loser of Game 4. Every
-       slot points at a lower-numbered game, so one forward pass resolves
-       the whole thing. ── */
-    var BR = [
-        [1, "s5", "s12", 21], [2, "s6", "s11", 21], [3, "s7", "s10", 21], [4, "s8", "s9", 21],
-        [5, "s1", "w4", 21], [6, "s2", "w3", 21], [7, "s3", "w2", 21], [8, "s4", "w1", 21],
-        [9, "l1", "l4", 21], [10, "l2", "l3", 21],
-        [11, "l5", "w9", 22], [12, "l6", "w10", 22],
-        [13, "w5", "w6", 22], [14, "w7", "w8", 22],
-        [15, "w13", "w14", 22],
-        [16, "l7", "w11", 22], [17, "l8", "w12", 22],
-        [18, "w16", "w17", 22],
-        [19, "l13", "w18", 22], [20, "l14", "w19", 22],
-        [21, "w20", "l15", 22],
-        [22, "w15", "w21", 22]
-    ];
+    /* ── the league's posted bracket, carried in the island so the topology
+       has ONE home (PLAYOFF_BRACKET in analysis.py, which checks it before
+       emitting): [game, home slot, away slot, day]. s5 = the fifth seed;
+       w4 / l4 = the winner / loser of Game 4. Every slot points at a
+       lower-numbered game, so one forward pass resolves the whole thing. ── */
+    var BR = data.bracket;
     var SLOT = {};
     BR.forEach(function (g) {
         SLOT[g[0]] = { h: g[1], a: g[2], day: g[3] };
+    });
+
+    /* Where each club walks in. Every seed occupies exactly one seeded
+       slot in the whole bracket — the eight opening-round places and the
+       four quarterfinals the byes were held for — so this is a lookup,
+       not a search. */
+    var entry = {};
+    BR.forEach(function (br) {
+        [[br[1], br[2], true], [br[2], br[1], false]].forEach(function (p) {
+            if (p[0].charAt(0) !== "s") return;
+            entry[bySeed[p[0]]] = { no: br[0], opp: p[1], home: p[2] };
+        });
     });
 
     /* Bracket geometry: [column, row] in card units. The winners' road
@@ -1400,14 +996,8 @@ footer {
         [6, "Elimination final"]
     ];
 
-    // ── state ──
-    var state = {
-        a: data.games.map(function () {
-            return null; // 'a' | 't' | 'b' | null, one per game today
-        }),
-        b: {}, // bracket game number -> the slug that advances
-        q: { club: null, goal: "bye", other: null }
-    };
+    // ── state: one entry per bracket game, the slug the reader advanced ──
+    var state = { b: {} };
 
     // ── small helpers ──
     function el(id) {
@@ -1419,11 +1009,8 @@ footer {
     function capName(s) {
         return byS[s].label.replace(/['’]s team$/, ""); // "Jeremy"
     }
-    function fmt(n) {
-        return Math.round(n).toLocaleString("en-US");
-    }
-    function rec(r) {
-        return r.w + "-" + r.l + "-" + r.t;
+    function rec(t) {
+        return t.w + "-" + t.l + "-" + t.t;
     }
     function esc(s) {
         return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -1445,61 +1032,13 @@ footer {
 
     /* ══ LAYER 1 — arithmetic ══════════════════════════════════════ */
 
-    /* The league table as wired: the August 7 book plus whatever results
-       have been set today. Seeds follow points (2W+T); clubs level on
-       points are seated by the August 7 order and flagged, because the
-       league's real tiebreaker is not published. */
-    function tableRows() {
-        var m = {};
-        var rows = data.teams.map(function (t) {
-            var r = { s: t.s, label: t.label, w: t.w, l: t.l, t: t.t, rank0: t.rank, left: 0 };
-            m[t.s] = r;
-            return r;
-        });
-        data.games.forEach(function (g, i) {
-            var p = state.a[i];
-            if (p === "a") {
-                m[g.a].w++;
-                m[g.b].l++;
-            } else if (p === "b") {
-                m[g.b].w++;
-                m[g.a].l++;
-            } else if (p === "t") {
-                m[g.a].t++;
-                m[g.b].t++;
-            } else {
-                m[g.a].left++;
-                m[g.b].left++;
-            }
-        });
-        rows.forEach(function (r) {
-            r.pts = 2 * r.w + r.t;
-        });
-        rows.sort(function (x, y) {
-            return y.pts - x.pts || x.rank0 - y.rank0;
-        });
-        rows.forEach(function (r, i) {
-            r.seed = i + 1;
-            r.level =
-                (i > 0 && rows[i - 1].pts === r.pts) ||
-                (i + 1 < rows.length && rows[i + 1].pts === r.pts);
-        });
-        return rows;
-    }
-
     /* One forward pass over the posted bracket. Any pick whose premise
-       has changed underneath it (the seeds moved, an earlier game was
-       repicked) is dropped: the prophecy unwinds rather than lying. */
-    function resolveBracket(rows) {
-        var seedOf = {};
-        var bySlot = {};
+       has changed underneath it (an earlier game was repicked) is
+       dropped: the prophecy unwinds rather than lying. */
+    function resolveBracket() {
         var occ = {};
-        rows.forEach(function (r) {
-            bySlot["s" + r.seed] = r.s;
-            seedOf[r.s] = r.seed;
-        });
         function val(sl) {
-            if (sl.charAt(0) === "s") return bySlot[sl];
+            if (sl.charAt(0) === "s") return bySeed[sl];
             var g = occ[+sl.slice(1)];
             return sl.charAt(0) === "w" ? g.w : g.l;
         }
@@ -1518,568 +1057,11 @@ footer {
             }
             occ[no] = { h: h, a: a, w: w, l: l };
         });
-        return { seedOf: seedOf, occ: occ };
+        return occ;
     }
 
-    /* THE ENUMERATOR. Replays every remaining win/tie/loss combination of
-       the unwired games — 3^n of them, exactly, never sampled — and
-       reports for every club the best and worst seed still reachable, and
-       how many of those futures end without a first-round bye. Because
-       the league's tiebreaker is unpublished, every finish is read twice:
-       optimistically (every tie on points breaks for the club) and
-       pessimistically (every one breaks against it). The gap between the
-       two is tiebreak territory and is reported as such, never resolved.
-
-       When a question is being asked, the same single pass also collects,
-       for that club: how many futures answer it outright, how many leave
-       it level on points, how many kill it; which results are forced in
-       every future that answers it; one concrete example afternoon; and
-       whether some arrangement of the club's OWN games settles it whatever
-       else happens. */
-    function sweep(q) {
-        var rows = tableRows();
-        var base = new Int32Array(N);
-        var left = new Int32Array(N);
-        rows.forEach(function (r) {
-            base[ix[r.s]] = r.pts;
-            left[ix[r.s]] = r.left;
-        });
-        var remIdx = [];
-        data.games.forEach(function (g, i) {
-            if (!state.a[i]) remIdx.push(i);
-        });
-        var m = remIdx.length;
-        var total = Math.pow(3, m);
-        var ga = new Int32Array(m);
-        var gb = new Int32Array(m);
-        remIdx.forEach(function (gi, k) {
-            ga[k] = ix[data.games[gi].a];
-            gb[k] = ix[data.games[gi].b];
-        });
-        var lo = Infinity;
-        var hi = -Infinity;
-        for (var i0 = 0; i0 < N; i0++) {
-            if (base[i0] < lo) lo = base[i0];
-            if (base[i0] + 2 * left[i0] > hi) hi = base[i0] + 2 * left[i0];
-        }
-        var H = hi - lo + 1;
-        var hist = new Int32Array(H);
-        var suf = new Int32Array(H + 1);
-        var best = new Int32Array(N).fill(N + 1);
-        var worst = new Int32Array(N);
-        var missOpt = new Int32Array(N); // futures with no bye even optimistically
-        var missPes = new Int32Array(N); // futures with no bye guaranteed
-        var topOpt = new Int32Array(N);
-        var pts = new Int32Array(N);
-        var digits = new Int32Array(m);
-
-        // question scaffolding
-        var qi = q ? ix[q.club] : -1;
-        var qo = q && q.goal === "ahead" && q.other ? ix[q.other] : -1;
-        var qSafe = 0;
-        var qLevel = 0;
-        var qOut = 0;
-        var maskSafe = new Int32Array(m); // outcomes seen in futures that answer it
-        var maskAny = new Int32Array(m);
-        var exSafe = null;
-        var exSafeScore = -1;
-        var exAny = null;
-        var exAnyScore = -1;
-        var ownPos = [];
-        var chalkWant = new Int32Array(m);
-        if (q) {
-            remIdx.forEach(function (gi, k) {
-                var g = data.games[gi];
-                if (g.a === q.club || g.b === q.club) ownPos.push(k);
-                chalkWant[k] = byS[g.a].rank < byS[g.b].rank ? 0 : 2;
-            });
-        }
-        var ownCombos = Math.pow(3, ownPos.length);
-        var ownSafe = new Uint8Array(ownCombos).fill(1);
-        var ownPow = new Int32Array(ownPos.length);
-        for (var op = 0; op < ownPos.length; op++) ownPow[op] = Math.pow(3, op);
-        // the "win out" branch: the club's own games all going its way
-        var woDig = new Int32Array(ownPos.length);
-        ownPos.forEach(function (k, j) {
-            woDig[j] = data.games[remIdx[k]].a === q.club ? 0 : 2;
-        });
-        var woTotal = 0;
-        var woSafe = 0;
-        var woLevel = 0;
-        var woDead = 0;
-        var woAbove = new Int32Array(N); // at or above the club in every miss
-        var woBelow = new Int32Array(N); // below it in at least one clean finish
-
-        for (var c = 0; c < total; c++) {
-            pts.set(base);
-            for (var k = 0; k < m; k++) {
-                var o = digits[k];
-                if (o === 0) pts[ga[k]] += 2;
-                else if (o === 2) pts[gb[k]] += 2;
-                else {
-                    pts[ga[k]]++;
-                    pts[gb[k]]++;
-                }
-            }
-            hist.fill(0);
-            for (var i = 0; i < N; i++) hist[pts[i] - lo]++;
-            suf[H] = 0;
-            for (var p = H - 1; p >= 0; p--) suf[p] = suf[p + 1] + hist[p];
-            for (i = 0; i < N; i++) {
-                var v = pts[i] - lo;
-                var opt = 1 + suf[v + 1]; // every tie breaks for it
-                var pes = suf[v]; // every tie breaks against it
-                if (opt < best[i]) best[i] = opt;
-                if (pes > worst[i]) worst[i] = pes;
-                if (opt > 4) missOpt[i]++;
-                if (pes > 4) missPes[i]++;
-                if (opt === 1) topOpt[i]++;
-            }
-            if (q) {
-                var safe, dead;
-                if (qo >= 0) {
-                    safe = pts[qi] > pts[qo];
-                    dead = pts[qi] < pts[qo];
-                } else if (q.goal === "first") {
-                    safe = suf[pts[qi] - lo] === 1;
-                    dead = 1 + suf[pts[qi] - lo + 1] > 1;
-                } else {
-                    safe = suf[pts[qi] - lo] <= 4;
-                    dead = 1 + suf[pts[qi] - lo + 1] > 4;
-                }
-                var key = 0;
-                var inWO = true;
-                for (op = 0; op < ownPos.length; op++) {
-                    key += digits[ownPos[op]] * ownPow[op];
-                    if (digits[ownPos[op]] !== woDig[op]) inWO = false;
-                }
-                if (safe) qSafe++;
-                else {
-                    ownSafe[key] = 0;
-                    if (dead) qOut++;
-                    else qLevel++;
-                }
-                if (inWO) {
-                    woTotal++;
-                    if (safe) {
-                        woSafe++;
-                        for (i = 0; i < N; i++) if (pts[i] < pts[qi]) woBelow[i]++;
-                    } else {
-                        if (dead) woDead++;
-                        else woLevel++;
-                        for (i = 0; i < N; i++) if (pts[i] >= pts[qi]) woAbove[i]++;
-                    }
-                }
-                if (!dead) {
-                    var score = 0;
-                    for (k = 0; k < m; k++) {
-                        if (digits[k] === chalkWant[k]) score++;
-                        maskAny[k] |= 1 << digits[k];
-                    }
-                    for (op = 0; op < ownPos.length; op++) {
-                        var d = digits[ownPos[op]];
-                        score += d === woDig[op] ? 40 : d === 1 ? 20 : 0;
-                    }
-                    if (score > exAnyScore) {
-                        exAnyScore = score;
-                        exAny = Array.prototype.slice.call(digits);
-                    }
-                    if (safe) {
-                        for (k = 0; k < m; k++) maskSafe[k] |= 1 << digits[k];
-                        if (score > exSafeScore) {
-                            exSafeScore = score;
-                            exSafe = Array.prototype.slice.call(digits);
-                        }
-                    }
-                }
-            }
-            for (var k2 = 0; k2 < m; k2++) {
-                if (++digits[k2] < 3) break;
-                digits[k2] = 0;
-            }
-        }
-
-        var out = { total: total, remIdx: remIdx, rows: {} };
-        order.forEach(function (s, i) {
-            out.rows[s] = {
-                best: best[i],
-                worst: worst[i],
-                mo: missOpt[i],
-                mp: missPes[i],
-                top: topOpt[i]
-            };
-        });
-        if (q) {
-            var ownKey = -1;
-            var ownKeyScore = -1;
-            for (var kk = 0; kk < ownCombos; kk++) {
-                if (!ownSafe[kk]) continue;
-                var sc = 0;
-                var rest = kk;
-                for (op = 0; op < ownPos.length; op++) {
-                    var dd = rest % 3;
-                    rest = (rest - dd) / 3;
-                    var mn = data.games[remIdx[ownPos[op]]].a === q.club ? 0 : 2;
-                    sc += dd === mn ? 2 : dd === 1 ? 1 : 0;
-                }
-                if (sc > ownKeyScore) {
-                    ownKeyScore = sc;
-                    ownKey = kk;
-                }
-            }
-            // Which results the goal forces, and which it rules out: a game
-            // whose surviving futures agree on one outcome is a requirement;
-            // one that has lost an outcome altogether is a result the club
-            // cannot afford.
-            var mask = qSafe > 0 ? maskSafe : maskAny;
-            var must = [];
-            var cant = [];
-            for (var mk = 0; mk < m; mk++) {
-                var bits = mask[mk];
-                var own = ownPos.indexOf(mk) >= 0;
-                if (bits === 1 || bits === 2 || bits === 4)
-                    must.push({ gi: remIdx[mk], o: bits === 1 ? 0 : bits === 2 ? 1 : 2, own: own });
-                else if (bits === 3 || bits === 5 || bits === 6)
-                    cant.push({ gi: remIdx[mk], o: bits === 3 ? 2 : bits === 5 ? 1 : 0, own: own });
-            }
-            cant.sort(function (x, y) {
-                return (y.own ? 1 : 0) - (x.own ? 1 : 0);
-            });
-            // The clubs at or above it in EVERY future where winning out is
-            // not enough: a necessary condition, stated as one.
-            var deniers = [];
-            var woMiss = woTotal - woSafe;
-            if (woMiss > 0)
-                order.forEach(function (s, j) {
-                    if (j !== qi && woAbove[j] === woMiss && woBelow[j] > 0) deniers.push(s);
-                });
-            out.q = {
-                club: q.club,
-                goal: q.goal,
-                other: q.other,
-                safe: qSafe,
-                level: qLevel,
-                dead: qOut,
-                must: must,
-                cant: cant,
-                mustIsSafe: qSafe > 0,
-                example: exSafe || exAny,
-                ownPos: ownPos,
-                ownKey: ownKey,
-                wo: {
-                    total: woTotal,
-                    safe: woSafe,
-                    level: woLevel,
-                    dead: woDead,
-                    deniers: deniers
-                }
-            };
-        }
-        return out;
-    }
-
-    /* ══ LAYER 2 — plain English ═══════════════════════════════════ */
-
-    // "Stafford's team beat Caleb's team" / "…and Caleb's team tie"
-    function sayResult(gameIndex, outcome, tense) {
-        var g = data.games[gameIndex];
-        var beat = tense === "past" ? "beat" : "beats";
-        if (outcome === 1) return label(g.a) + " and " + label(g.b) + " tie";
-        var wS = outcome === 0 ? g.a : g.b;
-        var lS = outcome === 0 ? g.b : g.a;
-        return label(wS) + " " + beat + " " + label(lS);
-    }
-    function sayWhen(gameIndex) {
-        var g = data.games[gameIndex];
-        return g.time + ", " + g.field;
-    }
-    function sayGoal(q, third) {
-        if (q.goal === "first") return third ? "finishes first outright" : "finish first outright";
-        if (q.goal === "ahead")
-            return (third ? "finishes" : "finish") + " ahead of " + label(q.other);
-        return (third ? "takes" : "take") + " one of the four first-round byes";
-    }
-
-    /* The paragraph under the seed table: what the wired afternoon
-       actually means, said the way a person would say it. */
-    function sayAfternoon(rows, res, bounds) {
-        var wired = state.a.filter(Boolean).length;
-        var out = [];
-        var byes = rows.slice(0, 4);
-        var lvlLine = rows.filter(function (r) {
-            return r.level && r.seed >= 3 && r.seed <= 6;
-        });
-        if (wired === 0) {
-            out.push(
-                "Nothing set yet. These are the seeds as the <b>" +
-                    data.asof +
-                    "</b> table stands, and today's twelve games can still move them."
-            );
-        } else if (wired < 12) {
-            out.push(
-                "<b>" + wired + " of twelve</b> games set — " +
-                    (bounds ? "<b>" + fmt(bounds.total) + "</b> ways" : "the rest") +
-                    " the afternoon can still finish from here."
-            );
-        } else {
-            out.push("The afternoon is complete. This is the final table.");
-        }
-        out.push(
-            "Byes go to " +
-                list(
-                    byes.map(function (r) {
-                        return "<b>" + r.seed + " " + esc(label(r.s)) + "</b>";
-                    })
-                ) +
-                ". The opening round is " +
-                list(
-                    [[5, 12], [6, 11], [7, 10], [8, 9]].map(function (pr) {
-                        return capName(rows[pr[0] - 1].s) + " v " + capName(rows[pr[1] - 1].s);
-                    }),
-                    "and"
-                ) +
-                "."
-        );
-        if (bounds) {
-            var locked = rows.filter(function (r) {
-                var b = bounds.rows[r.s];
-                return b.best === b.worst;
-            });
-            if (locked.length && wired < 12)
-                out.push(
-                    "Settled whatever else happens: " +
-                        list(
-                            locked.map(function (r) {
-                                return esc(label(r.s)) + " finishes " + bounds.rows[r.s].best;
-                            })
-                        ) +
-                        "."
-                );
-        }
-        if (lvlLine.length > 1) {
-            out.push(
-                list(
-                    lvlLine.map(function (r) {
-                        return esc(label(r.s));
-                    })
-                ) +
-                    " finish level on points" +
-                    (wired === 12
-                        ? ", so the league's unpublished tiebreaker decides which of them takes the last bye. The machine seats them by the " +
-                          data.asof +
-                          " order and says no more."
-                        : " as it stands — tiebreak territory, and the tiebreaker is the league's secret.")
-            );
-        }
-        return out;
-    }
-
-    /* The answer panel: verdict, the three exact counts, what is forced,
-       and whether the club can settle it by itself. */
-    function sayAnswer(bounds) {
-        var q = bounds && bounds.q;
-        if (!q) return '<span class="verdict">Counting…</span>';
-        var total = bounds.total;
-        var goal = sayGoal(q);
-        var cls, verdict;
-        if (q.safe === total) {
-            cls = "good";
-            verdict = "Already settled";
-        } else if (q.safe + q.level === 0) {
-            cls = "dead";
-            verdict = "Cannot happen";
-        } else if (q.safe === 0) {
-            cls = "tb";
-            verdict = "Only by tiebreak";
-        } else if (q.ownKey >= 0) {
-            cls = "live";
-            verdict = "In their own hands";
-        } else {
-            cls = "live";
-            verdict = "Needs help";
-        }
-        var h = '<span class="verdict ' + cls + '">' + verdict + "</span>";
-
-        var lede;
-        if (total === 1) {
-            lede = q.safe
-                ? "The afternoon is fully set, and in it " + esc(label(q.club)) + " " + sayGoal(q, true) + "."
-                : q.level
-                ? "The afternoon is fully set, and " + esc(label(q.club)) +
-                  " finishes level on points — so the league's unpublished tiebreaker, and nothing on this page, decides whether it " +
-                  sayGoal(q, true) + "."
-                : "The afternoon is fully set, and in it " + esc(label(q.club)) + " does not " + goal + ".";
-        } else {
-            lede =
-                "Of the <span class=\"n\">" +
-                fmt(total) +
-                "</span> ways the afternoon can still finish, " +
-                esc(label(q.club)) +
-                " " +
-                (q.goal === "ahead" ? "finishes ahead of " + esc(label(q.other)) : "gets there") +
-                " outright in <span class=\"n\">" +
-                fmt(q.safe) +
-                "</span>, comes level on points in <span class=\"n\">" +
-                fmt(q.level) +
-                "</span>, and misses in <span class=\"n\">" +
-                fmt(q.dead) +
-                "</span>.";
-        }
-        h += '<p class="ans-lede">' + lede + "</p>";
-
-        var items = [];
-        function results(arr) {
-            return (
-                '<span class="must">' +
-                arr
-                    .map(function (f) {
-                        return (
-                            esc(sayResult(f.gi, f.o)) +
-                            ' <span class="n" style="color:var(--dim2)">(' +
-                            sayWhen(f.gi) +
-                            ")</span>"
-                        );
-                    })
-                    .join("<br />") +
-                "</span>"
-            );
-        }
-        if (total === 1) {
-            items.push([
-                "Nothing left",
-                "Every game is set, so there is nothing left to arrange. Clear one on the left and the machine goes back to counting."
-            ]);
-        } else if (q.safe + q.level === 0) {
-            items.push([
-                "Why not",
-                "No arrangement of the games left reaches it. " +
-                    esc(label(q.club)) +
-                    " cannot be moved past the clubs above it with the points still on the table."
-            ]);
-        } else if (q.safe === total) {
-            items.push(["Nothing left", "It is true in every remaining future. Nothing today can undo it."]);
-        } else {
-            if (q.must.length)
-                items.push([
-                    "Must happen",
-                    results(q.must) +
-                        (q.mustIsSafe
-                            ? ""
-                            : " — what every future where it is even possible has in common.")
-                ]);
-            if (q.cant.length)
-                items.push([
-                    "Cannot afford",
-                    results(q.cant.slice(0, 3)) +
-                        (q.cant.length > 3
-                            ? '<span class="ans-note"> …and ' + (q.cant.length - 3) + " more</span>"
-                            : "")
-                ]);
-            if (!q.must.length && !q.cant.length)
-                items.push([
-                    "Must happen",
-                    "Nothing, on its own. Every game today has some way of landing that keeps it alive — it is the combinations that decide."
-                ]);
-        }
-        if (q.safe < total && q.safe + q.level > 0 && q.ownPos.length) {
-            var wo = q.wo;
-            var winOut = list(
-                q.ownPos.map(function (k) {
-                    var g = data.games[bounds.remIdx[k]];
-                    return "beat " + esc(label(g.a === q.club ? g.b : g.a));
-                })
-            );
-            if (wo.safe === wo.total)
-                items.push([
-                    "By itself",
-                    "<b>" + winOut + "</b> — and it is done, however the other games land."
-                ]);
-            else if (wo.safe > 0)
-                items.push([
-                    "By itself",
-                    "Not enough on its own. " +
-                        esc(label(q.club)) +
-                        " can " + winOut + " and still be short in <span class=\"n\">" +
-                        fmt(wo.total - wo.safe) +
-                        "</span> of the <span class=\"n\">" +
-                        fmt(wo.total) +
-                        "</span> afternoons that follow" +
-                        (wo.deniers.length
-                            ? " — and every one of those needs <b>" +
-                              list(wo.deniers.map(function (s) {
-                                  return esc(label(s));
-                              })) +
-                              "</b> to finish level with it or better."
-                            : ".")
-                ]);
-            else
-                items.push([
-                    "By itself",
-                    "Winning out is not enough — " +
-                        esc(label(q.club)) +
-                        " can " + winOut + " and still not get there. It needs results elsewhere."
-                ]);
-        }
-        h += '<ul class="ans-list">';
-        items.forEach(function (it) {
-            h += '<li><span class="k">' + it[0] + "</span><span>" + it[1] + "</span></li>";
-        });
-        h += "</ul>";
-
-        h += '<div class="ans-acts">';
-        if (q.example && total > 1)
-            h +=
-                '<button type="button" class="btn solid" id="ans-wire">Set an afternoon that does it →</button>';
-        h +=
-            '<span class="ans-note">Exact counts over every combination, not a simulation.</span></div>';
-        return h;
-    }
-
-    /* The line above the bracket: where the prophecy has got to. */
-    function sayBracket(res, seedOf) {
-        var occ = res.occ;
-        var champ = occ[22].w;
-        if (champ)
-            return (
-                "<b>" +
-                esc(label(champ)) +
-                "</b> takes it, from the " +
-                seedOf[champ] +
-                " seed. Pick a different winner anywhere in the bracket and everything after it re-letters itself."
-            );
-        var picked = 0;
-        BR.forEach(function (br) {
-            if (occ[br[0]].w) picked++;
-        });
-        var wired = state.a.filter(Boolean).length;
-        if (picked === 0)
-            return (
-                "Seeded by the afternoon above" +
-                (wired < 12
-                    ? " — <b>" + (12 - wired) + "</b> of today's games are still unset, so the names keep moving"
-                    : "") +
-                ". Tap a club to advance it; its opponent drops to the elimination road, and every later game fills in by itself."
-            );
-        var st = bracketState(occ);
-        var alive = order.filter(function (s) {
-            return st.loss[s] < 2;
-        });
-        var unbeaten = alive.filter(function (s) {
-            return st.loss[s] === 0;
-        });
-        return (
-            "<b>" +
-            picked +
-            " of 22</b> games picked. " +
-            alive.length +
-            " clubs still standing, " +
-            (unbeaten.length
-                ? unbeaten.length + " of them unbeaten (" + list(unbeaten.map(capName)) + ")"
-                : "none of them unbeaten") +
-            ". Everything downstream is filled in for you."
-        );
-    }
-
+    /* Wins, losses and the next unpicked game for every club, read off a
+       resolved bracket. Two losses and the summer is over. */
     function bracketState(occ) {
         var loss = {};
         var win = {};
@@ -2106,202 +1088,100 @@ footer {
         return { loss: loss, win: win, next: next };
     }
 
-    /* ══ LAYER 3 — rendering ═══════════════════════════════════════ */
+    /* The soft half of the tripwire: points that disagree with the record,
+       or a club seeded above one with more points. Deliberately NOT fatal —
+       the league seeds by its own tiebreaker and has never published it, so
+       if it ever separates two clubs in a way points do not explain, the desk
+       notes the disagreement and still draws the bracket the league posted. */
+    function selfCheck() {
+        var prev = Infinity;
+        var odd = data.teams.some(function (t) {
+            var bad = 2 * t.w + t.t !== t.pts || t.pts > prev;
+            prev = t.pts;
+            return bad;
+        });
+        if (odd) {
+            if (window.console) console.warn("playoff brackets: island points do not match the seeding");
+            toast("The seeding and the points disagree — the bracket is the league’s, as posted");
+        }
+    }
 
-    var bounds = null;
-    var boundsKey = "";
-    var boundsTimer = null;
+    /* ══ LAYER 2 — plain English ═══════════════════════════════════ */
 
-    function stateKey() {
+    function phrase(sl) {
+        if (sl.charAt(0) === "s") return "Seed " + sl.slice(1);
+        return (sl.charAt(0) === "w" ? "Winner" : "Loser") + " G" + sl.slice(1);
+    }
+
+    // "Bye · G5 home v Winner G4" / "G1 away at Stafford"
+    function opensText(s) {
+        var e = entry[s];
+        var opp = e.opp.charAt(0) === "s" ? capName(bySeed[e.opp]) : phrase(e.opp);
         return (
-            state.a
-                .map(function (v) {
-                    return v || "0";
-                })
-                .join("") +
-            "|" +
-            state.q.club +
-            "|" +
-            state.q.goal +
-            "|" +
-            state.q.other
+            (seedOf[s] <= 4 ? '<span class="bye-k">Bye</span> · ' : "") +
+            "<b>G" + e.no + "</b> " + (e.home ? "home v " : "away at ") + esc(opp)
         );
     }
-    function scheduleSweep() {
-        var key = stateKey();
-        if (key === boundsKey && bounds) return;
-        if (boundsTimer) clearTimeout(boundsTimer);
-        boundsTimer = setTimeout(function () {
-            bounds = sweep(state.q);
-            boundsKey = key;
-            selfCheck(bounds);
-            renderSeeds(tableRows());
-            renderAnswer();
-            renderReadout();
-            renderTop();
-        }, 50);
-    }
 
-    /* The tripwire: with nothing wired, the live enumeration IS the one
-       analysis.py published in the island, so checking costs nothing.
-       If the reader arrived on a shared link the check waits for them to
-       clear it — it guards the build, not the reading. */
-    var checked = false;
-    function selfCheck(b) {
-        if (checked || state.a.some(Boolean)) return;
-        checked = true;
-        var ok = b.total === data.total;
-        data.teams.forEach(function (t) {
-            var r = b.rows[t.s];
-            if (r.best !== t.best || r.worst !== t.worst || r.mo !== t.mo || r.mp !== t.mp)
-                ok = false;
-        });
-        if (!ok) {
-            if (window.console) console.warn("scenario simulator: self-check against analysis.py FAILED");
-            toast("Self-check failed — the numbers may be off");
-        }
-    }
-
-    function flip(container, mutate) {
-        var before = {};
-        Array.prototype.forEach.call(container.children, function (c) {
-            if (c.dataset.k) before[c.dataset.k] = c.getBoundingClientRect();
-        });
-        mutate();
-        if (RM || typeof anime !== "function") return;
-        Array.prototype.forEach.call(container.children, function (c) {
-            var f = before[c.dataset.k];
-            if (!f) return;
-            var n = c.getBoundingClientRect();
-            var dy = f.top - n.top;
-            if (dy)
-                anime({
-                    targets: c,
-                    translateY: [dy, 0],
-                    duration: 460,
-                    easing: "easeOutQuint"
-                });
-        });
-    }
-
-    function renderDocket() {
-        var host = el("docket");
-        if (!host.dataset.built) {
-            var hours = [];
-            var seen = {};
-            data.games.forEach(function (g, i) {
-                if (!seen[g.time]) {
-                    seen[g.time] = [];
-                    hours.push(g.time);
-                }
-                seen[g.time].push(i);
-            });
-            var html = "";
-            hours.forEach(function (tm) {
-                html += '<div class="hour"><div class="hour-t">' + tm + "</div>";
-                seen[tm].forEach(function (i) {
-                    var g = data.games[i];
-                    html +=
-                        '<div class="gm" data-g="' + i + '" title="' + g.time + " · " + g.field + ' field">' +
-                        side(g.a, "a") +
-                        '<button type="button" class="gm-x" data-pick="t" aria-pressed="false" title="a tie">tie</button>' +
-                        side(g.b, "b") +
-                        "</div>";
-                });
-                html += "</div>";
-            });
-            host.innerHTML = html;
-            host.dataset.built = "1";
-        }
-        Array.prototype.forEach.call(host.querySelectorAll(".gm"), function (card) {
-            var i = +card.getAttribute("data-g");
-            card.classList.toggle("set", !!state.a[i]);
-            Array.prototype.forEach.call(card.querySelectorAll("button"), function (b) {
-                b.setAttribute(
-                    "aria-pressed",
-                    state.a[i] === b.getAttribute("data-pick") ? "true" : "false"
-                );
-            });
-        });
-        function side(s, pick) {
-            var t = byS[s];
+    /* The line above the bracket: where the prophecy has got to. */
+    function sayBracket(occ) {
+        var champ = occ[22].w;
+        if (champ)
             return (
-                '<button type="button" class="gm-t" data-pick="' + pick + '" aria-pressed="false">' +
-                "<b>" + esc(capName(s)) + "</b><i>" + t.w + "-" + t.l + "-" + t.t + "</i></button>"
+                "<b>" + esc(label(champ)) + "</b> takes it, from the " + seedOf[champ] +
+                " seed. Pick a different winner anywhere in the bracket and everything after it re-letters itself."
             );
-        }
-    }
-
-    function renderSeeds(rows) {
-        var host = el("seed-rows");
-        flip(host, function () {
-            rows.forEach(function (r) {
-                var tr = host.querySelector('[data-k="' + r.s + '"]');
-                if (!tr) {
-                    tr = document.createElement("tr");
-                    tr.setAttribute("data-k", r.s);
-                    tr.innerHTML =
-                        '<td class="c-seed"></td><td class="c-club"></td>' +
-                        '<td class="c-rec r num"></td><td class="r num"></td>' +
-                        '<td class="r num"></td><td class="r"></td>';
-                    host.appendChild(tr);
-                }
-                host.appendChild(tr);
-                var b = bounds && bounds.rows[r.s];
-                tr.className =
-                    (r.seed <= 4 ? "bye " : "") + (r.level ? "lvl " : "") + (b && b.best > 4 ? "out" : "");
-                tr.children[0].textContent = r.seed;
-                tr.children[1].textContent = r.label;
-                tr.children[2].textContent = rec(r);
-                tr.children[3].textContent = r.pts;
-                tr.children[4].textContent = b
-                    ? b.best === b.worst
-                        ? b.best
-                        : b.best + "–" + b.worst
-                    : "…";
-                var chip = "";
-                if (b) {
-                    var one = bounds.total === 1;
-                    if (b.mp === 0) chip = '<span class="chip">' + (one ? "bye" : "clinched") + "</span>";
-                    else if (b.mo === bounds.total)
-                        chip = '<span class="miss none">' + (one ? "no bye" : "every one") + "</span>";
-                    else if (one)
-                        chip =
-                            '<span class="miss" title="level on points — only the league&#39;s tiebreaker settles it">' +
-                            'tiebreak <span class="dd">‡</span></span>';
-                    else if (b.mo === b.mp) chip = '<span class="miss">' + fmt(b.mo) + "</span>";
-                    else
-                        chip =
-                            '<span class="miss" title="' +
-                            fmt(bounds.total - b.mp) +
-                            " futures with a bye outright; " +
-                            fmt(b.mp - b.mo) +
-                            ' more come down to the unpublished tiebreaker">' +
-                            fmt(b.mo) + "–" + fmt(b.mp) + ' <span class="dd">‡</span></span>';
-                }
-                tr.children[5].innerHTML = chip;
-                tr.title =
-                    r.label +
-                    (b ? " · finishes between " + b.best + " and " + b.worst : "") +
-                    (r.level ? " · level on points as it stands" : "");
-            });
+        var picked = BR.filter(function (br) {
+            return occ[br[0]].w;
+        }).length;
+        if (picked === 0)
+            return (
+                "Twenty-two games, seeded exactly as the league posted them. Tap a club to advance it; " +
+                "its opponent drops to the elimination road, and every later game fills in by itself."
+            );
+        var st = bracketState(occ);
+        var alive = order.filter(function (s) {
+            return st.loss[s] < 2;
         });
+        var unbeaten = alive.filter(function (s) {
+            return st.loss[s] === 0;
+        });
+        return (
+            "<b>" + picked + " of 22</b> games picked. " + alive.length + " clubs still standing, " +
+            (unbeaten.length
+                ? unbeaten.length + " of them unbeaten (" + list(unbeaten.map(capName)) + ")"
+                : "none of them unbeaten") +
+            ". Everything downstream is filled in for you."
+        );
     }
 
-    function renderAnswer() {
-        el("answer").innerHTML = sayAnswer(bounds);
-    }
+    /* ══ LAYER 3 — rendering ═══════════════════════════════════════ */
 
-    function renderReadout() {
-        var rows = tableRows();
-        var res = resolveBracket(rows);
-        el("readout").innerHTML =
-            '<span class="r-k">What that means</span>' +
-            sayAfternoon(rows, res, bounds)
-                .map(function (p) {
-                    return "<p>" + p + "</p>";
-                })
-                .join("");
+    function renderSeeds(occ) {
+        var st = bracketState(occ);
+        var champ = occ[22].w;
+        var html = "";
+        data.teams.forEach(function (t) {
+            var s = t.s;
+            var out = st.loss[s] >= 2;
+            var live;
+            if (champ === s) live = '<span class="chip champ">Pennant</span>';
+            else if (out) live = '<span class="chip out">Out</span>';
+            else if (st.win[s] || st.loss[s])
+                live = st.win[s] + "-" + st.loss[s] + (st.next[s] ? " · G" + st.next[s] : "");
+            else live = "—";
+            html +=
+                '<tr class="' + (t.seed <= 4 ? "bye " : "") + (out ? "out" : "") + '" title="' +
+                esc(t.label) + " · seed " + t.seed + " · " + rec(t) + '">' +
+                '<td class="c-seed">' + t.seed + "</td>" +
+                '<td class="c-club">' + esc(t.label) + "</td>" +
+                '<td class="c-rec r num">' + rec(t) + "</td>" +
+                '<td class="r num">' + t.pts + "</td>" +
+                '<td class="c-diff r num">' + (t.diff > 0 ? "+" : "") + t.diff + "</td>" +
+                '<td class="c-open">' + opensText(s) + "</td>" +
+                '<td class="c-live r">' + live + "</td></tr>";
+        });
+        el("seed-rows").innerHTML = html;
     }
 
     // ── the bracket canvas ──
@@ -2341,13 +1221,7 @@ footer {
         var ty = y2 + G.CH / 2;
         return "M" + x1 + " " + sy + " H" + ch + " V" + ty + " H" + x2;
     }
-    function phrase(sl) {
-        if (sl.charAt(0) === "s") return "Seed " + sl.slice(1);
-        return (sl.charAt(0) === "w" ? "Winner" : "Loser") + " G" + sl.slice(1);
-    }
-    function renderBracket(rows, res) {
-        var occ = res.occ;
-        var seedOf = res.seedOf;
+    function renderBracket(occ) {
         metrics();
         var canvas = el("canvas");
         canvas.style.width = G.W + "px";
@@ -2398,7 +1272,7 @@ footer {
                 slot(no, g, g.a, SLOT[no].a) +
                 "</div>";
         });
-        var plq = plaque(occ, seedOf);
+        var plq = plaque(occ);
         html +=
             '<div class="plaque' + (plq.champ ? " crowned" : "") + '" style="left:' +
             (G.PL + 4 * (G.CW + G.GX)) + "px;top:" + G.PT + "px;width:" +
@@ -2420,10 +1294,10 @@ footer {
             );
         }
     }
-    function plaque(occ, seedOf) {
+    function plaque(occ) {
         var champ = occ[22].w;
+        var st = bracketState(occ);
         if (champ) {
-            var st = bracketState(occ);
             return {
                 champ: champ,
                 html:
@@ -2432,12 +1306,11 @@ footer {
                     '<div class="pl-sub">' + seedOf[champ] + " seed · " + st.win[champ] +
                     " wins, " + st.loss[champ] + " losses · beat " + esc(label(occ[22].l)) +
                     " in the grand final. Prophecy, not results: the league plays it " +
-                    "August 21–22.</div>"
+                    data.days + ".</div>"
             };
         }
-        var st2 = bracketState(occ);
         var alive = order.filter(function (s) {
-            return st2.loss[s] < 2;
+            return st.loss[s] < 2;
         });
         var picked = BR.filter(function (br) {
             return occ[br[0]].w;
@@ -2454,38 +1327,17 @@ footer {
         };
     }
 
-    function renderField(res) {
-        var st = bracketState(res.occ);
-        var rows = tableRows();
-        var html = "";
-        rows.forEach(function (r) {
-            var out = st.loss[r.s] >= 2;
-            var unbeaten = st.win[r.s] > 0 && st.loss[r.s] === 0;
-            var tag = out
-                ? "out"
-                : st.win[r.s] || st.loss[r.s]
-                ? st.win[r.s] + "-" + st.loss[r.s] + (st.next[r.s] ? " · G" + st.next[r.s] : "")
-                : st.next[r.s]
-                ? "G" + st.next[r.s]
-                : "";
-            html +=
-                '<div class="fs ' + (out ? "out" : unbeaten ? "unbeaten" : "alive") + '">' +
-                '<span class="fsd">' + r.seed + '</span><span class="fsn">' + esc(r.label) +
-                '</span><span class="fst">' + tag + "</span></div>";
-        });
-        el("field").innerHTML = html;
-    }
-
-    function renderTop() {
-        var wired = state.a.filter(Boolean).length;
+    function renderTop(occ) {
+        var picked = BR.filter(function (br) {
+            return occ[br[0]].w;
+        }).length;
+        var champ = occ[22].w;
         el("tb-state").innerHTML =
-            "<b>" + wired + "/12</b> games set · " +
-            (bounds
-                ? bounds.total === 1
-                    ? "<b>one</b> future left"
-                    : "<b>" + fmt(bounds.total) + "</b> futures left"
-                : "counting…") +
-            " · playoffs <b>Aug 21–22</b>";
+            "<b>" + picked + "/22</b> games picked · " +
+            (champ
+                ? "<b>" + esc(capName(champ)) + "</b> takes it"
+                : "pennant <b>undecided</b>") +
+            " · <b>" + esc(data.days) + "</b>";
     }
 
     function renderVow(occ) {
@@ -2503,20 +1355,15 @@ footer {
 
     var lastChamp = null;
     function render() {
-        var rows = tableRows();
-        var res = resolveBracket(rows);
-        renderDocket();
-        renderSeeds(rows);
-        renderBracket(rows, res);
-        renderField(res);
-        renderReadout();
-        renderTop();
-        renderVow(res.occ);
-        el("bk-sub").innerHTML = sayBracket(res, res.seedOf);
-        var champ = res.occ[22].w;
+        var occ = resolveBracket();
+        renderSeeds(occ);
+        renderBracket(occ);
+        renderTop(occ);
+        renderVow(occ);
+        el("bk-sub").innerHTML = sayBracket(occ);
+        var champ = occ[22].w;
         if (champ && champ !== lastChamp) celebrate();
         lastChamp = champ;
-        scheduleSweep();
         save();
     }
 
@@ -2529,42 +1376,36 @@ footer {
     }
 
     /* ══ state codec ═══════════════════════════════════════════════
-       #f=<12 afternoon digits>.<22 bracket digits>, 1 = the first-listed
-       club, 2 = a tie or the second-listed club. It is what localStorage
-       holds, and it still reads a scenario out of the URL — the codec is
-       the one the machine shipped with, so any link already passed around
-       keeps working. */
+       #b=<22 digits>, one per bracket game in order: 0 unpicked, 1 the
+       home club, 2 the away club. It is what localStorage holds, and it
+       still reads a bracket out of an inbound URL. (The old codec was
+       #f=<12 afternoon digits>.<22 bracket digits>; the afternoon half
+       has been played, and its bracket half was picked against seeds
+       that have since moved, so those links are not honoured — a stale
+       digit would silently advance the wrong club.) */
     function encodeState() {
-        var rows = tableRows();
-        var occ = resolveBracket(rows).occ;
-        var a = state.a
-            .map(function (v) {
-                return v === "a" ? "1" : v === "t" ? "2" : v === "b" ? "3" : "0";
-            })
-            .join("");
-        var b = BR.map(function (br) {
-            var g = occ[br[0]];
-            if (!g || !g.w) return "0";
-            return g.w === g.h ? "1" : "2";
-        }).join("");
-        return "f=" + a + "." + b;
+        var occ = resolveBracket();
+        return (
+            "b=" +
+            BR.map(function (br) {
+                var g = occ[br[0]];
+                if (!g || !g.w) return "0";
+                return g.w === g.h ? "1" : "2";
+            }).join("")
+        );
     }
     function decodeState(hash) {
-        var m = /f=([0-3]{12})\.([0-2]{22})/.exec(hash || "");
+        var m = /b=([0-2]{22})/.exec(hash || "");
         if (!m) return false;
-        state.a = m[1].split("").map(function (d) {
-            return d === "1" ? "a" : d === "2" ? "t" : d === "3" ? "b" : null;
-        });
         state.b = {};
-        var rows = tableRows();
-        var occ = resolveBracket(rows).occ;
-        m[2].split("").forEach(function (d, i) {
+        var occ = resolveBracket();
+        m[1].split("").forEach(function (d, i) {
             if (d === "0") return;
             var no = BR[i][0];
             var g = occ[no];
             if (g && g.h && g.a) {
                 state.b[no] = d === "1" ? g.h : g.a;
-                occ = resolveBracket(rows).occ; // later games see this winner
+                occ = resolveBracket(); // later games see this winner
             }
         });
         return true;
@@ -2576,22 +1417,17 @@ footer {
     }
 
     /* ══ events ════════════════════════════════════════════════════ */
-    function setGame(i, pick) {
-        state.a[i] = state.a[i] === pick ? null : pick;
-        if (navigator.vibrate) navigator.vibrate(8);
-        render();
-    }
-    function chalkBracket(randomly) {
+    function fillBracket(randomly) {
         state.b = {};
         for (var no = 1; no <= 22; no++) {
-            var res = resolveBracket(tableRows());
-            var g = res.occ[no];
+            var occ = resolveBracket();
+            var g = occ[no];
             if (!g.h || !g.a) continue;
             state.b[no] = randomly
                 ? Math.random() < 0.5
                     ? g.h
                     : g.a
-                : res.seedOf[g.h] < res.seedOf[g.a]
+                : seedOf[g.h] < seedOf[g.a]
                 ? g.h
                 : g.a;
         }
@@ -2602,68 +1438,15 @@ footer {
         var b = ev.target.closest ? ev.target.closest("button") : null;
         if (!b) return;
         var id = b.id;
-        if (id === "act-reset") {
-            state.a = data.games.map(function () {
-                return null;
-            });
+        if (id === "act-reset" || id === "bk-clear") {
             state.b = {};
             lastChamp = null;
             render();
-            toast("Cleared — back to the August 7 table");
+            if (id === "act-reset") toast("Cleared — the bracket is empty again");
             return;
         }
-        if (id === "pre-chalk") {
-            state.a = data.games.map(function (g) {
-                return byS[g.a].rank < byS[g.b].rank ? "a" : "b";
-            });
-            return render();
-        }
-        if (id === "pre-random") {
-            state.a = data.games.map(function () {
-                var r = Math.random();
-                return r < 0.46 ? "a" : r < 0.92 ? "b" : "t";
-            });
-            return render();
-        }
-        if (id === "pre-clear") {
-            state.a = data.games.map(function () {
-                return null;
-            });
-            return render();
-        }
-        if (id === "bk-chalk") return chalkBracket(false);
-        if (id === "bk-random") return chalkBracket(true);
-        if (id === "bk-clear") {
-            state.b = {};
-            lastChamp = null;
-            return render();
-        }
-        if (id === "ans-wire") {
-            var q = bounds && bounds.q;
-            if (!q || !q.example) return;
-            var changed = [];
-            q.example.forEach(function (o, k) {
-                var gi = bounds.remIdx[k];
-                state.a[gi] = o === 0 ? "a" : o === 1 ? "t" : "b";
-                changed.push(gi);
-            });
-            render();
-            changed.forEach(function (gi) {
-                var card = document.querySelector('.gm[data-g="' + gi + '"]');
-                if (card) {
-                    card.classList.remove("flash");
-                    void card.offsetWidth;
-                    card.classList.add("flash");
-                }
-            });
-            el("afternoon").scrollIntoView({ behavior: RM ? "auto" : "smooth", block: "start" });
-            toast("Set below — one afternoon in which it happens");
-            return;
-        }
-        if (b.classList.contains("gm-t") || b.classList.contains("gm-x")) {
-            var card2 = b.closest(".gm");
-            if (card2) return setGame(+card2.getAttribute("data-g"), b.getAttribute("data-pick"));
-        }
+        if (id === "bk-chalk") return fillBracket(false);
+        if (id === "bk-random") return fillBracket(true);
         if (b.classList.contains("bg-s") && b.hasAttribute("data-s")) {
             var no2 = +b.getAttribute("data-g");
             var s = b.getAttribute("data-s");
@@ -2702,69 +1485,32 @@ footer {
         });
     });
 
-    function onQuery() {
-        state.q.club = el("q-club").value;
-        state.q.goal = el("q-goal").value;
-        state.q.other = el("q-other").value;
-        el("q-other-wrap").hidden = state.q.goal !== "ahead";
-        if (state.q.other === state.q.club) {
-            var alt = order.filter(function (s) {
-                return s !== state.q.club;
-            })[0];
-            el("q-other").value = alt;
-            state.q.other = alt;
-        }
-        el("answer").innerHTML = '<span class="verdict">Counting…</span>';
-        scheduleSweep();
-    }
-    ["q-club", "q-goal", "q-other"].forEach(function (id) {
-        el(id).addEventListener("change", onQuery);
-    });
-
     var resizeTimer = null;
     window.addEventListener("resize", function () {
         if (resizeTimer) clearTimeout(resizeTimer);
         resizeTimer = setTimeout(function () {
-            var rows = tableRows();
-            renderBracket(rows, resolveBracket(rows));
+            renderBracket(resolveBracket());
         }, 120);
     });
 
     /* ══ start-up ══════════════════════════════════════════════════ */
     (function boot() {
-        el("lede-slate").textContent = data.slate;
         Array.prototype.forEach.call(document.querySelectorAll(".asof"), function (n) {
             n.textContent = data.asof;
         });
-        var opts = data.teams
-            .map(function (t) {
-                return '<option value="' + t.s + '">' + esc(t.label) + "</option>";
-            })
-            .join("");
-        el("q-club").innerHTML = opts;
-        el("q-other").innerHTML = opts;
-        // open on the club whose bye is least settled — the live question
-        var pick = data.teams
-            .slice()
-            .sort(function (x, y) {
-                return y.mp - y.mo - (x.mp - x.mo);
-            })[0];
-        state.q.club = pick.s;
-        state.q.other = data.teams.filter(function (t) {
-            return t.s !== pick.s;
-        })[0].s;
-        el("q-club").value = state.q.club;
-        el("q-other").value = state.q.other;
-
+        Array.prototype.forEach.call(document.querySelectorAll(".playdates"), function (n) {
+            n.textContent = data.days;
+        });
+        selfCheck();
         var fromHash = decodeState(location.hash);
         if (!fromHash) {
             try {
                 decodeState(localStorage.getItem(STORE) || "");
             } catch (e) {}
         }
-        lastChamp = resolveBracket(tableRows()).occ[22].w;
-        render(); // paint first; the enumeration follows off the paint path
-        if (fromHash) toast("A shared scenario loaded — Reset starts fresh");
+        lastChamp = resolveBracket()[22].w;
+        render();
+        if (fromHash) toast("A shared bracket loaded — Reset starts fresh");
     })();
 })();
         </script>

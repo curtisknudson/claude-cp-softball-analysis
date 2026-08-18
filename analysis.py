@@ -1410,7 +1410,7 @@ def alibi_verdict(snaps, games, st):
 
 
 # ---------------------------------------------------------------- playoff desk
-# The Scenario Simulator (the 2026-08-14 playoff extra). The league posted a
+# Playoff Prediction Brackets (the 2026-08-14 playoff extra). The league posted a
 # 12-club double-elimination bracket at cpsoftball.com/playoffs.php (Aug
 # 21–22): seeds 1–4 draw first-round byes, seeds 5–12 play an opening
 # round (5v12, 6v11, 7v10, 8v9), and the byes host the winners (1 gets
@@ -3675,24 +3675,110 @@ def emit_watch(c):
             )
 
 
-def emit_playoffs(c):
-    """The playoff desk emitter — the 2026-08-14 playoff extra, v2.
+# The bracket the league posted (cpsoftball.com/playoffs.php): twelve clubs,
+# double elimination, twenty-two games over August 21-22. [game, home slot,
+# away slot, day]; s5 = the fifth seed, w4 / l4 = the winner / loser of Game 4.
+# Every slot points at a lower-numbered game, so one forward pass resolves the
+# whole thing. This is the same table playoffs.html carries in its BR constant
+# and is re-verified against the league's page each time the island is cut.
+PLAYOFF_BRACKET = [
+    (1, "s5", "s12", 21), (2, "s6", "s11", 21), (3, "s7", "s10", 21), (4, "s8", "s9", 21),
+    (5, "s1", "w4", 21), (6, "s2", "w3", 21), (7, "s3", "w2", 21), (8, "s4", "w1", 21),
+    (9, "l1", "l4", 21), (10, "l2", "l3", 21),
+    (11, "l5", "w9", 22), (12, "l6", "w10", 22),
+    (13, "w5", "w6", 22), (14, "w7", "w8", 22),
+    (15, "w13", "w14", 22),
+    (16, "l7", "w11", 22), (17, "l8", "w12", 22),
+    (18, "w16", "w17", 22),
+    (19, "l13", "w18", 22), (20, "l14", "w19", 22),
+    (21, "w20", "l15", 22),
+    (22, "w15", "w21", 22),
+]
 
-    Two spliced blocks: the clinch-board rows (the paper's static table)
-    and the machine-data JSON island (captain labels and slugs ONLY — raw
-    team names never reach any page, including here). The island feeds the
-    stand-alone Scenario Simulator at playoffs.html —
-    whose entire UI is script-built from this data: current records, the
-    unplayed slate, and the exact enumeration bounds (best/worst seed and
-    the bye-miss counts under optimistic/pessimistic tiebreaks), which the
-    page's own JS enumerator re-derives live as results are wired and
-    checks against these numbers at start-up. Owner authorized page script
-    for this feature (2026-08-14); see CLAUDE.md.
+
+def emit_playoff_seeds(c):
+    """The FINAL island: the twelve posted playoff seeds, nothing enumerated.
+
+    Cut for the first time 2026-08-18, once the August 14 finale was in the
+    book and the seeding stopped being a question. The league's own
+    playoffs.php was read the same day and its posted order matches the
+    standings rank column exactly — including the two pairs that finished
+    level on points, which the league broke itself. The desk does not print
+    WHY it broke them: the tiebreaker is still unpublished, and with the seeds
+    posted there is nothing left to guess.
+
+    Feeds playoffs.html, whose UI is script-built from this data. Captain
+    labels and slugs ONLY — raw team names never reach any page, this island
+    included.
+    """
+    st = c["st"]
+    seeds = [s["rank"] for s in st]
+    assert seeds == list(range(1, len(st) + 1)), f"standings are not seed-ordered: {seeds}"
+    gp = {s["gp"] for s in st}
+    assert len(gp) == 1, f"clubs have played unequal games: {sorted(gp)}"
+    left = [g for g in c["games"] if g["status"] == "SCHEDULED"]
+    assert not left, f"{len(left)} games still unplayed — the seeds are not final"
+
+    # The bracket ships WITH the seeds so the topology has one home. Check it
+    # before it goes: every seed walks in exactly once, and every winner/loser
+    # reference points at a lower-numbered game — which is what lets the page
+    # resolve the whole prophecy in a single forward pass.
+    seats = []
+    for no, home, away, _day in PLAYOFF_BRACKET:
+        for slot in (home, away):
+            if slot[0] == "s":
+                seats.append(int(slot[1:]))
+            else:
+                assert int(slot[1:]) < no, f"G{no} refers forward to {slot}"
+    assert sorted(seats) == list(range(1, len(st) + 1)), f"bracket seats {sorted(seats)}"
+
+    print(
+        f"<!-- PLAYOFFS (id playoffs): season complete at {gp.pop()} games — "
+        f"final seeding island, {len(PLAYOFF_BRACKET)} bracket games Aug 21-22 -->"
+    )
+    data = dict(
+        final=True,
+        asof=c["dcur"].strftime("%B ") + str(c["dcur"].day),
+        days="August 21\u201322",
+        bracket=[list(g) for g in PLAYOFF_BRACKET],
+        teams=[
+            dict(
+                s=cap_slug(s["team"]),
+                label=team_label(s["team"]),
+                seed=s["rank"],
+                w=s["w"],
+                l=s["l"],
+                t=s["t"],
+                pts=2 * s["w"] + s["t"],
+                pf=s["pf"],
+                pa=s["pa"],
+                diff=s["pf"] - s["pa"],
+            )
+            for s in st
+        ],
+    )
+    print("<!-- machine data island (captain labels and slugs only) -->")
+    print(
+        f'        <script type="application/json" id="machine-data">{json.dumps(data, separators=(",", ":"))}</script>'
+    )
+
+
+def emit_playoffs(c):
+    """The playoff desk emitter — the machine-data island for playoffs.html.
+
+    Two eras, one emitter. While a final slate is still unplayed it emits the
+    clinch-board rows (the paper's static table) and a FUTURES island: the
+    exact enumeration bounds the bracket page re-derived live while
+    readers wired the last afternoon, and checked against at start-up.
+
+    Once the season is complete the seeding stops being a question, the
+    speculative half of the desk goes quiet, and emit_playoff_seeds cuts the
+    FINAL island instead. Owner-authorized page script (2026-08-14); see
+    CLAUDE.md.
     """
     fut = playoff_futures(c["st"], c["games"])
     if not fut:
-        print("<!-- PLAYOFFS (id playoffs): no unplayed slate — machine idle -->")
-        return
+        return emit_playoff_seeds(c)
     total = fut.total
     print(
         f"<!-- PLAYOFFS (id playoffs): the playoff desk — {len(fut.slate)} "

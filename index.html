@@ -58,1672 +58,1951 @@
             content="The Photo Finish, August 14, 2026 — Shem Hammon, the 2026 batting champion, pictured at left; at right his line: .771, 27-for-35, drafted in round nine, first in the league of 144."
         />
         <style>
-            /* ══════════════════════════════════════════════════════════════
-               THE DOUBLE ISSUE — combined-number edition system, 2026-08-07.
-               A newsweekly that missed a week: condensed display caps over
-               the house serif, berry accent, doubled rules. Background and
-               arc tokens are unchanged from the prior editions on purpose —
-               the validated three-hue arc palette stays valid.
-               ══════════════════════════════════════════════════════════════ */
+            /* ══════════════════════════════════════════════════════════════════════
+               THE COLOR SECTION — design system for the closing number, 2026-08-14.
+
+               Every other edition of this paper is ink on newsprint. This one is the
+               Sunday run: the press loads its color plates, the photographs come up
+               full colour for the first and last time, and the ancestors stay in
+               black and white behind it.
+
+               Structure is the press. Sections are PLATES, numbered because a reader
+               needs to find them. Colour is punctuation, never decoration, and each
+               ink does exactly one job:
+
+                 pine   the house — rules, plates, headers, the masthead field
+                 press  the story — the crown, the marquee figures, the live link
+                 gold   the highlight — the champion's line, the win, the tape
+                 clay   the debit — caused outs, losses, a bill come due
+
+               Type: Bodoni 72 sets the display (high contrast, tight, optical),
+               Optima sets the prose (humanist, warm, quietly athletic), and a mono
+               sets every figure, because a figure is evidence and should look it.
+
+               Layout: one grid, three tracks — main (the measure), wide (figures and
+               tables), full (the masthead, the ads, the footnote). Prose never runs
+               wider than the eye wants; everything the desk drew does.
+
+               Motion: two moments, both charts, both earned. The race runs to the
+               tape; the arcs draw themselves. Nothing else moves, and nothing moves
+               at all under prefers-reduced-motion.
+               ══════════════════════════════════════════════════════════════════════ */
+
+            /* ── the inks ──────────────────────────────────────────────────────── */
             :root {
-                --paper: #f4f4f1;
-                --ink: #1c1b17;
-                --muted: #6b675c;
-                --rule: #d8d5cb;
-                --rule-strong: #1c1b17;
-                --accent: #9a2456;
-                --credit: #17683f;
-                --debit: #a92f16;
-                --tint: #edecE5;
-                --hl-bg: #e9f0e6;
-                --lo-bg: #f4e7e1;
-                --arc-1: #2a78d6;
-                --arc-2: #eb6834;
-                --arc-3: #1baf7a;
-                --arc-dim: #c6c3b8;
-                --serif: Georgia, "Iowan Old Style", "Palatino Linotype",
-                    "Times New Roman", serif;
-                --display: "Avenir Next Condensed", "Helvetica Neue",
-                    "Arial Narrow", Arial, sans-serif;
-                --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo,
-                    Consolas, "Liberation Mono", monospace;
+                --paper: #fbfaf5;
+                --paper-2: #f2f0e6;
+                --paper-3: #e9e6d9;
+                --ink: #16140f;
+                --ink-2: #45413a;
+                --mute: #726d5f;
+                --rule: #ddd8c9;
+                --rule-2: #c9c3b1;
+
+                --pine: #0c5340;
+                --pine-wash: #e6ede8;
+                --press: #c41e58;
+                --press-wash: #fae7ed;
+                --gold: #856009;
+                --gold-solid: #e0a21a;
+                --gold-wash: #f9f0d9;
+                --clay: #ae3f22;
+                --clay-wash: #f7e7df;
+
+                --credit: var(--pine);
+                --debit: var(--clay);
+
+                /* the flooded bands — masthead, the due line, the finish panel */
+                --band: #0b3e30;
+                --band-2: #082e24;
+                --band-ink: #f7f4ea;
+                --band-mute: rgba(247, 244, 234, 0.62);
+                --band-rule: rgba(247, 244, 234, 0.16);
+
+                /* the arcs — three emphasised clubs, validated in both modes
+                   (OKLCH band, chroma floor, CVD separation, contrast) */
+                --arc-1: #c41e58; /* Sefton's team — the champion's clubhouse */
+                --arc-2: #2a76c8; /* Boyds Daniel's team — the climb */
+                --arc-3: #ad7a0c; /* Jeremy's team — the pennant */
+                --arc-dim: #b3ac9a;
+
+                --display: "Bodoni 72", Didot, "Bodoni MT", "Playfair Display",
+                    "Hoefler Text", Georgia, "Times New Roman", serif;
+                --body: Optima, "Optima nova", Candara, "Gill Sans", "Gill Sans MT",
+                    "Segoe UI", "Trebuchet MS", sans-serif;
+                --mono: "SF Mono", ui-monospace, SFMono-Regular, Menlo, Consolas,
+                    "Liberation Mono", monospace;
+
+                --gutter: clamp(1.15rem, 4.5vw, 3.25rem);
+                --measure: 45rem;
+                --flank: 8.5rem;
+                --page-grid:
+                    [full-start] minmax(var(--gutter), 1fr)
+                    [wide-start] minmax(0, var(--flank))
+                    [main-start] min(100% - var(--gutter) * 2, var(--measure)) [main-end]
+                    minmax(0, var(--flank))
+                    [wide-end] minmax(var(--gutter), 1fr) [full-end];
             }
+
             @media (prefers-color-scheme: dark) {
                 :root {
-                    --paper: #131412;
-                    --ink: #e8e6df;
-                    --muted: #98948a;
-                    --rule: #2c2d29;
-                    --rule-strong: #e8e6df;
-                    --accent: #e781ae;
-                    --credit: #4cc08a;
-                    --debit: #ef7a5c;
-                    --tint: #1b1c19;
-                    --hl-bg: #17241b;
-                    --lo-bg: #2a1a13;
-                    --arc-1: #3987e5;
-                    --arc-2: #d95926;
-                    --arc-3: #199e70;
-                    --arc-dim: #3a3b36;
+                    --paper: #0e1512;
+                    --paper-2: #151e1a;
+                    --paper-3: #1c2723;
+                    --ink: #eceadf;
+                    --ink-2: #b9b4a5;
+                    --mute: #8b8577;
+                    --rule: #27322d;
+                    --rule-2: #35423c;
+
+                    --pine: #55b98f;
+                    --pine-wash: #12241d;
+                    --press: #ee6f99;
+                    --press-wash: #2a1520;
+                    --gold: #dfb04a;
+                    --gold-solid: #e0a21a;
+                    --gold-wash: #26200f;
+                    --clay: #e58461;
+                    --clay-wash: #2a1710;
+
+                    --band: #0a3729;
+                    --band-2: #072a1f;
+                    --band-ink: #eceadf;
+                    --band-mute: rgba(236, 234, 223, 0.58);
+                    --band-rule: rgba(236, 234, 223, 0.14);
+
+                    --arc-1: #d8477b;
+                    --arc-2: #4a93dc;
+                    --arc-3: #bc8c22;
+                    --arc-dim: #4d5c55;
                 }
             }
-            * {
+
+            /* ── the sheet ─────────────────────────────────────────────────────── */
+            *,
+            *::before,
+            *::after {
                 box-sizing: border-box;
             }
+
             html {
                 -webkit-text-size-adjust: 100%;
+                scroll-behavior: smooth;
+                scrollbar-gutter: stable;
             }
+
             body {
                 margin: 0;
                 background: var(--paper);
                 color: var(--ink);
-                font-family: var(--serif);
-                font-size: 16px;
-                line-height: 1.55;
-            }
-            .wrap {
-                max-width: 880px;
-                margin: 0 auto;
-                padding: 0 20px 48px;
-            }
-            a {
-                color: var(--accent);
-                text-decoration: none;
-            }
-            a:hover,
-            a:focus-visible {
-                text-decoration: underline;
-            }
-            code {
-                font-family: var(--mono);
-                font-size: 0.85em;
-            }
-            strong {
-                font-weight: 700;
+                font-family: var(--body);
+                font-size: 1.0625rem;
+                line-height: 1.72;
+                font-synthesis-weight: none;
+                -webkit-font-smoothing: antialiased;
+                text-rendering: optimizeLegibility;
+                overflow-x: clip;
             }
 
-            /* ── masthead ── */
-            .masthead {
-                border-bottom: 7px double var(--rule-strong);
-                padding: 26px 0 18px;
-                margin-bottom: 6px;
+            ::selection {
+                background: var(--gold-solid);
+                color: #16140f;
             }
-            .kicker {
-                font-family: var(--mono);
-                font-size: 0.68rem;
-                letter-spacing: 0.14em;
-                text-transform: uppercase;
-                color: var(--muted);
-                border-bottom: 1px solid var(--rule);
-                padding-bottom: 10px;
-                margin-bottom: 18px;
+
+            :focus-visible {
+                outline: 2px solid var(--press);
+                outline-offset: 3px;
+                border-radius: 1px;
             }
-            .nameplate {
-                margin: 0 0 10px;
-                font-family: var(--display);
-                font-weight: 700;
-                text-transform: uppercase;
-                font-size: clamp(2.9rem, 9vw, 5rem);
-                line-height: 0.98;
-                letter-spacing: 0.005em;
-            }
-            .nameplate .bug {
-                display: inline-block;
-                vertical-align: 1.1em;
-                margin-left: 14px;
-                padding: 3px 8px;
-                border: 3px double var(--accent);
-                color: var(--accent);
-                font-family: var(--mono);
-                font-size: 0.62rem;
-                font-weight: 400;
-                letter-spacing: 0.12em;
-                white-space: nowrap;
-            }
-            .sponsor {
-                display: flex;
-                align-items: center;
-                gap: 16px;
-                width: fit-content;
+
+            img {
                 max-width: 100%;
-                margin: 16px 0 0;
-                padding: 10px 18px 10px 10px;
-                border: 1px solid var(--accent);
-                background: var(--tint);
+            }
+
+            strong,
+            b {
+                font-weight: 700;
                 color: var(--ink);
             }
-            .sponsor:hover,
-            .sponsor:focus-visible {
-                text-decoration: none;
-                background: var(--paper);
+
+            code {
+                font-family: var(--mono);
+                font-size: 0.86em;
+                background: var(--paper-2);
+                padding: 0.08em 0.34em;
+                border-radius: 2px;
             }
-            .sponsor img {
+
+            /* ── the grid: main / wide / full ──────────────────────────────────── */
+            .wrap,
+            .wrap > section,
+            .masthead,
+            .sponsor,
+            .adv {
+                display: grid;
+                grid-template-columns: var(--page-grid);
+            }
+
+            .wrap > *,
+            .wrap > section > * {
+                grid-column: main;
+                min-width: 0;
+            }
+
+            .wrap > section {
+                grid-column: full;
+                padding: clamp(3.5rem, 7vw, 6.5rem) 0 clamp(2.5rem, 5vw, 4rem);
+                scroll-margin-top: 1rem;
+            }
+
+            /* things the desk drew get the wide track. The :is() is load
+               bearing — `.wrap > section > *` outranks a bare class. */
+            :is(.wrap, .wrap > section)
+                > :is(
+                    .table-scroll,
+                    .finish-scroll,
+                    .arcs-fig,
+                    .cover-lead,
+                    .cards,
+                    .skid,
+                    .statement,
+                    .notes,
+                    .divide-gallery,
+                    .record,
+                    .contents,
+                    .editions
+                ) {
+                grid-column: wide;
+            }
+
+            /* things the press flooded get the sheet */
+            .masthead,
+            .adv,
+            .footnote {
+                grid-column: full;
+            }
+
+            /* ── the progress tape ─────────────────────────────────────────────── */
+            .tape-progress {
+                position: fixed;
+                inset: 0 0 auto 0;
+                height: 3px;
+                background: var(--gold-solid);
+                transform: scaleX(var(--p, 0));
+                transform-origin: 0 50%;
+                z-index: 60;
+                pointer-events: none;
+            }
+
+            /* ══ THE MASTHEAD ═══════════════════════════════════════════════════ */
+            .masthead {
+                background: var(--band);
+                background-image: linear-gradient(
+                    108deg,
+                    rgba(196, 30, 88, 0) 38%,
+                    rgba(196, 30, 88, 0.16) 74%,
+                    rgba(224, 162, 26, 0.13) 100%
+                );
+                color: var(--band-ink);
+                padding: clamp(2.25rem, 5.5vw, 4.25rem) 0 0;
+                border-bottom: 3px solid var(--gold-solid);
+                position: relative;
+                overflow: hidden;
+            }
+
+            .masthead > * {
+                grid-column: wide;
+            }
+
+            .kicker {
+                font-family: var(--mono);
+                font-size: 0.66rem;
+                letter-spacing: 0.2em;
+                text-transform: uppercase;
+                color: var(--band-mute);
+                margin: 0 0 clamp(1rem, 2.5vw, 1.75rem);
+                line-height: 1.7;
+                position: relative;
+            }
+
+            .nameplate {
+                font-family: var(--display);
+                font-weight: 400;
+                font-size: clamp(3.4rem, 13.5vw, 9.5rem);
+                line-height: 0.82;
+                letter-spacing: -0.025em;
+                margin: 0;
+                color: var(--band-ink);
+                position: relative;
+                text-wrap: balance;
+            }
+
+            .bug {
                 display: block;
-                width: 136px;
-                height: auto;
-                flex-shrink: 0;
-                border: 1px solid var(--rule);
-                background: #fff;
+                font-family: var(--body);
+                font-weight: 700;
+                font-size: clamp(0.66rem, 1.5vw, 0.78rem);
+                letter-spacing: 0.2em;
+                text-transform: uppercase;
+                color: var(--gold-solid);
+                margin: clamp(1.1rem, 3vw, 1.9rem) 0 clamp(1.75rem, 4vw, 2.75rem);
+                line-height: 1.6;
+                position: relative;
             }
+
+            /* the presenting sponsor — a strip along the foot of the field */
+            .sponsor {
+                grid-column: full;
+                background: var(--band-2);
+                text-decoration: none;
+                color: inherit;
+                padding: 0.9rem 0;
+                border-top: 1px solid var(--band-rule);
+                position: relative;
+                transition: background 0.2s ease;
+            }
+
+            .sponsor:hover {
+                background: #0a3629;
+            }
+
+            @media (prefers-color-scheme: dark) {
+                .sponsor:hover {
+                    background: #0a2a20;
+                }
+            }
+
+            .sponsor > img {
+                grid-column: wide;
+                grid-row: 1;
+                width: 118px;
+                height: auto;
+                border: 1px solid var(--band-rule);
+                align-self: center;
+            }
+
+            .sp-text {
+                grid-column: wide;
+                grid-row: 1;
+                margin-left: 134px;
+                align-self: center;
+                display: block;
+            }
+
             .sp-eyebrow {
                 display: block;
                 font-family: var(--mono);
                 font-size: 0.6rem;
                 letter-spacing: 0.18em;
                 text-transform: uppercase;
-                color: var(--accent);
-                margin-bottom: 3px;
+                color: var(--band-mute);
+                margin-bottom: 0.3rem;
             }
+
             .sp-line {
                 display: block;
-                font-size: 0.94rem;
-                max-width: 34em;
-            }
-            .sp-line strong {
-                color: var(--accent);
-            }
-            .sub {
-                margin: 10px 0 0;
-                font-size: 0.95rem;
-                color: var(--ink);
-                max-width: 62em;
-            }
-            .sub strong {
-                font-weight: 700;
-            }
-            .editions {
-                margin-top: 36px;
-                font-family: var(--mono);
-                font-size: 0.74rem;
-                letter-spacing: 0.04em;
-            }
-            .editions .here {
-                font-weight: 700;
-                color: var(--accent);
-            }
-            .editions .sep,
-            .contents .sep {
-                color: var(--muted);
-                margin: 0 0.35em;
-            }
-
-            /* ── notice to subscribers ── */
-            .notice {
-                border: 3px double var(--accent);
-                background: var(--tint);
-                padding: 12px 16px;
-                margin: 22px 0 0;
-                max-width: 62em;
-            }
-            .notice .n-eyebrow {
-                font-family: var(--mono);
-                font-size: 0.64rem;
-                letter-spacing: 0.16em;
-                text-transform: uppercase;
-                color: var(--accent);
-                margin-bottom: 6px;
-            }
-            .notice p {
-                margin: 0;
-                font-size: 0.92rem;
-            }
-
-            /* ── contents ── */
-            .contents {
-                font-family: var(--mono);
-                font-size: 0.74rem;
-                line-height: 2;
-                padding: 10px 0 14px;
-                border-bottom: 1px solid var(--rule);
-            }
-            .contents a {
-                color: var(--ink);
-            }
-            .contents a:hover {
-                color: var(--accent);
-            }
-
-            /* ── section chrome ── */
-            section {
-                margin: 40px 0 0;
-            }
-            .plate {
-                display: flex;
-                justify-content: space-between;
-                align-items: baseline;
-                gap: 12px;
-                border-top: 1px solid var(--rule-strong);
-                border-bottom: 3px double var(--rule-strong);
-                padding: 6px 0;
-                font-family: var(--mono);
-                font-size: 0.68rem;
-                letter-spacing: 0.14em;
-                text-transform: uppercase;
-            }
-            .plate .pg {
-                color: var(--muted);
-                letter-spacing: 0.08em;
-                text-align: right;
-            }
-            h2 {
-                font-family: var(--display);
-                font-weight: 700;
-                font-size: clamp(1.7rem, 5vw, 2.4rem);
-                line-height: 1.08;
-                margin: 18px 0 8px;
-                letter-spacing: 0.005em;
-            }
-            h2 a,
-            h3 a {
-                color: inherit;
-            }
-            h3 {
-                font-family: var(--display);
-                font-weight: 600;
-                font-size: 1.18rem;
-                margin: 26px 0 6px;
-                letter-spacing: 0.02em;
-            }
-            .dek,
-            .lede {
-                font-size: 1.06rem;
-                line-height: 1.6;
-                margin: 8px 0 16px;
-                max-width: 60em;
-            }
-            .notes {
-                list-style: none;
-                margin: 16px 0 0;
-                padding: 0;
-                max-width: 60em;
-            }
-            .notes li {
-                border-left: 2px solid var(--rule);
-                padding-left: 14px;
-                margin: 12px 0;
-                font-size: 0.95rem;
-            }
-
-            /* ── the cover ── */
-            .cover h2 {
-                font-size: clamp(2.3rem, 8vw, 3.8rem);
-                text-transform: uppercase;
-                margin: 16px 0 10px;
-            }
-            .cover-tiles {
-                display: grid;
-                grid-template-columns: repeat(4, 1fr);
-                gap: 14px;
-                margin: 18px 0 6px;
-            }
-            .tile {
-                border: 1px solid var(--rule);
-                border-top: 3px double var(--rule-strong);
-                background: var(--tint);
-                padding: 10px 12px;
-            }
-            .tile .tl-label {
-                font-family: var(--mono);
-                font-size: 0.6rem;
-                letter-spacing: 0.14em;
-                text-transform: uppercase;
-                color: var(--muted);
-                margin-bottom: 6px;
-            }
-            .tile .tl-val {
-                font-family: var(--mono);
-                font-size: 1.02rem;
-                font-weight: 700;
-                font-variant-numeric: tabular-nums;
-            }
-            .tile .tl-val .muted {
-                font-weight: 400;
-            }
-
-            /* ── tables ── */
-            .table-scroll {
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
-                margin: 10px 0 4px;
-            }
-            table {
-                border-collapse: collapse;
-                width: 100%;
                 font-size: 0.88rem;
-            }
-            th {
-                font-family: var(--mono);
-                font-size: 0.64rem;
-                letter-spacing: 0.1em;
-                text-transform: uppercase;
-                font-weight: 400;
-                color: var(--muted);
-                text-align: left;
-                padding: 6px 8px;
-                border-bottom: 2px solid var(--rule-strong);
-                white-space: nowrap;
-            }
-            td {
-                padding: 7px 8px;
-                border-bottom: 1px solid var(--rule);
-                vertical-align: baseline;
-            }
-            .num {
-                font-family: var(--mono);
-                font-size: 0.82rem;
-                font-variant-numeric: tabular-nums;
-                text-align: right;
-                white-space: nowrap;
-            }
-            th.num {
-                font-size: 0.64rem;
-            }
-            .ctr {
-                text-align: center;
-            }
-            .big {
-                font-size: 0.95rem;
-                font-weight: 700;
-            }
-            .muted {
-                color: var(--muted);
-            }
-            .player {
-                font-weight: 700;
-                white-space: nowrap;
-            }
-            .team-name {
-                color: var(--muted);
-                white-space: nowrap;
-            }
-            .zpos {
-                color: var(--credit);
-            }
-            .zneg {
-                color: var(--debit);
-            }
-            tr.hl > td {
-                background: var(--hl-bg);
-            }
-            tr.lo > td {
-                background: var(--lo-bg);
-            }
-            tr.rd-break > td {
-                border-top: 2px solid var(--rule-strong);
-            }
-            /* The Full Docket is 144 rows — the only table long enough to
-               want a sticky header. Sticky needs the height-capped pane
-               itself to scroll: inside a wrapper that only scrolls
-               sideways, a sticky th resolves against the wrapper (which
-               never scrolls vertically) and so never sticks at all. */
-            .table-scroll.tall {
-                max-height: min(78vh, 900px);
-                overflow: auto;
-            }
-            .table-scroll.tall thead th {
-                position: sticky;
-                top: 0;
-                z-index: 2;
-                background: var(--paper);
-                /* border-collapse hands borders to the table, not the
-                   cell, so a border-bottom would scroll away from under a
-                   sticky th. */
-                border-bottom: none;
-                box-shadow: inset 0 -2px 0 var(--rule-strong);
-            }
-            caption {
-                caption-side: bottom;
-                text-align: left;
-                font-size: 0.8rem;
-                font-style: italic;
-                color: var(--muted);
-                padding: 8px 0 0;
-            }
-            .form {
-                font-family: var(--mono);
-                letter-spacing: 0.12em;
-                white-space: nowrap;
-            }
-
-            /* ── the statement (invoice document) ──
-               A piece of the desk's stationery: letterhead, addressee,
-               dotted-leader line items, results-on-account docket, the
-               balance-due band, terms in fine print. The stamp shares the
-               membership cards' double-rule stamp language (house angle
-               −6°) but wears debit red — it marks a debt, not an honor. */
-            .statement {
-                position: relative;
-                max-width: 640px;
-                border: 1px solid var(--rule-strong);
-                margin: 14px 0 4px;
-                background: var(--paper);
-            }
-            .st-head {
-                display: flex;
-                justify-content: space-between;
-                align-items: baseline;
-                gap: 4px 14px;
-                flex-wrap: wrap;
-                padding: 10px 16px;
-                border-bottom: 3px double var(--rule-strong);
-                background: var(--tint);
-            }
-            .st-brand {
-                font-family: var(--display);
-                font-weight: 700;
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-                font-size: 0.95rem;
-            }
-            .st-no {
-                font-family: var(--mono);
-                font-size: 0.62rem;
-                letter-spacing: 0.12em;
-                text-transform: uppercase;
-                color: var(--muted);
-            }
-            .st-to {
-                position: relative;
-                padding: 12px 150px 4px 16px;
-                min-height: 44px;
-                font-size: 0.95rem;
-            }
-            .st-tag {
-                display: block;
-                font-family: var(--mono);
-                font-size: 0.6rem;
-                letter-spacing: 0.14em;
-                text-transform: uppercase;
-                color: var(--muted);
-                margin-bottom: 2px;
-            }
-            .st-stamp {
-                position: absolute;
-                top: 12px;
-                right: 14px;
-                font-family: var(--mono);
-                font-size: 0.88rem;
-                font-weight: 700;
-                letter-spacing: 0.1em;
-                text-transform: uppercase;
-                color: var(--debit);
-                border: 3px double var(--debit);
-                padding: 3px 10px;
-                transform: rotate(-6deg);
-                pointer-events: none;
-            }
-            .st-lines {
-                margin: 0;
-                padding: 2px 16px;
-            }
-            .st-line {
-                display: flex;
-                align-items: baseline;
-                gap: 8px;
-                padding: 7px 0;
-            }
-            .st-line dt {
-                display: flex;
-                align-items: baseline;
-                flex: 1 1 auto;
-                min-width: 0;
-                font-size: 0.9rem;
-            }
-            .st-line dt::after {
-                content: "";
-                flex: 1 0 16px;
-                border-bottom: 2px dotted var(--rule);
-                margin: 0 2px 0 8px;
-                transform: translateY(-4px);
-            }
-            .st-line dd {
-                margin: 0;
-                font-family: var(--mono);
-                font-size: 0.84rem;
-                font-variant-numeric: tabular-nums;
-                text-align: right;
-            }
-            .st-games {
-                margin: 6px 16px;
-                border: 1px solid var(--rule);
-                background: var(--tint);
-                padding: 9px 12px 7px;
-            }
-            .st-games-label {
-                font-family: var(--mono);
-                font-size: 0.6rem;
-                letter-spacing: 0.14em;
-                text-transform: uppercase;
-                color: var(--muted);
-            }
-            .st-games ul {
-                list-style: none;
-                margin: 8px 0 2px;
-                padding: 0;
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 5px 18px;
-            }
-            .st-games li {
-                display: flex;
-                align-items: baseline;
-                gap: 8px;
-                font-size: 0.88rem;
-            }
-            .st-res {
-                font-family: var(--mono);
-                font-weight: 700;
-                font-size: 0.66rem;
-                letter-spacing: 0.04em;
-                border: 1px solid currentColor;
-                padding: 0 5px;
-                border-radius: 2px;
-                flex-shrink: 0;
-            }
-            .st-res.win {
-                color: var(--credit);
-            }
-            .st-res.loss {
-                color: var(--debit);
-            }
-            .st-res.tie {
-                color: var(--muted);
-            }
-            .st-score {
-                font-family: var(--mono);
-                font-size: 0.84rem;
-                font-variant-numeric: tabular-nums;
-                flex-shrink: 0;
-            }
-            .st-opp {
-                color: var(--muted);
-                font-size: 0.84rem;
-                min-width: 0;
-            }
-            .st-due {
-                display: flex;
-                justify-content: space-between;
-                align-items: baseline;
-                flex-wrap: wrap;
-                gap: 4px 14px;
-                margin-top: 10px;
-                padding: 12px 16px;
-                border-top: 3px double var(--rule-strong);
-                background: var(--tint);
-            }
-            .st-due-label {
-                font-size: 0.92rem;
-            }
-            .st-due-amt {
-                font-family: var(--mono);
-                font-size: 1.3rem;
-                font-weight: 700;
-                font-variant-numeric: tabular-nums;
-                white-space: nowrap;
-            }
-            .st-fine {
-                margin: 0;
-                padding: 9px 16px 12px;
-                border-top: 1px solid var(--rule);
-                font-size: 0.76rem;
-                font-style: italic;
-                color: var(--muted);
                 line-height: 1.5;
+                color: var(--band-ink);
             }
 
-            /* ── record cards (the blotter · in memoriam) ── */
-            .record {
-                max-width: 640px;
-                border: 1px solid var(--rule-strong);
-                border-left: 4px solid var(--debit);
-                background: var(--tint);
-                padding: 12px 18px 14px;
-            }
-            .record .rec-eyebrow {
-                font-family: var(--mono);
-                font-size: 0.62rem;
-                letter-spacing: 0.16em;
-                text-transform: uppercase;
-                color: var(--debit);
-            }
-            .record h2 {
-                margin: 5px 0 4px;
-                font-size: 1.4rem;
-            }
-            .record p {
-                margin: 4px 0 0;
-                font-size: 0.92rem;
-                line-height: 1.6;
-            }
-            /* ── the memorial card (one bat, in memoriam) ──
-               A proper mourning notice: heavy black band, inner hairline,
-               centered ceremony, printer's ornament, epitaph rule. */
-            .memorial {
-                max-width: 580px;
-                margin: 44px auto 0;
-                border: 5px solid var(--rule-strong);
-                padding: 5px;
-                background: var(--paper);
-            }
-            .mem-inner {
-                border: 1px solid var(--rule-strong);
-                padding: 20px 24px 18px;
-                text-align: center;
-            }
-            .mem-eyebrow {
-                font-family: var(--mono);
-                font-size: 0.6rem;
-                letter-spacing: 0.2em;
-                text-transform: uppercase;
-                color: var(--muted);
-            }
-            .mem-orn {
-                font-size: 1.6rem;
-                line-height: 1;
-                margin: 10px 0 4px;
-                color: var(--accent);
-            }
-            .memorial h2 {
-                margin: 2px 0 12px;
-                font-size: clamp(1.6rem, 5vw, 2.1rem);
-            }
-            .mem-epitaph {
-                font-family: var(--mono);
-                font-size: 0.66rem;
-                letter-spacing: 0.18em;
-                text-transform: uppercase;
-                color: var(--ink);
-                border-top: 1px solid var(--rule);
-                border-bottom: 1px solid var(--rule);
-                padding: 7px 12px;
-                margin: 0 auto 14px;
-                max-width: 36em;
-            }
-            .memorial p {
-                margin: 0;
-                font-size: 0.92rem;
-                line-height: 1.65;
-                text-align: left;
+            .sp-line strong {
+                color: var(--gold-solid);
+                font-weight: 700;
             }
 
-            /* ── the 1.000 club bulletin ── */
-            .bulletin {
-                border: 2px solid var(--accent);
-                background: var(--tint);
-                padding: 14px 18px 6px;
-                margin-top: 28px;
+            @media (max-width: 560px) {
+                .sponsor > img {
+                    width: 84px;
+                }
+                .sp-text {
+                    margin-left: 98px;
+                }
+                .sp-line {
+                    font-size: 0.8rem;
+                }
             }
-            .bulletin .b-eyebrow {
-                font-family: var(--mono);
-                font-size: 0.64rem;
-                letter-spacing: 0.14em;
-                text-transform: uppercase;
-                color: var(--accent);
-            }
-            .bulletin h2 {
-                margin: 6px 0 4px;
-                font-size: 1.5rem;
-            }
-            .bulletin .dek {
-                margin: 4px 0 10px;
-                font-size: 0.92rem;
-            }
-            .bulletin .cards {
+
+            /* ══ THE INDEX ══════════════════════════════════════════════════════ */
+            .contents {
+                counter-reset: plate;
+                margin: clamp(2.5rem, 5vw, 4rem) 0 0;
+                padding: 1.5rem 0 0;
+                border-top: 2px solid var(--pine);
                 display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 14px;
-                margin: 12px 0 2px;
-            }
-            .mcard {
-                position: relative;
-                border: 1px solid var(--rule-strong);
-                background: var(--paper);
-                padding: 10px 12px 12px;
-            }
-            .m-head {
-                font-family: var(--mono);
-                font-size: 0.6rem;
-                letter-spacing: 0.14em;
-                text-transform: uppercase;
-                color: var(--muted);
-                border-bottom: 1px dotted var(--rule);
-                padding-bottom: 5px;
-                margin-bottom: 7px;
-            }
-            .m-name {
-                font-size: 1.08rem;
-                font-weight: 700;
-                padding-right: 86px;
-                margin-bottom: 6px;
-            }
-            .m-field {
-                display: flex;
-                align-items: baseline;
-                gap: 10px;
-                font-size: 0.82rem;
-                border-bottom: 1px dotted var(--rule);
-                padding: 4px 0;
-            }
-            .m-field > span:first-child {
-                font-family: var(--mono);
-                font-size: 0.6rem;
-                letter-spacing: 0.12em;
-                text-transform: uppercase;
-                color: var(--muted);
-                min-width: 92px;
-                flex-shrink: 0;
-            }
-            .m-field .m-val {
-                flex: 1 1 auto;
-                min-width: 0;
-            }
-            .m-punches {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 6px;
-                margin-top: 10px;
-            }
-            .m-punches i {
-                width: 13px;
-                height: 13px;
-                border-radius: 50%;
-                border: 1.5px solid var(--rule-strong);
-                background: var(--accent);
-            }
-            .m-stamp {
-                position: absolute;
-                top: 34px;
-                right: 12px;
-                font-family: var(--mono);
-                font-size: 1.02rem;
-                font-weight: 700;
-                letter-spacing: 0.04em;
-                color: var(--accent);
-                border: 3px double var(--accent);
-                padding: 2px 8px;
-                transform: rotate(-6deg);
+                grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+                column-gap: 1.75rem;
+                grid-column: wide;
             }
 
-            /* ── the coronation (crown hero card + the wire) ── */
-            .crown-hero {
-                border: 2px solid var(--rule-strong);
-                background: var(--tint);
-                padding: 16px 20px 14px;
-                margin: 14px 0 8px;
-            }
-            .ch-eyebrow {
-                font-family: var(--mono);
-                font-size: 0.62rem;
-                letter-spacing: 0.16em;
-                text-transform: uppercase;
-                color: var(--accent);
-                margin-bottom: 8px;
-            }
-            .ch-row {
+            .contents a {
+                counter-increment: plate;
                 display: flex;
-                justify-content: space-between;
                 align-items: baseline;
-                gap: 10px 24px;
-                flex-wrap: wrap;
+                gap: 0.7rem;
+                padding: 0.5rem 0;
+                border-bottom: 1px solid var(--rule);
+                text-decoration: none;
+                color: var(--ink);
+                font-size: 0.95rem;
+                line-height: 1.35;
+                transition: color 0.18s ease;
             }
-            .ch-name {
-                font-family: var(--display);
-                font-weight: 700;
-                text-transform: uppercase;
-                font-size: clamp(2.5rem, 8vw, 3.9rem);
-                line-height: 0.95;
-                letter-spacing: 0.005em;
-            }
-            .ch-avg {
-                font-family: var(--mono);
-                font-weight: 700;
-                font-variant-numeric: tabular-nums;
-                font-size: clamp(1.9rem, 6vw, 3rem);
-                color: var(--accent);
-            }
-            .ch-chips {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 8px;
-                margin-top: 14px;
-            }
-            .chip {
-                font-family: var(--mono);
-                font-size: 0.62rem;
-                letter-spacing: 0.1em;
-                text-transform: uppercase;
-                border: 1px solid var(--rule-strong);
-                border-radius: 2px;
-                padding: 3px 9px;
-                background: var(--paper);
-            }
-            .wire {
-                max-width: 640px;
-                border: 1px solid var(--rule-strong);
-                background: var(--paper);
-                margin: 12px 0 6px;
-            }
-            .wire-head {
-                display: flex;
-                justify-content: space-between;
-                align-items: baseline;
-                gap: 6px 14px;
-                flex-wrap: wrap;
-                padding: 8px 14px;
-                border-bottom: 2px solid var(--rule-strong);
-                background: var(--tint);
-            }
-            .wire-brand {
-                font-family: var(--display);
-                font-weight: 700;
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-                font-size: 0.92rem;
-            }
-            .wire-no {
-                font-family: var(--mono);
-                font-size: 0.6rem;
-                letter-spacing: 0.12em;
-                text-transform: uppercase;
-                color: var(--muted);
-            }
-            .wire-meta {
-                padding: 8px 14px 2px;
-            }
-            .wire-meta div {
+
+            .contents a::before {
+                content: counter(plate, decimal-leading-zero);
                 font-family: var(--mono);
                 font-size: 0.7rem;
                 letter-spacing: 0.06em;
-                text-transform: uppercase;
-                color: var(--muted);
-                border-bottom: 1px dotted var(--rule);
-                padding: 5px 0;
+                color: var(--press);
+                flex: none;
             }
-            .wire-meta strong {
-                color: var(--ink);
+
+            .contents a:hover {
+                color: var(--press);
+            }
+
+            .contents .sep {
+                display: none;
+            }
+
+            /* ══ THE SECTION PLATE ══════════════════════════════════════════════ */
+            .plate,
+            .b-eyebrow {
+                display: flex;
+                align-items: baseline;
+                gap: 1rem;
+                border-top: 2px solid var(--pine);
+                padding-top: 0.65rem;
+                margin-bottom: clamp(1.1rem, 2.5vw, 1.8rem);
+                font-family: var(--body);
+                font-size: 0.7rem;
                 font-weight: 700;
-            }
-            .wire-body {
-                padding: 12px 14px 10px;
-                font-family: var(--mono);
-                font-size: 0.86rem;
-                line-height: 1.8;
+                letter-spacing: 0.185em;
                 text-transform: uppercase;
-                letter-spacing: 0.02em;
-            }
-            .wire-body .stop {
-                color: var(--accent);
-                font-weight: 700;
-                letter-spacing: 0.1em;
-            }
-            .wire-foot {
-                padding: 8px 14px 11px;
-                border-top: 1px dotted var(--rule);
-                font-size: 0.76rem;
-                font-style: italic;
-                color: var(--muted);
+                color: var(--pine);
                 line-height: 1.5;
             }
 
-            /* ── the departures desk (guest register strip) ── */
-            .reg-strip {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 10px;
-                margin: 16px 0 6px;
-            }
-            .reg-stop {
-                border: 1px solid var(--rule);
-                border-top: 3px double var(--rule-strong);
-                background: var(--tint);
-                padding: 8px 16px 7px;
-                min-width: 96px;
-            }
-            .reg-stop .r-date {
-                font-family: var(--mono);
-                font-size: 0.6rem;
-                letter-spacing: 0.12em;
-                text-transform: uppercase;
-                color: var(--muted);
-            }
-            .reg-stop .r-rank {
-                font-family: var(--mono);
-                font-size: 1.2rem;
+            .pl-no {
+                font-family: var(--display);
                 font-weight: 700;
-                font-variant-numeric: tabular-nums;
-                margin: 2px 0;
-            }
-            .reg-stop .r-sub {
-                font-family: var(--mono);
-                font-size: 0.58rem;
-                letter-spacing: 0.1em;
-                text-transform: uppercase;
-                color: var(--muted);
-            }
-            .reg-stop .r-sub.crown {
-                color: var(--accent);
-            }
-            .reg-stop.out {
-                background: var(--lo-bg);
-                border-top-color: var(--debit);
-            }
-            .reg-stop.out .r-rank,
-            .reg-stop.out .r-sub {
-                color: var(--debit);
+                font-size: 1.55rem;
+                letter-spacing: 0.02em;
+                line-height: 1;
+                color: var(--press);
+                text-transform: none;
+                flex: none;
+                position: relative;
+                top: 0.12em;
             }
 
-            /* ── the Dewegeli Divide ── */
-            .divide-gallery {
-                margin: 0 0 18px;
-                padding: 14px 14px 12px;
-                border: 1px solid var(--rule-strong);
-                background: var(--tint);
+            .pl-name {
+                flex: 1 1 auto;
             }
-            .dg-eyebrow {
+
+            .plate .pg {
+                flex: none;
+                font-family: var(--mono);
+                font-weight: 400;
+                font-size: 0.63rem;
+                letter-spacing: 0.13em;
+                color: var(--mute);
+                text-align: right;
+            }
+
+            @media (max-width: 620px) {
+                .plate {
+                    flex-wrap: wrap;
+                    gap: 0.35rem 0.8rem;
+                }
+                .plate .pg {
+                    flex: 1 0 100%;
+                    text-align: left;
+                }
+            }
+
+            /* ── headlines ─────────────────────────────────────────────────────── */
+            .wrap h2 {
+                font-family: var(--display);
+                font-weight: 400;
+                font-size: clamp(2.05rem, 5.2vw, 3.5rem);
+                line-height: 1.03;
+                letter-spacing: -0.018em;
+                margin: 0 0 clamp(1.1rem, 2.5vw, 1.6rem);
+                color: var(--ink);
+                text-wrap: balance;
+            }
+
+            .wrap h2 a {
+                color: inherit;
+                text-decoration: none;
+                transition: color 0.18s ease;
+            }
+
+            .wrap h2 a:hover {
+                color: var(--press);
+            }
+
+            .wrap h3 {
+                font-family: var(--body);
+                font-weight: 700;
+                font-size: 0.74rem;
+                letter-spacing: 0.185em;
+                text-transform: uppercase;
+                color: var(--pine);
+                margin: clamp(2.5rem, 5vw, 3.5rem) 0 1rem;
+                padding-bottom: 0.5rem;
+                border-bottom: 1px solid var(--rule-2);
+                scroll-margin-top: 1.5rem;
+            }
+
+            .wrap h3 a {
+                color: inherit;
+                text-decoration: none;
+            }
+
+            .wrap h3 a:hover {
+                color: var(--press);
+            }
+
+            /* ── prose ─────────────────────────────────────────────────────────── */
+            p {
+                margin: 0 0 1.1rem;
+            }
+
+            .lede {
+                font-size: clamp(1.16rem, 2.2vw, 1.33rem);
+                line-height: 1.6;
+                color: var(--ink);
+                margin-bottom: 1.6rem;
+            }
+
+            .dek {
+                font-size: 1.06rem;
+                line-height: 1.74;
+                color: var(--ink-2);
+                margin-bottom: 1.8rem;
+            }
+
+            .dek strong,
+            .lede strong {
+                font-weight: 700;
+                color: var(--ink);
+            }
+
+            .muted {
+                color: var(--mute);
+            }
+
+            a {
+                color: var(--ink);
+                text-decoration-color: var(--press);
+                text-decoration-thickness: 1px;
+                text-underline-offset: 0.18em;
+                transition: color 0.18s ease;
+            }
+
+            a:hover {
+                color: var(--press);
+            }
+
+            /* ── the notes: the desk's marginalia, two up ──────────────────────── */
+            .notes {
+                list-style: none;
+                margin: clamp(2rem, 4vw, 3rem) 0 0;
+                padding: 0;
+                columns: 2;
+                column-gap: 3rem;
+            }
+
+            .notes li {
+                font-size: 0.97rem;
+                line-height: 1.7;
+                color: var(--ink-2);
+                padding-top: 1rem;
+                margin-bottom: 1.7rem;
+                border-top: 1px solid var(--rule);
+                position: relative;
+                break-inside: avoid;
+            }
+
+            @media (max-width: 760px) {
+                .notes {
+                    columns: 1;
+                }
+            }
+
+            .notes li::before {
+                content: "";
+                position: absolute;
+                top: -1px;
+                left: 0;
+                width: 2.25rem;
+                height: 3px;
+                background: var(--gold-solid);
+            }
+
+            .notes li strong:first-child {
+                font-family: var(--body);
+                font-weight: 700;
+                color: var(--ink);
+                letter-spacing: 0.005em;
+            }
+
+            /* ══ THE COVER ══════════════════════════════════════════════════════ */
+            .cover {
+                padding-top: clamp(2.5rem, 5vw, 4rem);
+            }
+
+            .cover h2 {
+                font-size: clamp(2.5rem, 7.2vw, 5.25rem);
+                line-height: 0.98;
+                letter-spacing: -0.028em;
+                margin-bottom: clamp(1.75rem, 4vw, 2.75rem);
+                grid-column: wide;
+                max-width: 20ch;
+            }
+
+            .cover-lead {
+                display: grid;
+                grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr);
+                gap: clamp(1.75rem, 4vw, 3.25rem);
+                align-items: start;
+                margin-bottom: clamp(2rem, 4vw, 3rem);
+            }
+
+            .cover-lead.narrow {
+                grid-template-columns: minmax(0, 0.4fr) minmax(0, 1fr);
+                align-items: start;
+            }
+
+            @media (max-width: 780px) {
+                .cover-lead,
+                .cover-lead.narrow {
+                    grid-template-columns: 1fr;
+                }
+                .cover-lead.narrow .port-fig {
+                    max-width: 15rem;
+                }
+            }
+
+            .port-fig {
+                margin: 0;
+            }
+
+            .pf-eyebrow {
                 font-family: var(--mono);
                 font-size: 0.62rem;
-                letter-spacing: 0.16em;
+                letter-spacing: 0.18em;
                 text-transform: uppercase;
-                color: var(--muted);
-                text-align: center;
-                margin-bottom: 12px;
+                color: var(--press);
+                margin-bottom: 0.55rem;
             }
+
+            .port-fig img {
+                display: block;
+                width: 100%;
+                height: auto;
+                border-bottom: 4px solid var(--press);
+            }
+
+            .port-fig figcaption {
+                font-size: 0.83rem;
+                line-height: 1.55;
+                color: var(--mute);
+                margin-top: 0.7rem;
+                max-width: 34ch;
+            }
+
+            .cover .lede::first-letter {
+                font-family: var(--display);
+                font-weight: 400;
+                font-size: 4.1em;
+                line-height: 0.78;
+                float: left;
+                margin: 0.06em 0.11em 0 0;
+                color: var(--press);
+            }
+
+            /* the four figures that decided the year */
+            .cover-tiles {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 1px;
+                background: var(--rule);
+                border-top: 2px solid var(--pine);
+                border-bottom: 1px solid var(--rule);
+                margin-top: 1.75rem;
+            }
+
+            .tile {
+                background: var(--paper);
+                padding: 0.85rem 0.95rem 0.95rem;
+            }
+
+            .tl-label {
+                font-family: var(--mono);
+                font-size: 0.6rem;
+                letter-spacing: 0.14em;
+                text-transform: uppercase;
+                color: var(--mute);
+                margin-bottom: 0.3rem;
+            }
+
+            .tl-val {
+                font-family: var(--mono);
+                font-size: 1.24rem;
+                font-weight: 600;
+                letter-spacing: -0.01em;
+                color: var(--ink);
+                font-variant-numeric: tabular-nums;
+                line-height: 1.25;
+            }
+
+            .tl-val .muted {
+                font-size: 0.68em;
+                font-weight: 400;
+                letter-spacing: 0.02em;
+            }
+
+            @media (max-width: 400px) {
+                .cover-tiles {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            /* ══ THE FINISH — the signature plate ═══════════════════════════════ */
+            .finish-scroll {
+                --fn-ink: #f7f4ea;
+                --fn-dim: rgba(247, 244, 234, 0.5);
+                --fn-faint: rgba(247, 244, 234, 0.14);
+                background: var(--band);
+                background-image: linear-gradient(
+                    160deg,
+                    rgba(196, 30, 88, 0.16),
+                    transparent 55%
+                );
+                padding: clamp(1.25rem, 3vw, 2.25rem) 0
+                    clamp(1.25rem, 3vw, 2.25rem) clamp(1.25rem, 3vw, 2.25rem);
+                overflow-x: auto;
+                overflow-y: hidden;
+                margin-top: 0.25rem;
+                border-top: 3px solid var(--gold-solid);
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .finish-svg {
+                display: block;
+                width: 100%;
+                height: auto;
+                min-width: 640px;
+                padding-right: clamp(1.25rem, 3vw, 2.25rem);
+            }
+
+            .fn-axhead,
+            .fn-tapelab,
+            .fn-ticklab {
+                font-family: var(--mono);
+                font-size: 9.5px;
+                letter-spacing: 0.14em;
+                fill: var(--fn-dim);
+            }
+
+            .fn-tapelab {
+                fill: var(--gold-solid);
+                text-anchor: end;
+            }
+
+            .fn-ticklab {
+                text-anchor: middle;
+                letter-spacing: 0.04em;
+            }
+
+            .fn-tick {
+                stroke: var(--fn-faint);
+                stroke-width: 1;
+                stroke-dasharray: 2 5;
+            }
+
+            .fn-tape {
+                stroke: var(--gold-solid);
+                stroke-width: 2;
+            }
+
+            .fn-track {
+                stroke: rgba(247, 244, 234, 0.28);
+                stroke-width: 1.5;
+            }
+
+            .fn-rank {
+                font-family: var(--display);
+                font-size: 26px;
+                fill: rgba(247, 244, 234, 0.72);
+            }
+
+            .fn-name {
+                font-family: var(--body);
+                font-weight: 700;
+                font-size: 15px;
+                fill: var(--fn-ink);
+            }
+
+            .fn-meta {
+                font-family: var(--mono);
+                font-size: 9.5px;
+                letter-spacing: 0.08em;
+                fill: var(--fn-dim);
+            }
+
+            .fn-dot {
+                fill: var(--fn-ink);
+                stroke: var(--band);
+                stroke-width: 2;
+            }
+
+            .fn-avg {
+                font-family: var(--mono);
+                font-size: 13px;
+                font-weight: 600;
+                fill: var(--fn-ink);
+                letter-spacing: -0.01em;
+            }
+
+            .fn-lane.lead .fn-rank,
+            .fn-lane.lead .fn-avg {
+                fill: var(--gold-solid);
+            }
+
+            .fn-lane.lead .fn-dot {
+                fill: var(--gold-solid);
+                r: 8.5;
+            }
+
+            .fn-lane.lead .fn-track {
+                stroke: rgba(224, 162, 26, 0.45);
+            }
+
+            .fn-gapline {
+                stroke: var(--press);
+                stroke-width: 1.5;
+            }
+
+            .fn-gaplab {
+                font-family: var(--mono);
+                font-size: 10px;
+                font-weight: 600;
+                fill: var(--press);
+                text-anchor: middle;
+                letter-spacing: 0.04em;
+            }
+
+            @media (prefers-color-scheme: dark) {
+                .fn-gapline {
+                    stroke: #ee6f99;
+                }
+                .fn-gaplab {
+                    fill: #ee6f99;
+                }
+            }
+
+            /* ══ TABLES — the evidence ══════════════════════════════════════════ */
+            .table-scroll {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                margin: 1.5rem 0 0;
+            }
+
+            .table-scroll.tall {
+                max-height: 78vh;
+                overflow-y: auto;
+                border-bottom: 2px solid var(--pine);
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 0.9rem;
+                line-height: 1.45;
+            }
+
+            thead th {
+                font-family: var(--body);
+                font-weight: 700;
+                font-size: 0.63rem;
+                letter-spacing: 0.145em;
+                text-transform: uppercase;
+                color: var(--pine);
+                text-align: left;
+                padding: 0 0.7rem 0.5rem;
+                border-bottom: 2px solid var(--pine);
+                white-space: nowrap;
+                vertical-align: bottom;
+            }
+
+            .tall thead th {
+                position: sticky;
+                top: 0;
+                background: var(--paper);
+                z-index: 2;
+                padding-top: 0.7rem;
+            }
+
+            tbody td {
+                padding: 0.6rem 0.7rem;
+                border-bottom: 1px solid var(--rule);
+                vertical-align: baseline;
+            }
+
+            tbody tr:last-child td {
+                border-bottom: none;
+            }
+
+            tbody tr {
+                transition: background 0.12s ease;
+            }
+
+            tbody tr:hover {
+                background: var(--paper-2);
+            }
+
+            th.num,
+            td.num {
+                text-align: right;
+                font-family: var(--mono);
+                font-variant-numeric: tabular-nums;
+                white-space: nowrap;
+            }
+
+            th.ctr,
+            td.ctr {
+                text-align: center;
+            }
+
+            td.player {
+                font-weight: 700;
+                color: var(--ink);
+            }
+
+            td.team-name {
+                color: var(--ink-2);
+                font-size: 0.88em;
+            }
+
+            td.num .muted {
+                font-size: 0.9em;
+            }
+
+            .big {
+                font-size: 1.05rem;
+                font-weight: 700;
+                letter-spacing: -0.015em;
+            }
+
+            .zpos {
+                color: var(--credit);
+                font-weight: 700;
+            }
+
+            .zneg {
+                color: var(--debit);
+                font-weight: 700;
+            }
+
+            /* the shaded verdicts */
+            tbody tr.hl > td {
+                background: var(--gold-wash);
+            }
+
+            tbody tr.hl:hover > td {
+                background: #f6e9c9;
+            }
+
+            tbody tr.hl > td:first-child {
+                box-shadow: inset 3px 0 0 var(--gold-solid);
+            }
+
+            tbody tr.lo > td {
+                background: var(--clay-wash);
+            }
+
+            tbody tr.lo > td:first-child {
+                box-shadow: inset 3px 0 0 var(--clay);
+            }
+
+            @media (prefers-color-scheme: dark) {
+                tbody tr.hl:hover > td {
+                    background: #2f2812;
+                }
+            }
+
+            /* the Divide, drawn */
+            tbody tr.wline td {
+                background: var(--pine-wash);
+                border-top: 2px dashed var(--pine);
+                border-bottom: 2px dashed var(--pine);
+                text-align: center;
+                font-family: var(--body);
+                font-weight: 700;
+                font-size: 0.68rem;
+                letter-spacing: 0.2em;
+                text-transform: uppercase;
+                color: var(--pine);
+                padding: 0.6rem 0.7rem;
+            }
+
+            tbody tr.wline:hover td {
+                background: var(--pine-wash);
+            }
+
+            tbody tr.bench td {
+                color: var(--mute);
+            }
+
+            tbody tr.bench td.player {
+                color: var(--ink-2);
+            }
+
+            /* a new round starts */
+            tbody tr.rd-break > td {
+                border-top: 2px solid var(--rule-2);
+            }
+
+            caption {
+                caption-side: bottom;
+                text-align: left;
+                /* a caption inherits the table's width — on a phone that
+                   means it scrolls off the edge with the columns */
+                max-width: calc(100vw - var(--gutter) * 2);
+                font-size: 0.8rem;
+                line-height: 1.6;
+                color: var(--mute);
+                padding-top: 0.85rem;
+                margin-top: 0.15rem;
+                border-top: 1px solid var(--rule);
+            }
+
+            caption strong {
+                color: var(--ink-2);
+            }
+
+            /* ══ THE 1.000 CLUB — punched cards ═════════════════════════════════ */
+            .cards {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(17.5rem, 1fr));
+                gap: 1.25rem;
+                margin: clamp(1.5rem, 3vw, 2.25rem) 0 clamp(1.75rem, 3.5vw, 2.5rem);
+            }
+
+            .mcard {
+                position: relative;
+                display: flex;
+                flex-direction: column;
+                background: var(--gold-wash);
+                border: 1px solid var(--gold-solid);
+                padding: 2.1rem 1.35rem 1.35rem;
+                overflow: hidden;
+            }
+
+            /* the perforated top edge */
+            .mcard::before {
+                content: "";
+                position: absolute;
+                inset: 0 0 auto 0;
+                height: 10px;
+                background: radial-gradient(
+                    circle at 6px 0,
+                    var(--paper) 3.5px,
+                    transparent 4px
+                );
+                background-size: 12px 10px;
+            }
+
+            .m-head {
+                font-family: var(--mono);
+                font-size: 0.6rem;
+                letter-spacing: 0.15em;
+                text-transform: uppercase;
+                color: var(--gold);
+                margin-bottom: 0.5rem;
+                padding-right: 5.5rem;
+                line-height: 1.5;
+            }
+
+            .m-name {
+                font-family: var(--display);
+                font-weight: 700;
+                font-size: 1.85rem;
+                line-height: 1.05;
+                letter-spacing: -0.015em;
+                color: var(--ink);
+                margin-bottom: 1rem;
+                max-width: 9ch;
+            }
+
+            .m-stamp {
+                position: absolute;
+                top: 1.5rem;
+                right: 0.9rem;
+                font-family: var(--mono);
+                font-size: 1.15rem;
+                font-weight: 700;
+                letter-spacing: 0.02em;
+                color: var(--press);
+                border: 2px solid var(--press);
+                border-radius: 3px;
+                padding: 0.2rem 0.5rem;
+                transform: rotate(-8deg);
+                opacity: 0.9;
+            }
+
+            .m-field {
+                display: flex;
+                align-items: baseline;
+                gap: 0.5rem;
+                font-size: 0.83rem;
+                line-height: 1.5;
+                padding: 0.42rem 0;
+                border-top: 1px dotted var(--rule-2);
+            }
+
+            .m-field > span:first-child {
+                flex: none;
+                width: 6.6rem;
+                font-family: var(--mono);
+                font-size: 0.58rem;
+                letter-spacing: 0.11em;
+                text-transform: uppercase;
+                color: var(--mute);
+            }
+
+            .m-val {
+                color: var(--ink-2);
+            }
+
+            .m-punches {
+                display: flex;
+                gap: 0.42rem;
+                margin-top: auto;
+                padding-top: 1rem;
+                border-top: 1px solid var(--gold-solid);
+            }
+
+            .m-punches i {
+                width: 15px;
+                height: 15px;
+                border-radius: 50%;
+                background: var(--paper);
+                box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.28);
+            }
+
+            /* ══ THE SKID — nine games, one of them a win ═══════════════════════ */
+            .skid {
+                display: grid;
+                grid-template-columns: repeat(9, minmax(0, 1fr));
+                gap: 3px;
+                margin: clamp(1.75rem, 3.5vw, 2.5rem) 0;
+            }
+
+            .skid-g {
+                background: var(--paper-2);
+                border-top: 3px solid var(--rule-2);
+                padding: 0.6rem 0.4rem 0.7rem;
+                text-align: center;
+            }
+
+            .sk-d {
+                font-family: var(--mono);
+                font-size: 0.56rem;
+                letter-spacing: 0.1em;
+                text-transform: uppercase;
+                color: var(--mute);
+                margin-bottom: 0.25rem;
+                white-space: nowrap;
+            }
+
+            .sk-s {
+                font-family: var(--mono);
+                font-size: 0.92rem;
+                font-weight: 600;
+                color: var(--ink-2);
+                font-variant-numeric: tabular-nums;
+                white-space: nowrap;
+            }
+
+            .skid-g.win {
+                background: var(--gold-wash);
+                border-top-color: var(--gold-solid);
+            }
+
+            .skid-g.win .sk-s {
+                color: var(--ink);
+                font-weight: 700;
+            }
+
+            .skid-g.win .sk-d {
+                color: var(--gold);
+            }
+
+            @media (max-width: 720px) {
+                .skid {
+                    grid-template-columns: repeat(3, minmax(0, 1fr));
+                }
+            }
+
+            /* ══ THE NOTICE — lost and found ════════════════════════════════════ */
+            .record {
+                background: var(--paper-2);
+                border: 1px solid var(--rule-2);
+                border-left: 4px solid var(--clay);
+                padding: 1.25rem 1.4rem 0.6rem;
+                margin: clamp(1.75rem, 3.5vw, 2.5rem) 0;
+            }
+
+            .rec-eyebrow {
+                font-family: var(--mono);
+                font-size: 0.6rem;
+                letter-spacing: 0.15em;
+                text-transform: uppercase;
+                color: var(--clay);
+                margin-bottom: 0.7rem;
+            }
+
+            .record p {
+                font-size: 0.95rem;
+                line-height: 1.65;
+                color: var(--ink-2);
+                margin-bottom: 0.75rem;
+            }
+
+            .lf strong:first-child {
+                font-family: var(--display);
+                font-weight: 700;
+                font-size: 1.1em;
+                letter-spacing: 0.02em;
+                display: block;
+                margin-bottom: 0.15rem;
+                color: var(--ink);
+            }
+
+            /* ══ THE GALLERY — two generations, still in black and white ════════ */
+            .divide-gallery {
+                margin: 0 0 clamp(1.75rem, 3.5vw, 2.5rem);
+                background: var(--paper-2);
+                padding: clamp(1.25rem, 3vw, 2rem);
+                border-top: 2px solid var(--pine);
+            }
+
+            .dg-eyebrow {
+                font-family: var(--mono);
+                font-size: 0.6rem;
+                letter-spacing: 0.15em;
+                text-transform: uppercase;
+                color: var(--pine);
+                margin-bottom: 1.1rem;
+            }
+
             .dg-frames {
                 display: flex;
-                justify-content: center;
-                align-items: flex-end;
-                gap: 26px;
                 flex-wrap: wrap;
+                gap: clamp(1.25rem, 3vw, 2.5rem);
+                align-items: flex-end;
             }
-            .dg-frame {
-                margin: 0;
-                text-align: center;
-            }
+
             .dg-frame img {
                 display: block;
-                height: 280px;
+                height: 275px;
                 width: auto;
-                max-width: 100%;
-                border: 1px solid var(--rule);
+                background: #fff;
+                padding: 9px;
+                border: 1px solid var(--rule-2);
+                filter: grayscale(1) contrast(1.04);
             }
+
+            /* the great-grandmother's print came down smaller; hang it smaller */
+            .dg-frame.dg-sm img {
+                height: 215px;
+            }
+
             .dg-name {
-                font-size: 0.82rem;
-                letter-spacing: 0.03em;
-                margin-top: 8px;
-                line-height: 1.3;
+                font-family: var(--body);
+                font-weight: 700;
+                font-size: 0.78rem;
+                letter-spacing: 0.06em;
+                color: var(--ink);
+                margin-top: 0.7rem;
+                line-height: 1.4;
             }
+
             .dg-rel {
                 display: block;
                 font-family: var(--mono);
+                font-weight: 400;
                 font-size: 0.58rem;
-                letter-spacing: 0.1em;
+                letter-spacing: 0.13em;
                 text-transform: uppercase;
-                color: var(--muted);
-                margin-top: 3px;
+                color: var(--mute);
+                margin-top: 0.2rem;
             }
+
             .divide-gallery figcaption {
-                font-family: var(--serif);
-                font-size: 0.78rem;
-                line-height: 1.6;
-                color: var(--muted);
-                font-style: italic;
-                margin: 14px auto 0;
-                max-width: 62ch;
-                text-align: center;
-            }
-            tr.wline > td {
-                border-top: 2px dashed var(--accent);
-                border-bottom: 2px dashed var(--accent);
-                background: var(--tint);
-                text-align: center;
-                font-family: var(--mono);
-                font-size: 0.66rem;
-                letter-spacing: 0.22em;
-                text-transform: uppercase;
-                color: var(--accent);
-                padding: 6px 8px;
-            }
-            tr.bench > td {
-                color: var(--muted);
-            }
-            tr.bench .player,
-            tr.bench .num {
-                color: var(--muted);
+                font-size: 0.87rem;
+                line-height: 1.68;
+                color: var(--ink-2);
+                margin-top: 1.3rem;
+                padding-top: 1.1rem;
+                border-top: 1px solid var(--rule-2);
+                max-width: 58ch;
             }
 
-            /* ── the citation (a proclamation, berry-framed) ── */
-            .citation {
-                max-width: 640px;
-                margin: 44px auto 0;
-                border: 3px double var(--accent);
-                padding: 6px;
-                background: var(--paper);
-            }
-            .cit-inner {
-                border: 1px solid var(--accent);
-                background: var(--tint);
-                padding: 18px 26px 16px;
-                text-align: center;
-            }
-            .cit-eyebrow {
-                font-family: var(--mono);
-                font-size: 0.6rem;
-                letter-spacing: 0.2em;
-                text-transform: uppercase;
-                color: var(--accent);
-            }
-            .cit-orns {
-                color: var(--accent);
-                font-size: 1.25rem;
-                letter-spacing: 0.6em;
-                margin: 8px 0 2px;
-                line-height: 1;
-            }
-            .citation h2 {
-                margin: 4px 0 6px;
-                font-size: clamp(1.5rem, 4.5vw, 2rem);
-            }
-            .cit-sub {
-                margin: 0 0 12px;
-                font-style: italic;
-                color: var(--muted);
-                font-size: 0.9rem;
-            }
-            .cit-slams {
-                border: 1px solid var(--accent);
-                background: var(--paper);
-                margin: 2px 0 14px;
-                padding: 13px 14px 11px;
-            }
-            .cs-big {
-                font-family: var(--display);
-                font-weight: 700;
-                text-transform: uppercase;
-                font-size: clamp(1.9rem, 6.5vw, 2.8rem);
-                line-height: 1;
-                color: var(--accent);
-            }
-            .cs-sub {
-                font-family: var(--mono);
-                font-size: 0.62rem;
-                letter-spacing: 0.14em;
-                text-transform: uppercase;
-                color: var(--muted);
-                margin-top: 8px;
-            }
-            .cit-whereas {
-                list-style: none;
-                margin: 0;
-                padding: 0;
-                text-align: left;
-            }
-            .cit-whereas li {
-                margin: 10px 0;
-                font-size: 0.93rem;
-                line-height: 1.6;
-            }
-            .cit-whereas .w {
-                font-family: var(--mono);
-                font-size: 0.66rem;
-                letter-spacing: 0.14em;
-                text-transform: uppercase;
-                color: var(--accent);
-                margin-right: 4px;
-            }
-            .cit-resolve {
-                border-top: 1px solid var(--accent);
-                border-bottom: 1px solid var(--accent);
-                margin: 14px 0 10px;
-                padding: 10px 8px;
-                font-size: 0.96rem;
-                line-height: 1.6;
-            }
-            .cit-attest {
-                font-family: var(--mono);
-                font-size: 0.62rem;
-                letter-spacing: 0.12em;
-                text-transform: uppercase;
-                color: var(--muted);
+            @media (max-width: 560px) {
+                .dg-frame img {
+                    height: 210px;
+                }
+
+                .dg-frame.dg-sm img {
+                    height: 168px;
+                }
             }
 
-            /* ── tickets (scoreboard entries) ── */
-            .tickets {
-                display: grid;
-                grid-template-columns: repeat(3, 1fr);
-                gap: 14px;
-                margin: 16px 0 4px;
-            }
-            .ticket {
-                border: 1px solid var(--rule);
-                border-top: 2px solid var(--rule-strong);
-                background: var(--tint);
-                padding: 10px 12px 8px;
-                display: flex;
-                flex-direction: column;
-            }
-            .t-meta {
-                font-family: var(--mono);
-                font-size: 0.66rem;
-                letter-spacing: 0.1em;
-                text-transform: uppercase;
-                color: var(--muted);
-                margin-bottom: 8px;
-                display: flex;
-                align-items: center;
-                flex-wrap: wrap;
-                gap: 6px;
-            }
-            .t-row {
-                display: flex;
-                justify-content: space-between;
-                align-items: baseline;
-                gap: 10px;
-                padding: 2px 0;
-            }
-            .t-team {
-                font-size: 0.92rem;
-            }
-            .t-score {
-                font-family: var(--mono);
-                font-size: 1.05rem;
-                font-variant-numeric: tabular-nums;
-            }
-            .t-row.win {
-                font-weight: 700;
-            }
-            .t-row.win .t-score {
-                color: var(--accent);
-            }
-            .t-note {
-                margin: 8px 0 0;
-                padding-top: 7px;
-                border-top: 1px dotted var(--rule);
-                font-size: 0.8rem;
-                font-style: italic;
-                color: var(--muted);
-                flex-grow: 1;
-            }
-            .tag {
-                font-family: var(--mono);
-                font-size: 0.6rem;
-                letter-spacing: 0.08em;
-                border: 1px solid currentColor;
-                padding: 0 5px;
-                border-radius: 2px;
-            }
-            .tag.one-run {
-                color: var(--accent);
-            }
-            .tag.upset {
-                color: var(--debit);
-            }
-            .tag.tie,
-            .tag.note {
-                color: var(--muted);
-            }
-
-            /* ── weeklies (award cards) ── */
-            .weeklies {
-                display: grid;
-                grid-template-columns: repeat(2, 1fr);
-                gap: 14px;
-                margin: 16px 0 4px;
-            }
-            .award {
-                border: 1px solid var(--rule);
-                padding: 12px 14px;
-            }
-            .a-name {
-                font-family: var(--mono);
-                font-size: 0.64rem;
-                letter-spacing: 0.14em;
-                text-transform: uppercase;
-                color: var(--accent);
-                margin-bottom: 6px;
-            }
-            .a-winner {
-                font-size: 1.15rem;
-                font-weight: 700;
-                line-height: 1.2;
-            }
-            .a-club {
-                font-size: 0.8rem;
-                color: var(--muted);
-                margin-bottom: 6px;
-            }
-            .a-cite {
-                margin: 6px 0 0;
-                font-size: 0.88rem;
-            }
-            .a-also {
-                margin: 6px 0 0;
-                font-size: 0.76rem;
-                color: var(--muted);
-            }
-
-            /* ── clubhouse ── */
-            .club-card {
-                border: 1px solid var(--rule);
-                border-left: 3px solid var(--accent);
-                background: var(--tint);
-                padding: 10px 14px;
-                margin: 8px 0 10px;
-            }
-            .c-line {
-                font-size: 0.88rem;
-                margin: 3px 0;
-            }
-
-            /* ── arcs ── */
+            /* ══ THE ARCS ═══════════════════════════════════════════════════════ */
             .arcs-fig {
-                margin: 18px 0 6px;
+                margin: clamp(1.5rem, 3vw, 2.25rem) 0 0;
+                background: var(--paper-2);
+                border-top: 2px solid var(--pine);
+                padding: clamp(1.1rem, 2.5vw, 1.75rem) 0 clamp(1.1rem, 2.5vw, 1.5rem);
             }
+
             .arcs-scroll {
                 overflow-x: auto;
                 -webkit-overflow-scrolling: touch;
+                padding: 0 clamp(1.1rem, 2.5vw, 1.75rem);
             }
-            .arcs-scroll svg {
-                min-width: 760px;
+
+            .arcs-fig svg {
+                display: block;
                 width: 100%;
                 height: auto;
-                display: block;
+                min-width: 700px;
             }
+
             .arcs-fig figcaption {
                 font-size: 0.8rem;
-                font-style: italic;
-                color: var(--muted);
-                margin-top: 8px;
+                line-height: 1.6;
+                color: var(--mute);
+                padding: 1rem clamp(1.1rem, 2.5vw, 1.75rem) 0;
+                border-top: 1px solid var(--rule);
+                margin: 1rem clamp(1.1rem, 2.5vw, 1.75rem) 0;
             }
+
             .arc-grid {
                 stroke: var(--rule);
                 stroke-width: 1;
             }
+
             .arc-tick {
                 font-family: var(--mono);
-                font-size: 10px;
-                fill: var(--muted);
+                font-size: 9.5px;
+                letter-spacing: 0.06em;
+                fill: var(--mute);
             }
+
             .arc-line {
                 fill: none;
                 stroke: var(--arc-dim);
                 stroke-width: 1.6;
                 stroke-linejoin: round;
                 stroke-linecap: round;
+                transition: stroke-width 0.15s ease, opacity 0.15s ease;
             }
+
             .arc-lead {
                 fill: none;
-                stroke: var(--rule);
+                stroke: var(--arc-dim);
                 stroke-width: 1;
             }
+
             .arc-chip {
                 fill: var(--arc-dim);
             }
+
+            /* 10px keeps the longest label inside the emitted viewBox —
+               the geometry is analysis.py's, so the type yields, not it */
             .arc-label {
                 font-family: var(--mono);
-                font-size: 11px;
-                fill: var(--ink);
+                font-size: 10px;
+                fill: var(--ink-2);
             }
+
             .arc-val {
-                fill: var(--muted);
+                fill: var(--mute);
+            }
+
+            .t-sefton .arc-line,
+            .t-sefton .arc-lead {
+                stroke: var(--arc-1);
             }
             .t-sefton .arc-line {
-                stroke: var(--arc-1);
-                stroke-width: 2.6;
+                stroke-width: 2.4;
             }
             .t-sefton .arc-chip {
                 fill: var(--arc-1);
             }
-            .t-boyds-daniel .arc-line {
+
+            .t-boyds-daniel .arc-line,
+            .t-boyds-daniel .arc-lead {
                 stroke: var(--arc-2);
-                stroke-width: 2.6;
+            }
+            .t-boyds-daniel .arc-line {
+                stroke-width: 2.4;
             }
             .t-boyds-daniel .arc-chip {
                 fill: var(--arc-2);
             }
-            .t-jeremy .arc-line {
+
+            .t-jeremy .arc-line,
+            .t-jeremy .arc-lead {
                 stroke: var(--arc-3);
-                stroke-width: 2.6;
+            }
+            .t-jeremy .arc-line {
+                stroke-width: 2.4;
             }
             .t-jeremy .arc-chip {
                 fill: var(--arc-3);
             }
 
-            /* ── house advertisements (yggr — coffee for sats) ──
-               Labeled the way the old papers labeled them; one clean
-               unit, copy varies by neighborhood. */
-            .adv {
-                margin: 40px 0 0;
-                border-top: 1px solid var(--rule);
-                border-bottom: 1px solid var(--rule);
-                padding: 14px 0 16px;
+            .t-sefton .arc-label,
+            .t-boyds-daniel .arc-label,
+            .t-jeremy .arc-label {
+                fill: var(--ink);
+                font-weight: 600;
             }
+
+            /* pick a line out of the twelve */
+            .arcs-scroll:hover .arc:not(:hover) .arc-line {
+                opacity: 0.3;
+            }
+
+            .arcs-scroll:hover .arc:not(:hover) .arc-label,
+            .arcs-scroll:hover .arc:not(:hover) .arc-chip {
+                opacity: 0.45;
+            }
+
+            .arc:hover .arc-line {
+                stroke-width: 3.2;
+                stroke: var(--ink);
+            }
+
+            .t-sefton:hover .arc-line {
+                stroke: var(--arc-1);
+            }
+            .t-boyds-daniel:hover .arc-line {
+                stroke: var(--arc-2);
+            }
+            .t-jeremy:hover .arc-line {
+                stroke: var(--arc-3);
+            }
+
+            /* ══ THE STATEMENT ══════════════════════════════════════════════════ */
+            .statement {
+                background: var(--paper-2);
+                border: 1px solid var(--rule-2);
+                margin: clamp(1.5rem, 3vw, 2.25rem) 0 0;
+            }
+
+            .st-head {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-between;
+                align-items: baseline;
+                gap: 0.5rem 1.5rem;
+                background: var(--band);
+                color: var(--band-ink);
+                padding: 0.85rem clamp(1.1rem, 2.5vw, 1.75rem);
+            }
+
+            .st-brand {
+                font-family: var(--display);
+                font-weight: 700;
+                font-size: 1.05rem;
+                letter-spacing: 0.01em;
+            }
+
+            .st-no {
+                font-family: var(--mono);
+                font-size: 0.6rem;
+                letter-spacing: 0.14em;
+                text-transform: uppercase;
+                color: var(--band-mute);
+            }
+
+            .st-to {
+                position: relative;
+                padding: 1.35rem clamp(1.1rem, 2.5vw, 1.75rem) 1.15rem;
+                border-bottom: 1px solid var(--rule-2);
+                font-size: 1.05rem;
+                color: var(--ink-2);
+                padding-right: 11rem;
+            }
+
+            .st-tag {
+                display: block;
+                font-family: var(--mono);
+                font-size: 0.58rem;
+                letter-spacing: 0.15em;
+                text-transform: uppercase;
+                color: var(--mute);
+                margin-bottom: 0.3rem;
+            }
+
+            .st-to strong {
+                font-family: var(--display);
+                font-weight: 700;
+                font-size: 1.5rem;
+                letter-spacing: -0.01em;
+                color: var(--ink);
+                display: inline;
+            }
+
+            .st-stamp {
+                position: absolute;
+                top: 1.1rem;
+                right: clamp(1.1rem, 2.5vw, 1.75rem);
+                transform: rotate(-6deg);
+                font-family: var(--body);
+                font-weight: 700;
+                font-size: 0.76rem;
+                letter-spacing: 0.16em;
+                text-transform: uppercase;
+                color: var(--clay);
+                border: 2px solid var(--clay);
+                padding: 0.32rem 0.65rem;
+                opacity: 0.88;
+                white-space: nowrap;
+            }
+
+            .st-lines {
+                margin: 0;
+                padding: 1.1rem clamp(1.1rem, 2.5vw, 1.75rem);
+            }
+
+            .st-line {
+                display: flex;
+                align-items: baseline;
+                gap: 0.3rem;
+                padding: 0.24rem 0;
+            }
+
+            .st-line dt {
+                display: flex;
+                flex: 1 1 auto;
+                align-items: baseline;
+                gap: 0.34em; /* flex eats the space between text and span */
+                min-width: 0;
+                font-size: 0.93rem;
+                color: var(--ink-2);
+            }
+
+            .st-line dt::after {
+                content: "";
+                flex: 1 1 auto;
+                border-bottom: 1px dotted var(--rule-2);
+                margin: 0 0.2rem;
+                position: relative;
+                top: -0.28em;
+                min-width: 1.5rem;
+            }
+
+            .st-line dd {
+                margin: 0;
+                flex: none;
+                font-family: var(--mono);
+                font-size: 0.88rem;
+                font-variant-numeric: tabular-nums;
+                color: var(--ink);
+                text-align: right;
+            }
+
+            .st-line dd strong {
+                font-weight: 700;
+            }
+
+            .st-games {
+                padding: 0.4rem clamp(1.1rem, 2.5vw, 1.75rem) 1.1rem;
+            }
+
+            .st-games-label {
+                font-family: var(--mono);
+                font-size: 0.58rem;
+                letter-spacing: 0.15em;
+                text-transform: uppercase;
+                color: var(--mute);
+                margin-bottom: 0.6rem;
+            }
+
+            .st-games ul {
+                list-style: none;
+                margin: 0;
+                padding: 0;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+
+            .st-games li {
+                display: flex;
+                align-items: center;
+                gap: 0.55rem;
+                background: var(--paper);
+                border: 1px solid var(--rule);
+                padding: 0.42rem 0.7rem;
+                font-size: 0.86rem;
+            }
+
+            .st-res {
+                font-family: var(--body);
+                font-weight: 700;
+                font-size: 0.66rem;
+                letter-spacing: 0.1em;
+                color: var(--paper);
+                background: var(--mute);
+                width: 1.35rem;
+                height: 1.35rem;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                flex: none;
+            }
+
+            .st-res.win {
+                background: var(--pine);
+                color: #fbfaf5;
+            }
+
+            .st-res.loss {
+                background: var(--clay);
+                color: #fbfaf5;
+            }
+
+            .st-score {
+                font-family: var(--mono);
+                font-weight: 600;
+                font-variant-numeric: tabular-nums;
+                color: var(--ink);
+            }
+
+            .st-opp {
+                color: var(--ink-2);
+            }
+
+            .st-due {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-between;
+                align-items: baseline;
+                gap: 0.5rem 1.5rem;
+                background: var(--band);
+                color: var(--band-ink);
+                padding: 0.95rem clamp(1.1rem, 2.5vw, 1.75rem);
+            }
+
+            .st-due-label {
+                font-size: 0.95rem;
+                color: var(--band-mute);
+            }
+
+            .st-due-label strong {
+                color: var(--band-ink);
+                font-weight: 700;
+            }
+
+            .st-due-label .muted {
+                color: var(--band-mute);
+            }
+
+            .st-due-amt {
+                font-family: var(--mono);
+                font-size: 1.5rem;
+                font-weight: 700;
+                font-variant-numeric: tabular-nums;
+            }
+
+            .st-due-amt .zpos {
+                color: var(--gold-solid);
+            }
+
+            .st-fine {
+                font-family: var(--mono);
+                font-size: 0.65rem;
+                line-height: 1.75;
+                color: var(--mute);
+                padding: 0.9rem clamp(1.1rem, 2.5vw, 1.75rem);
+                margin: 0;
+                border-top: 1px solid var(--rule-2);
+            }
+
+            @media (max-width: 620px) {
+                .st-to {
+                    padding-right: clamp(1.1rem, 2.5vw, 1.75rem);
+                    padding-top: 3.6rem;
+                }
+                .st-stamp {
+                    top: 0.9rem;
+                }
+            }
+
+            /* ══ ADVERTISING — the colour pages pay for themselves ══════════════ */
+            .adv {
+                background: var(--gold-wash);
+                border-top: 1px solid var(--gold-solid);
+                border-bottom: 1px solid var(--gold-solid);
+                padding: 1.1rem 0 1.3rem;
+            }
+
+            .adv > * {
+                grid-column: wide;
+            }
+
             .adv-tag {
                 font-family: var(--mono);
                 font-size: 0.56rem;
                 letter-spacing: 0.24em;
                 text-transform: uppercase;
-                color: var(--muted);
-                text-align: center;
-                margin-bottom: 12px;
+                color: var(--gold);
+                margin-bottom: 0.75rem;
             }
+
             .adv-card {
-                display: flex;
+                display: grid;
+                grid-template-columns: 190px minmax(0, 1fr);
+                gap: 1.35rem;
                 align-items: center;
-                gap: 18px;
-                max-width: 640px;
-                margin: 0 auto;
-                border: 1px solid var(--rule-strong);
-                background: var(--tint);
-                padding: 12px 16px;
-                color: var(--ink);
-            }
-            .adv-card:hover,
-            .adv-card:focus-visible {
                 text-decoration: none;
-                border-color: var(--accent);
+                color: inherit;
             }
+
             .adv-card img {
                 display: block;
-                width: 190px;
+                width: 100%;
                 height: auto;
-                flex-shrink: 0;
-                border: 1px solid var(--rule);
-                background: #fff;
+                border: 1px solid var(--gold-solid);
+                transition: transform 0.25s ease;
             }
+
+            .adv-card:hover img {
+                transform: translateY(-3px);
+            }
+
             .adv-line {
-                margin: 0;
-                font-size: 0.92rem;
-                line-height: 1.55;
+                font-size: 0.95rem;
+                line-height: 1.62;
+                color: var(--ink-2);
+                margin: 0 0 0.6rem;
+                max-width: 56ch;
             }
+
+            .adv-line strong {
+                color: var(--ink);
+            }
+
             .adv-url {
-                display: inline-block;
-                margin-top: 7px;
-                font-family: var(--mono);
-                font-size: 0.74rem;
-                letter-spacing: 0.06em;
-                color: var(--accent);
+                font-family: var(--body);
+                font-weight: 700;
+                font-size: 0.68rem;
+                letter-spacing: 0.18em;
+                text-transform: uppercase;
+                color: var(--press);
+                border-bottom: 1px solid transparent;
+                transition: border-color 0.18s ease;
             }
 
-            /* ── footnote ── */
-            .footnote {
-                margin-top: 44px;
-                border-top: 7px double var(--rule-strong);
-                padding-top: 14px;
-                font-size: 0.8rem;
-                color: var(--muted);
-                line-height: 1.6;
-            }
-            .footnote a {
-                color: var(--accent);
+            .adv-card:hover .adv-url {
+                border-bottom-color: var(--press);
             }
 
-            /* ── responsive ── */
-            @media (max-width: 780px) {
-                .tickets {
-                    grid-template-columns: repeat(2, 1fr);
-                }
-                .cover-tiles {
-                    grid-template-columns: repeat(2, 1fr);
-                }
-            }
-            @media (max-width: 560px) {
-                body {
-                    font-size: 15px;
-                }
-                .wrap {
-                    padding: 0 14px 40px;
-                }
-                .tickets,
-                .weeklies,
-                .bulletin .cards,
-                .cover-tiles {
-                    grid-template-columns: 1fr;
-                }
-                .nameplate .bug {
-                    display: block;
-                    margin: 10px 0 0;
-                    width: fit-content;
-                    vertical-align: baseline;
-                }
-                .st-head,
-                .st-lines,
-                .st-due,
-                .st-fine {
-                    padding-left: 12px;
-                    padding-right: 12px;
-                }
-                .st-to {
-                    padding: 10px 116px 4px 12px;
-                }
-                .st-stamp {
-                    font-size: 0.74rem;
-                    right: 10px;
-                    padding: 2px 7px;
-                }
-                .st-games {
-                    margin: 6px 12px;
-                }
-                .st-games ul {
-                    grid-template-columns: 1fr;
-                }
-                .dg-frames {
-                    gap: 14px;
-                }
-                .dg-frame img {
-                    height: 170px;
-                }
-                .divide-gallery {
-                    padding: 12px 10px 10px;
-                }
+            @media (max-width: 620px) {
                 .adv-card {
-                    flex-direction: column;
-                    align-items: flex-start;
+                    grid-template-columns: 1fr;
+                    gap: 0.9rem;
                 }
                 .adv-card img {
-                    width: 100%;
-                    max-width: 280px;
-                }
-                .plate {
-                    flex-direction: column;
-                    gap: 2px;
-                }
-                .plate .pg {
-                    text-align: left;
+                    max-width: 250px;
                 }
             }
+
+            /* ══ THE BACK PAGE ══════════════════════════════════════════════════ */
+            .editions {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: 0.4rem 0.75rem;
+                margin-top: clamp(3rem, 6vw, 5rem);
+                padding: 1.1rem 0;
+                border-top: 2px solid var(--pine);
+                border-bottom: 1px solid var(--rule);
+                font-family: var(--body);
+                font-size: 0.74rem;
+                font-weight: 700;
+                letter-spacing: 0.13em;
+                text-transform: uppercase;
+                grid-column: wide;
+            }
+
+            .editions a {
+                color: var(--ink-2);
+                text-decoration: none;
+                border-bottom: 1px solid var(--rule-2);
+                padding-bottom: 1px;
+            }
+
+            .editions a:hover {
+                color: var(--press);
+                border-bottom-color: var(--press);
+            }
+
+            .editions .here {
+                color: var(--press);
+            }
+
+            .editions .sep {
+                color: var(--rule-2);
+            }
+
+            .footnote {
+                grid-column: full;
+                background: var(--paper-2);
+                border-top: 1px solid var(--rule);
+                margin: 3rem 0 0;
+                padding-block: clamp(1.75rem, 4vw, 2.75rem) clamp(3rem, 6vw, 4.5rem);
+                padding-inline: max(var(--gutter), calc((100% - 52rem) / 2));
+                font-size: 0.82rem;
+                line-height: 1.85;
+                color: var(--mute);
+            }
+
+            .footnote > strong,
+            .footnote strong {
+                color: var(--ink-2);
+                font-weight: 700;
+            }
+
+            .footnote a {
+                color: var(--ink-2);
+            }
+
+            .footnote code {
+                background: var(--paper-3);
+                font-size: 0.82em;
+            }
+
+            /* ══ THE RAIL — desktop wayfinding, built from the index ════════════ */
+            .rail {
+                display: none;
+            }
+
+            @media (min-width: 1340px) {
+                .rail {
+                    display: block;
+                    position: fixed;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    left: max(1rem, calc((100vw - 62rem) / 2 - 11.5rem));
+                    width: 10.5rem;
+                    z-index: 40;
+                    counter-reset: railno;
+                }
+
+                .rail ol {
+                    list-style: none;
+                    margin: 0;
+                    padding: 0;
+                    border-left: 1px solid var(--rule);
+                }
+
+                .rail a {
+                    counter-increment: railno;
+                    display: flex;
+                    gap: 0.5rem;
+                    align-items: baseline;
+                    padding: 0.28rem 0 0.28rem 0.75rem;
+                    margin-left: -1px;
+                    border-left: 2px solid transparent;
+                    font-size: 0.72rem;
+                    line-height: 1.35;
+                    color: var(--mute);
+                    text-decoration: none;
+                    transition: color 0.2s ease, border-color 0.2s ease;
+                }
+
+                .rail a::before {
+                    content: counter(railno, decimal-leading-zero);
+                    font-family: var(--mono);
+                    font-size: 0.58rem;
+                    letter-spacing: 0.04em;
+                    opacity: 0.7;
+                    flex: none;
+                }
+
+                .rail a:hover {
+                    color: var(--ink-2);
+                }
+
+                .rail a.on {
+                    color: var(--press);
+                    border-left-color: var(--press);
+                    font-weight: 700;
+                }
+
+                /* the rail keeps off the masthead's field */
+                .rail {
+                    opacity: 0;
+                    visibility: hidden;
+                    transition: opacity 0.3s ease, visibility 0.3s;
+                }
+
+                .rail.up {
+                    opacity: 1;
+                    visibility: visible;
+                }
+            }
+
+            @media (min-width: 1600px) {
+                .rail {
+                    left: max(1rem, calc((100vw - 62rem) / 2 - 13rem));
+                    width: 12rem;
+                }
+            }
+
+            /* ══ MOTION — two moments, both charts ══════════════════════════════
+               The pre-state is written by the script, never by this sheet: with JS
+               off, nothing is ever hidden. */
+            @media (prefers-reduced-motion: reduce) {
+                html {
+                    scroll-behavior: auto;
+                }
+                *,
+                *::before,
+                *::after {
+                    animation-duration: 0.001ms !important;
+                    animation-iteration-count: 1 !important;
+                    transition-duration: 0.001ms !important;
+                }
+            }
+
+            /* ── print: the paper, as paper ────────────────────────────────────── */
             @media print {
+                .rail,
+                .tape-progress,
+                .adv {
+                    display: none !important;
+                }
                 body {
                     background: #fff;
                     color: #000;
                 }
-                .contents {
-                    display: none;
-                }
-                /* an overflow container clips in print — un-clip both axes */
-                .table-scroll,
-                .table-scroll.tall {
-                    overflow: visible;
-                    max-height: none;
-                }
-                section {
-                    break-inside: avoid-page;
-                }
-                h2,
-                h3 {
-                    break-after: avoid;
-                }
-            }
-
-            /* ── the finish line (cover, id photo-finish) ───────────── */
-            .finish-scroll {
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
-                margin: 20px 0 4px;
-                border-top: 1px solid var(--rule);
-                border-bottom: 1px solid var(--rule);
-                padding: 6px 0 2px;
-            }
-            .finish-svg {
-                display: block;
-                min-width: 700px;
-                width: 100%;
-                height: auto;
-            }
-            .fn-axhead,
-            .fn-tapelab {
-                font-family: var(--display);
-                font-size: 11px;
-                letter-spacing: 0.14em;
-                fill: var(--muted);
-            }
-            .fn-tapelab {
-                text-anchor: end;
-                fill: var(--ink);
-            }
-            .fn-tick {
-                stroke: var(--rule);
-                stroke-width: 1;
-            }
-            .fn-ticklab {
-                font-family: var(--mono);
-                font-size: 10px;
-                fill: var(--muted);
-                text-anchor: middle;
-            }
-            .fn-tape {
-                stroke: var(--rule-strong);
-                stroke-width: 2;
-            }
-            .fn-track {
-                stroke: var(--arc-dim);
-                stroke-width: 3;
-                stroke-linecap: round;
-            }
-            .fn-rank {
-                font-family: var(--display);
-                font-size: 19px;
-                fill: var(--muted);
-                text-anchor: middle;
-            }
-            .fn-name {
-                font-family: var(--display);
-                font-size: 17px;
-                font-weight: 600;
-                fill: var(--ink);
-            }
-            .fn-meta {
-                font-family: var(--serif);
-                font-size: 11.5px;
-                fill: var(--muted);
-            }
-            .fn-dot {
-                fill: var(--arc-dim);
-                stroke: var(--ink);
-                stroke-width: 1.5;
-            }
-            .fn-lane.lead .fn-dot {
-                fill: var(--accent);
-                stroke: var(--accent);
-            }
-            .fn-avg {
-                font-family: var(--mono);
-                font-size: 13px;
-                fill: var(--ink);
-            }
-            .fn-lane.lead .fn-avg {
-                font-size: 15px;
-                font-weight: 700;
-            }
-            .fn-gapline {
-                stroke: var(--accent);
-                stroke-width: 1.5;
-            }
-            .fn-gaplab {
-                font-family: var(--mono);
-                font-size: 11px;
-                fill: var(--accent);
-                text-anchor: middle;
-            }
-            /* ── lost-and-found classified (id walk-off) ───────────── */
-            .lf {
-                font-family: var(--mono);
-                font-size: 0.86rem;
-                line-height: 1.7;
-                margin: 2px 0 12px;
-                padding: 10px 12px;
-                background: var(--tint);
-                border-top: 3px double var(--rule-strong);
-                border-bottom: 1px solid var(--rule);
-            }
-            /* ── the skid strip (id walk-off) ──────────────────────── */
-            .skid {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 6px;
-                margin: 18px 0 4px;
-            }
-            .skid-g {
-                border: 1px solid var(--rule);
-                background: var(--lo-bg);
-                padding: 6px 9px 5px;
-                min-width: 64px;
-                text-align: center;
-            }
-            .skid-g .sk-d {
-                font-family: var(--mono);
-                font-size: 0.56rem;
-                letter-spacing: 0.1em;
-                text-transform: uppercase;
-                color: var(--muted);
-            }
-            .skid-g .sk-s {
-                font-family: var(--mono);
-                font-size: 0.95rem;
-                font-weight: 700;
-                font-variant-numeric: tabular-nums;
-            }
-            .skid-g.win {
-                background: var(--hl-bg);
-                border-color: var(--rule-strong);
-                border-top: 3px double var(--rule-strong);
-            }
-            /* ── portrait figure (generic; cf. .divide-gallery) ─────── */
-            .port-fig {
-                float: right;
-                width: min(216px, 44%);
-                margin: 6px 0 14px 22px;
-                border: 1px solid var(--rule-strong);
-                background: var(--tint);
-                padding: 8px 8px 7px;
-            }
-            .port-fig .pf-eyebrow {
-                font-family: var(--mono);
-                font-size: 0.6rem;
-                letter-spacing: 0.14em;
-                text-transform: uppercase;
-                color: var(--muted);
-                margin-bottom: 7px;
-            }
-            .port-fig img {
-                display: block;
-                width: 100%;
-                height: auto;
-                border: 1px solid var(--rule);
-            }
-            .port-fig figcaption {
-                font-family: var(--serif);
-                font-size: 0.72rem;
-                line-height: 1.5;
-                color: var(--muted);
-                margin-top: 7px;
-                font-style: italic;
-            }
-            @media (max-width: 560px) {
-                .port-fig {
-                    float: none;
-                    width: auto;
-                    max-width: 260px;
-                    margin: 12px auto 14px;
+                .wrap > section {
+                    break-inside: auto;
+                    padding: 1.5rem 0;
                 }
             }
         </style>
@@ -1731,22 +2010,25 @@
     <body>
         <!--
             THE PHOTO FINISH — August 14, 2026 (snapshot 0814).
-            WORK IN PROGRESS: the cover and the 1.000 Club are set. Still to
-            come before this edition is publishable — scoreboard, weeklies,
-            records, rebound, clubhouse, standings, invoice, gauntlet, value,
-            full docket, arcs, and the forward-looking section. The anchor
-            contract (race · standings · records · watch · dream-team) is NOT
-            yet satisfied. Do not publish as it stands.
+            THE COLOR SECTION: the closing number, redesigned. Every other
+            edition of this paper is ink on newsprint; this one is the
+            Sunday colour run — pine plates, a press-magenta story ink,
+            a gold tape, and the photographs up full colour for the first
+            and last time. Text is as published; only the presentation
+            changed. See the <style> block for the ink assignments and
+            the three-track grid. Two things move, both charts, both
+            behind prefers-reduced-motion.
         -->
+        <div class="tape-progress" aria-hidden="true"></div>
+        <nav class="rail" aria-hidden="true"></nav>
         <div class="wrap">
             <header class="masthead">
                 <div class="kicker">
                     CP Softball · softball.best · The afternoon of August 14,
                     2026 · Games 19–20 · Compiled August 18
                 </div>
-                <h1 class="nameplate">
-                    The Photo Finish<span class="bug">Nº 8 · The regular season, closed</span>
-                </h1>
+                <h1 class="nameplate">The Photo Finish</h1>
+                <p class="bug">Nº 8 · The regular season, closed</p>
                 <a class="sponsor" href="https://yggr.xyz" target="_blank" rel="noopener">
                     <img src="yggr-og.png" alt="yggr — coffee for sats" width="1200" height="630" />
                     <span class="sp-text">
@@ -1771,10 +2053,10 @@
             </nav>
 
             <section id="photo-finish" class="cover">
-                <div class="plate">
-                    <span>The Cover · Nº 8</span><span class="pg">The tape, August 14</span>
+                <div class="plate"><span class="pl-name">The Cover · Nº 8</span><span class="pg">The tape, August 14</span>
                 </div>
                 <h2><a href="#photo-finish">The crown goes to a ninth-round pick</a></h2>
+                <div class="cover-lead">
                 <figure class="port-fig">
                     <div class="pf-eyebrow">The champion</div>
                     <img src="shem.jpg" alt="Shem Hammon, the 2026 batting champion" width="650" height="650" />
@@ -1784,6 +2066,7 @@
                         name.
                     </figcaption>
                 </figure>
+                <div class="cover-copy">
                 <p class="lede">
                     Shem Hammon closes the season at <strong>.771</strong>,
                     and the man he beat is the captain who drafted him in the
@@ -1814,6 +2097,8 @@
                         <div class="tl-label">The margin</div>
                         <div class="tl-val">0.1 <span class="muted">hits</span></div>
                     </div>
+                </div>
+                </div>
                 </div>
                 <h3 id="race-tape"><a href="#race-tape">At the tape</a></h3>
                 <div class="finish-scroll">
@@ -1969,7 +2254,7 @@
             </aside>
 
             <section id="thousand-club" class="bulletin">
-                <div class="b-eyebrow">Special entry · posted for the afternoon</div>
+                <div class="b-eyebrow"><span class="pl-name">Special entry</span><span class="pg">posted for the afternoon</span></div>
                 <h2><a href="#thousand-club">The 1.000 Club admits the most comprehensively injured man in the family</a></h2>
                 <div class="cards">
                     <article class="mcard">
@@ -2033,10 +2318,10 @@
             </aside>
 
             <section id="walk-off">
-                <div class="plate">
-                    <span>Section Nº 3 · The Last Game</span><span class="pg">3:30, North field</span>
+                <div class="plate"><span class="pl-no">Section Nº 3</span><span class="pl-name">The Last Game</span><span class="pg">3:30, North field</span>
                 </div>
                 <h2><a href="#walk-off">Eight losses, no shortstop, and a borrowed bat that ended the argument</a></h2>
+                <div class="cover-lead narrow">
                 <figure class="port-fig">
                     <div class="pf-eyebrow">Did not bat</div>
                     <img src="levi.jpg" alt="Levi Knudson, shortstop, Boyds Daniel's team" width="400" height="532" loading="lazy" />
@@ -2044,6 +2329,7 @@
                         Levi Knudson, photographed with hair
                     </figcaption>
                 </figure>
+                <div class="cover-copy">
                 <p class="lede">
                     Boyds Daniel's team had not won since July 17 — a drought
                     long enough that the club stopped playing games and began
@@ -2055,6 +2341,8 @@
                     place Levi Knudson at a toupee fitting. The desk has not
                     verified this and has no plans to.
                 </p>
+                </div>
+                </div>
                 <div class="skid" role="img" aria-label="Eight consecutive defeats from July 17 to the first game of August 14, then a one-run win in the season's final game.">
                     <div class="skid-g"><div class="sk-d">Jul 17</div><div class="sk-s">9–17</div></div>
                     <div class="skid-g"><div class="sk-d">Jul 24</div><div class="sk-s">8–10</div></div>
@@ -2124,30 +2412,37 @@
             </aside>
 
             <section id="dewegeli-divide">
-                <div class="plate">
-                    <span>Section Nº 4 · The Divide</span><span class="pg">Recomputed, August 14</span>
+                <div class="plate"><span class="pl-no">Section Nº 4</span><span class="pl-name">The Divide</span><span class="pg">Recomputed, August 14</span>
                 </div>
                 <h2><a href="#dewegeli-divide">The Divide holds, and the family can stop pretending otherwise</a></h2>
                 <figure class="divide-gallery">
-                    <div class="dg-eyebrow">The gallery · two generations, still watching</div>
+                    <div class="dg-eyebrow">The gallery · three frames, two generations, still watching</div>
                     <div class="dg-frames">
                         <div class="dg-frame">
                             <img src="dewegeli.png" alt="Karl Franz Dewegeli Jr., a young man in a suit and striped tie, photographed in black and white." width="190" height="343" loading="lazy" />
                             <div class="dg-name">Karl Franz Dewegeli Jr.<span class="dg-rel">Great-grandfather</span></div>
                         </div>
+                        <div class="dg-frame dg-sm">
+                            <img src="marie-thomas-davis-dewegeli.png" alt="Marie Thomas Davis Dewegeli, an elderly woman with white hair in a pale blouse with an embroidered collar." width="120" height="163" loading="lazy" />
+                            <div class="dg-name">Marie Thomas Davis Dewegeli<span class="dg-rel">Great-grandmother · his wife</span></div>
+                        </div>
                         <div class="dg-frame">
                             <img src="darlene.jpg" alt="Darlene Marie Dewegeli, photographed in black and white in a white blouse and dark pinafore." width="578" height="760" loading="lazy" />
-                            <div class="dg-name">Darlene Marie Dewegeli<span class="dg-rel">Grandmother · his daughter</span></div>
+                            <div class="dg-name">Darlene Marie Dewegeli<span class="dg-rel">Great-aunt · their daughter</span></div>
                         </div>
                     </div>
                     <figcaption>
-                        The man who crossed an ocean with one good suit, and
-                        the daughter he crossed it for. Between them they
-                        account for the name on this line and for a good deal
-                        of the sense in the family. Two generations now keep
-                        the watch over the Divide — and the desk observes,
-                        without further comment, that the table beneath it is
-                        led entirely by women.
+                        The man who crossed an ocean with one good suit; the
+                        great-grandmother beside him, who is the other half
+                        of every name on this line; and their daughter —
+                        Elliot's great-aunt — who is watching too. Three
+                        sets of eyes now, all of them trained on the same
+                        great-grandson at the plate. Between them they
+                        account for the name over this table and for a good
+                        deal of the sense in the family.
+                        The desk observes, without further comment, that two
+                        thirds of the watch is kept by women, as is the whole
+                        of the table beneath it.
                     </figcaption>
                 </figure>
                 <p class="dek">
@@ -2192,14 +2487,16 @@
                 <ul class="notes">
                     <li>
                         <strong>The third generation attends in person.</strong>
-                        Two of them watch from frames. Elliot's father, Carl,
+                        Three of them watch from frames. Elliot's father, Carl,
                         prefers the sideline, where — between explanations of
                         why he is now far too old to play this game anywhere —
                         he has made himself known to the officials. One week he
                         was certain his son was safe at first. The umpire had
                         him out. Neither has revised. Great-grandfather in one
-                        frame, grandmother in another, father on the bleachers with opinions, and the Divide has not moved an
-                        inch. Attendance is not a batting statistic.
+                        frame, great-grandmother in the next, a great-aunt in
+                        the third, father on the bleachers with opinions, and
+                        the Divide has not moved an inch. Attendance is not a
+                        batting statistic.
                     </li>
                     <li>
                         <strong>He had a good afternoon. It did not matter.</strong>
@@ -2247,8 +2544,7 @@
             </aside>
 
             <section id="dynasty">
-                <div class="plate">
-                    <span>Section Nº 5 · The Dynasties</span><span class="pg">Nine surnames, one summer</span>
+                <div class="plate"><span class="pl-no">Section Nº 5</span><span class="pl-name">The Dynasties</span><span class="pg">Nine surnames, one summer</span>
                 </div>
                 <h2><a href="#dynasty">Which families could actually hit</a></h2>
                 <p class="dek">
@@ -2335,8 +2631,7 @@
             </aside>
 
             <section id="arcs">
-                <div class="plate">
-                    <span>Section Nº 6 · The Arcs</span><span class="pg">Seven snapshots, twelve clubs</span>
+                <div class="plate"><span class="pl-no">Section Nº 6</span><span class="pl-name">The Arcs</span><span class="pg">Seven snapshots, twelve clubs</span>
                 </div>
                 <h2><a href="#arcs">The whole season, drawn to seven points</a></h2>
                 <p class="dek">
@@ -2501,8 +2796,7 @@
             </aside>
 
             <section id="invoice">
-                <div class="plate">
-                    <span>Section Nº 7 · The Invoice</span><span class="pg">Final statement of the season</span>
+                <div class="plate"><span class="pl-no">Section Nº 7</span><span class="pl-name">The Invoice</span><span class="pg">Final statement of the season</span>
                 </div>
                 <h2><a href="#invoice">The account closes in the black, and not by batting</a></h2>
                 <p class="dek">
@@ -2595,8 +2889,7 @@
             </aside>
 
             <section id="debits">
-                <div class="plate">
-                    <span>Section Nº 8 · The Debits</span><span class="pg">The caused-out ledger, final notice</span>
+                <div class="plate"><span class="pl-no">Section Nº 8</span><span class="pl-name">The Debits</span><span class="pg">The caused-out ledger, final notice</span>
                 </div>
                 <h2><a href="#debits">Seven acts later, the epidemic names a champion</a></h2>
                 <p class="dek">
@@ -2675,8 +2968,7 @@
             </aside>
 
             <section id="late-rounds">
-                <div class="plate">
-                    <span>Section Nº 9 · Late Round Shout Outs</span><span class="pg">Round 6 and later</span>
+                <div class="plate"><span class="pl-no">Section Nº 9</span><span class="pl-name">Late Round Shout Outs</span><span class="pg">Round 6 and later</span>
                 </div>
                 <h2><a href="#late-rounds">The ten best bats nobody wanted</a></h2>
                 <p class="dek">
@@ -2768,8 +3060,7 @@
             </aside>
 
             <section id="full-docket">
-                <div class="plate">
-                    <span>Section Nº 10 · The Full Docket</span><span class="pg">All 144 picks, snake order</span>
+                <div class="plate"><span class="pl-no">Section Nº 10</span><span class="pl-name">The Full Docket</span><span class="pg">All 144 picks, snake order</span>
                 </div>
                 <h2><a href="#full-docket">Where everybody actually ended up</a></h2>
                 <p class="dek">
@@ -3027,6 +3318,233 @@
                 <a href="2026-06-12.html">June 12 (archive)</a>.
             </p>
         </div>
+        <!-- The colour section moves twice, and only for the charts:
+             the race runs to the tape, and the arcs draw themselves. No
+             library, no framework — the pre-animation state is written
+             here rather than in the stylesheet, so a reader without JS is
+             never shown a hidden chart, and a 6-second failsafe draws
+             both if the observer never speaks up. Nothing here displays a
+             number the markup did not already carry. -->
+        <script>
+            (function () {
+                var EASE = "cubic-bezier(.16,.84,.32,1)";
+                var reduce = window.matchMedia(
+                    "(prefers-reduced-motion: reduce)"
+                ).matches;
+
+                /* ── the reading tape ─────────────────────────────── */
+                var tape = document.querySelector(".tape-progress");
+                if (tape) {
+                    var draw = function () {
+                        var h =
+                            document.documentElement.scrollHeight -
+                            window.innerHeight;
+                        tape.style.setProperty(
+                            "--p",
+                            h > 0 ? Math.min(1, window.scrollY / h) : 0
+                        );
+                    };
+                    addEventListener("scroll", draw, { passive: true });
+                    addEventListener("resize", draw);
+                    draw();
+                }
+
+                /* ── the rail: the index, repeated in the margin ───── */
+                var rail = document.querySelector(".rail");
+                var index = document.querySelector(".contents");
+                if (rail && index) {
+                    var list = document.createElement("ol");
+                    var marks = [];
+                    Array.prototype.forEach.call(
+                        index.querySelectorAll("a"),
+                        function (src) {
+                            var li = document.createElement("li");
+                            var a = document.createElement("a");
+                            a.href = src.getAttribute("href");
+                            a.textContent = src.textContent;
+                            a.tabIndex = -1;
+                            li.appendChild(a);
+                            list.appendChild(li);
+                            marks.push({
+                                link: a,
+                                target: document.querySelector(
+                                    src.getAttribute("href")
+                                ),
+                            });
+                        }
+                    );
+                    rail.appendChild(list);
+                    var head = document.querySelector(".masthead");
+                    var here = function () {
+                        var y = window.scrollY + window.innerHeight * 0.32;
+                        var at = 0;
+                        marks.forEach(function (m, i) {
+                            if (m.target && m.target.offsetTop <= y) at = i;
+                        });
+                        marks.forEach(function (m, i) {
+                            m.link.classList.toggle("on", i === at);
+                        });
+                        rail.classList.toggle(
+                            "up",
+                            window.scrollY > (head ? head.offsetHeight : 400)
+                        );
+                    };
+                    addEventListener("scroll", here, { passive: true });
+                    here();
+                }
+
+                if (reduce || !("IntersectionObserver" in window)) return;
+
+                var once = function (el, run) {
+                    var fired = false;
+                    var go = function () {
+                        if (fired) return;
+                        fired = true;
+                        io.disconnect();
+                        run();
+                    };
+                    var io = new IntersectionObserver(
+                        function (entries) {
+                            entries.forEach(function (e) {
+                                if (e.isIntersecting) go();
+                            });
+                        },
+                        { threshold: 0.15 }
+                    );
+                    io.observe(el);
+                    /* if the observer never speaks up, draw it anyway —
+                       a chart is never left hidden by this page */
+                    setTimeout(go, 6000);
+                };
+
+                /* ── the race runs to the tape ────────────────────── */
+                var fin = document.querySelector(".finish-svg");
+                if (fin) {
+                    var lanes = [].slice.call(
+                        fin.querySelectorAll(".fn-lane")
+                    );
+                    var runners = [];
+                    lanes.forEach(function (lane, i) {
+                        var dot = lane.querySelector(".fn-dot");
+                        var track = lane.querySelector(".fn-track");
+                        if (!dot || !track) return;
+                        var dx =
+                            parseFloat(track.getAttribute("x1")) -
+                            parseFloat(dot.getAttribute("cx"));
+                        [dot, lane.querySelector(".fn-avg")].forEach(
+                            function (el) {
+                                if (el) runners.push({ el: el, dx: dx, i: i });
+                            }
+                        );
+                    });
+                    var gap = fin.querySelector(".fn-gap");
+
+                    if (lanes.length && runners.length) {
+                        lanes.forEach(function (l) {
+                            l.style.opacity = "0";
+                        });
+                        runners.forEach(function (r) {
+                            r.el.style.transform =
+                                "translateX(" + r.dx + "px)";
+                        });
+                        if (gap) gap.style.opacity = "0";
+
+                        once(fin, function () {
+                            lanes.forEach(function (l, i) {
+                                l.style.transition =
+                                    "opacity .5s ease " + i * 90 + "ms";
+                                l.style.opacity = "1";
+                            });
+                            runners.forEach(function (r) {
+                                r.el.style.transition =
+                                    "transform 1.1s " +
+                                    EASE +
+                                    " " +
+                                    (280 + r.i * 90) +
+                                    "ms";
+                                r.el.style.transform = "translateX(0px)";
+                            });
+                            if (gap) {
+                                gap.style.transition =
+                                    "opacity .45s ease 1.35s";
+                                gap.style.opacity = "1";
+                            }
+                            /* hand the elements back to the stylesheet */
+                            setTimeout(function () {
+                                lanes.concat(gap ? [gap] : []).forEach(
+                                    function (l) {
+                                        l.style.transition = "";
+                                        l.style.opacity = "";
+                                    }
+                                );
+                                runners.forEach(function (r) {
+                                    r.el.style.transition = "";
+                                    r.el.style.transform = "";
+                                });
+                            }, 2400);
+                        });
+                    }
+                }
+
+                /* ── the arcs draw themselves ─────────────────────── */
+                var arcs = document.querySelector(".arcs-fig svg");
+                if (arcs) {
+                    var lines = [].slice.call(
+                        arcs.querySelectorAll(".arc-line")
+                    );
+                    var furniture = [].slice.call(
+                        arcs.querySelectorAll(".arc-lead, .arc-chip, .arc-label")
+                    );
+                    var lengths = [];
+                    try {
+                        lines.forEach(function (l) {
+                            lengths.push(l.getTotalLength());
+                        });
+                    } catch (e) {
+                        lines = [];
+                    }
+
+                    if (lines.length) {
+                        lines.forEach(function (l, i) {
+                            l.style.strokeDasharray = lengths[i];
+                            l.style.strokeDashoffset = lengths[i];
+                        });
+                        furniture.forEach(function (f) {
+                            f.style.opacity = "0";
+                        });
+
+                        once(arcs, function () {
+                            lines.forEach(function (l, i) {
+                                l.style.transition =
+                                    "stroke-dashoffset 1.3s ease-in-out " +
+                                    i * 55 +
+                                    "ms";
+                                l.style.strokeDashoffset = "0";
+                            });
+                            furniture.forEach(function (f, i) {
+                                f.style.transition =
+                                    "opacity .5s linear " +
+                                    (760 + i * 10) +
+                                    "ms";
+                                f.style.opacity = "1";
+                            });
+                            /* restore the hover behaviour the sheet owns */
+                            setTimeout(function () {
+                                lines.forEach(function (l) {
+                                    l.style.transition = "";
+                                    l.style.strokeDasharray = "";
+                                    l.style.strokeDashoffset = "";
+                                });
+                                furniture.forEach(function (f) {
+                                    f.style.transition = "";
+                                    f.style.opacity = "";
+                                });
+                            }, 3000);
+                        });
+                    }
+                }
+            })();
+        </script>
         <script
             data-goatcounter="https://cp-softball.goatcounter.com/count"
             async

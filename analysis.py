@@ -3451,6 +3451,137 @@ def emit_full_docket(c):
         )
 
 
+def late_round_leaders(cur, min_round=6, top=10):
+    """The late-round honour roll: players drafted in `min_round` or later,
+    best first by the file's league rank (the authoritative order — display
+    averages tie at three decimals where the underlying rates do not)."""
+    late = [p for p in cur if p["pick"] >= min_round and p["ab"] > 0]
+    return sorted(late, key=lambda q: q["rank"])[:top]
+
+
+def dynasty_rows(cur):
+    """The dynasty ledger: single-word surnames with 3+ players, best family
+    average first. Family season average is the MEAN OF PLAYER AVERAGES (the
+    house rule — family WEEKS are aggregate; do not mix the two)."""
+    fams = {}
+    for p in cur:
+        sn = surname(p)
+        if " " not in sn:
+            fams.setdefault(sn, []).append(p)
+    fams = {sn: ps for sn, ps in fams.items() if len(ps) >= 3}
+    out = []
+    for sn, ps in fams.items():
+        live = [p for p in ps if p["ab"] > 0]
+        if not live:
+            continue
+        best = max(live, key=lambda q: (q["avg"], q["ab"]))
+        out.append(
+            dict(
+                sn=sn,
+                n=len(ps),
+                teams=len({p["team"] for p in ps}),
+                ab=sum(p["ab"] for p in ps),
+                famavg=statistics.mean(p["avg"] for p in live),
+                best=best,
+            )
+        )
+    return sorted(out, key=lambda r: -r["famavg"])
+
+
+def emit_dynasty(c):
+    cur = c["cur"]
+    rows = dynasty_rows(cur)
+    covered = sum(r["n"] for r in rows)
+    print(
+        f"<!-- DYNASTY (id dynasty): {len(rows)} families of 3+ cover {covered}/"
+        f"{len(cur)} players; family average = mean of player averages -->"
+    )
+    for i, r in enumerate(rows, 1):
+        cls = ' class="hl"' if i == 1 else (' class="lo"' if i == len(rows) else "")
+        print(
+            f'        <tr{cls}><td class="ctr num">{i}</td>'
+            f'<td class="player">{r["sn"]}</td>'
+            f'<td class="ctr num">{r["n"]}</td>'
+            f'<td class="ctr num">{r["teams"]}</td>'
+            f'<td class="num">{r["ab"]}</td>'
+            f'<td class="player">{r["best"]["name"]} '
+            f'<span class="muted">{disp(r["best"])}</span></td>'
+            f'<td class="num big">{A(r["famavg"])}</td></tr>'
+        )
+
+
+def emit_late_rounds(c):
+    cur = c["cur"]
+    lr = late_round_leaders(cur)
+    picks_after = sum(1 for p in cur if p["pick"] >= 6)
+    print(
+        f"<!-- LATE ROUNDS (id late-rounds): the {len(lr)} best bats drafted "
+        f"in round 6 or later, by league rank, out of {picks_after} such picks; "
+        f"True Rd = where the season's value says they should have gone -->"
+    )
+    for p in lr:
+        print(
+            f'        <tr><td class="ctr num">#{p["rank"]}</td>'
+            f'<td class="player">{pname(p)}</td>'
+            f'<td class="team-name">{team_label(p["team"])}</td>'
+            f'<td class="ctr num">R{p["pick"]}</td>'
+            f'<td class="ctr num">R{p["vround"]}</td>'
+            f'<td class="num">{gapspan(p)}</td>'
+            f'<td class="num big">{disp(p)}</td>'
+            f'<td class="num">{p["ab"]}</td>'
+            f'<td class="num">{vspan(p["value"])}</td></tr>'
+        )
+
+
+def divide_board(cur):
+    """The Dewegeli Divide, recomputed honestly: the namesake is whichever
+    first-round pick bats lowest, and the honour roll is every confirmed
+    woman above that line. Both move; neither is ever asserted."""
+    r1 = [p for p in cur if p["pick"] == 1 and p["ab"] > 0]
+    namesake = min(r1, key=lambda q: q["avg"])
+    roll = sorted(
+        (p for p in cur if is_female(p) and p["ab"] > 0 and p["avg"] > namesake["avg"]),
+        key=lambda q: -q["avg"],
+    )
+    runner_up = min((p for p in r1 if p is not namesake), key=lambda q: q["avg"])
+    return namesake, roll, runner_up
+
+
+def emit_divide(c):
+    cur = c["cur"]
+    namesake, roll, runner_up = divide_board(cur)
+    print(
+        f"<!-- DIVIDE (id dewegeli-divide): the line sits at the league's "
+        f"lowest first-round average — {namesake['name']} {disp(namesake)} on "
+        f"{namesake['ab']} AB, rank #{namesake['rank']}; next-lowest first "
+        f"rounder {runner_up['name']} {disp(runner_up)}; {len(roll)} confirmed "
+        f"women bat above the line -->"
+    )
+    for p in roll:
+        print(
+            f'        <tr class="hl"><td class="ctr num">#{p["rank"]}</td>'
+            f'<td class="player">{p["name"]}</td>'
+            f'<td class="team-name">{team_label(p["team"])}</td>'
+            f'<td class="ctr num">R{p["pick"]}</td>'
+            f'<td class="num big">{disp(p)}</td>'
+            f'<td class="num">{p["ab"]}</td></tr>'
+        )
+    print(
+        f'        <tr class="wline"><td colspan="6">The Dewegeli Divide · '
+        f'{namesake["name"].split(", ")[1]} {namesake["name"].split(",")[0]}\'s '
+        f'{disp(namesake)}</td></tr>'
+    )
+    print(
+        f'        <tr class="bench"><td class="ctr num">#{namesake["rank"]}</td>'
+        f'<td class="player">{namesake["name"]} <span class="muted">· SS · '
+        f'draws the Divide</span></td>'
+        f'<td class="team-name">{team_label(namesake["team"])}</td>'
+        f'<td class="ctr num">R{namesake["pick"]}</td>'
+        f'<td class="num">{disp(namesake)}</td>'
+        f'<td class="num">{namesake["ab"]}</td></tr>'
+    )
+
+
 TEAM_RECORD_CATS = {"team_best", "team_worst", "team_co"}
 
 
@@ -3631,8 +3762,96 @@ def emit_playoffs(c):
 # to whoever leads the standings, which is the whole gag; DEBITS recurs
 # while the caused-out epidemic lasts. ALIBI stays retired (emit_alibi
 # defined in case the verdict ever flips).
+def emit_photo_finish(c):
+    """Cover module (id photo-finish, debuted 2026-08-14): the closest crown in
+    league history, drawn as a finish-line photo.
+
+    The axis is the paper's own metric — hits back at the chaser's OWN volume —
+    so it is zero-based and honest: the tape sits at the leader, and every
+    marker is placed by computed geometry, never by eye. Emits the SVG, the
+    gap annotation between first and second, and the fallback table beneath.
+    Captain labels only, per the house rule; a per-lane <title> repeats them."""
+    racers = race_top(c["cur"], 4)
+    span = max(0.5, math.ceil(max(b for _, b in racers) * 2) / 2)
+    LEFT, TAPE, TOP, LANE = 236, 660, 78, 54
+    height = TOP + LANE * len(racers) + 34
+
+    def x(back):
+        return round(TAPE - (back / span) * (TAPE - LEFT), 1)
+
+    lead, lead_back = racers[0]
+    chase, chase_back = racers[1]
+    print(
+        f'<div class="finish-scroll">\n'
+        f'<svg class="finish-svg" viewBox="0 0 720 {height}" width="720" '
+        f'height="{height}" role="img" aria-label="The batting race at the tape: '
+        f'{lead["name"]} wins the crown by {chase_back:.1f} hits over '
+        f'{chase["name"]}, with the field measured in hits behind the leader '
+        f'at each chaser\'s own volume.">'
+    )
+    print(f'  <text class="fn-axhead" x="{LEFT}" y="30">HITS BEHIND, AT OWN VOLUME</text>')
+    print(f'  <text class="fn-tapelab" x="{TAPE}" y="30">THE TAPE</text>')
+    # axis ticks, every half hit, drawn right-to-left from the tape
+    t = 0.0
+    while t <= span + 1e-9:
+        tx = x(t)
+        print(f'  <line class="fn-tick" x1="{tx}" y1="40" x2="{tx}" y2="{TOP + LANE * len(racers) + 4}" />')
+        lab = "0" if t == 0 else f"{t:g}"
+        print(f'  <text class="fn-ticklab" x="{tx}" y="{TOP + LANE * len(racers) + 24}">{lab}</text>')
+        t += 0.5
+    print(f'  <line class="fn-tape" x1="{TAPE}" y1="40" x2="{TAPE}" y2="{TOP + LANE * len(racers) + 4}" />')
+    for i, (p, back) in enumerate(racers):
+        y = TOP + LANE * i
+        px = x(back)
+        ss = " · SS" if is_ss(p) else ""
+        club = team_label(p["team"])
+        print(f'  <g class="fn-lane{" lead" if i == 0 else ""}">')
+        print(
+            f'    <title>{i + 1}. {p["name"]} — {club}, round {p["pick"]}, '
+            f'{disp(p)} on {p["ab"]} at-bats, '
+            f'{"the crown" if i == 0 else f"{back:.1f} hits back"}</title>'
+        )
+        print(f'    <text class="fn-rank" x="18" y="{y + 6}">{i + 1}</text>')
+        print(f'    <text class="fn-name" x="44" y="{y + 1}">{p["name"]}</text>')
+        print(f'    <text class="fn-meta" x="44" y="{y + 18}">{club} · R{p["pick"]}{ss} · {p["ab"]} AB</text>')
+        print(f'    <line class="fn-track" x1="{x(span)}" y1="{y}" x2="{TAPE}" y2="{y}" />')
+        print(f'    <circle class="fn-dot" cx="{px}" cy="{y}" r="7" />')
+        anchor = "end" if i == 0 else "start"
+        dx = -16 if i == 0 else 16
+        print(f'    <text class="fn-avg" x="{px + dx}" y="{y + 5}" text-anchor="{anchor}">{disp(p)}</text>')
+        print("  </g>")
+    # the margin itself: a bracket between first and second
+    gy = TOP + LANE - 18
+    x1, x2 = x(chase_back), x(lead_back)
+    print(
+        f'  <g class="fn-gap">\n'
+        f'    <line class="fn-gapline" x1="{x1}" y1="{gy}" x2="{x2}" y2="{gy}" />\n'
+        f'    <line class="fn-gapline" x1="{x1}" y1="{gy - 5}" x2="{x1}" y2="{gy + 5}" />\n'
+        f'    <line class="fn-gapline" x1="{x2}" y1="{gy - 5}" x2="{x2}" y2="{gy + 5}" />\n'
+        f'    <text class="fn-gaplab" x="{round((x1 + x2) / 2, 1)}" y="{gy - 11}">'
+        f'{chase_back:.1f} hits</text>\n'
+        f"  </g>"
+    )
+    print("</svg>\n</div>")
+    print("\n<!-- PHOTO FINISH fallback table (id race-tape) -->")
+    for i, (p, back) in enumerate(racers, 1):
+        r = c["bykey"][(p["team"], p["pick"])]
+        wl = week_line(r, html=True) if r["dab"] else '<span class="muted">did not bat</span>'
+        b = '<span class="muted">—</span>' if back == 0 else f"{back:.1f}"
+        print(
+            f'        <tr{" class=" + chr(34) + "hl" + chr(34) if i == 1 else ""}>'
+            f'<td class="ctr num">{i}</td><td class="player">{p["name"]}</td>'
+            f'<td class="team-name">{team_label(p["team"])}</td>'
+            f'<td class="num">R{p["pick"]}</td>'
+            f'<td class="num{" big" if i == 1 else ""}">{disp(p)}</td>'
+            f'<td class="num">{p["ab"]}</td><td class="num">{wl}</td>'
+            f'<td class="num">{b}</td></tr>'
+        )
+
+
 AFTERNOON_EMITTERS = [
     ("PLAYOFFS", emit_playoffs),
+    ("PHOTO FINISH", emit_photo_finish),
     ("CROWN", emit_crown),
     ("SCOREBOARD", emit_scoreboard),
     ("WEEKLIES", emit_weeklies),
@@ -3644,6 +3863,9 @@ AFTERNOON_EMITTERS = [
     ("INVOICE", emit_invoice),
     ("GAUNTLET", emit_gauntlet),
     ("VALUE DESK", emit_value_desk),
+    ("DIVIDE", emit_divide),
+    ("DYNASTY", emit_dynasty),
+    ("LATE ROUNDS", emit_late_rounds),
     ("FULL DOCKET", emit_full_docket),
     ("ARCS SVG", emit_arcs_svg),
     ("ARCS TABLE", emit_arcs_table),

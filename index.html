@@ -269,6 +269,7 @@
                     .notes,
                     .divide-gallery,
                     .record,
+                    .split,
                     .contents,
                     .editions
                 ) {
@@ -1084,6 +1085,51 @@
 
             caption strong {
                 color: var(--ink-2);
+            }
+
+            /* ══ THE SPLIT — one board per half of the league ═══════════════════ */
+            .split {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: clamp(1.6rem, 3.5vw, 3.25rem);
+                margin-top: clamp(1.75rem, 3.5vw, 2.5rem);
+            }
+
+            .split-half {
+                min-width: 0;
+            }
+
+            .split-half > h3 {
+                margin-top: 0;
+            }
+
+            .split-half .table-scroll {
+                margin-top: 0.9rem;
+            }
+
+            .split-half caption {
+                max-width: none;
+            }
+
+            /* the household's meta line, under its name */
+            .fam-meta {
+                display: block;
+                font-family: var(--body);
+                font-weight: 400;
+                font-size: 0.79rem;
+                line-height: 1.5;
+                letter-spacing: 0.005em;
+                color: var(--mute);
+                margin-top: 0.1rem;
+            }
+
+            /* below this the two boards would each be narrower than their
+               own meta line — stack them rather than scroll them */
+            @media (max-width: 900px) {
+                .split {
+                    grid-template-columns: minmax(0, 1fr);
+                    gap: clamp(2.25rem, 6vw, 3rem);
+                }
             }
 
             /* ══ THE 1.000 CLUB — punched cards ═════════════════════════════════ */
@@ -2045,6 +2091,7 @@
                 <a href="#walk-off">The Last Game</a><span class="sep">·</span>
                 <a href="#dewegeli-divide">The Divide</a><span class="sep">·</span>
                 <a href="#dynasty">The Dynasties</a><span class="sep">·</span>
+                <a href="#better-half">The Better Half</a><span class="sep">·</span>
                 <a href="#arcs">The Arcs</a><span class="sep">·</span>
                 <a href="#invoice">The Invoice</a><span class="sep">·</span>
                 <a href="#debits">The Debits</a><span class="sep">·</span>
@@ -2544,7 +2591,7 @@
             </aside>
 
             <section id="dynasty">
-                <div class="plate"><span class="pl-no">Section Nº 5</span><span class="pl-name">The Dynasties</span><span class="pg">Nine surnames, one summer</span>
+                <div class="plate"><span class="pl-no">Section Nº 5</span><span class="pl-name">The Dynasties</span><span class="pg">Nine surnames, then both halves</span>
                 </div>
                 <h2><a href="#dynasty">Which families could actually hit</a></h2>
                 <p class="dek">
@@ -2617,6 +2664,111 @@
                         The desk declines to reconcile them.
                     </li>
                 </ul>
+
+                <h3 id="dynasty-split"><a href="#dynasty-split">The ledger, split down the middle</a></h3>
+                <p class="dek">
+                    The board above counts every surname together, which is the
+                    fair way to weigh a household and the useless way to settle
+                    an argument inside one. So: the same arithmetic run twice,
+                    once over each half, on the same gate both times — two or
+                    more of that half and you make the board.
+                </p>
+                <div class="split">
+                    <div class="split-half">
+                        <h3 id="dynasty-men"><a href="#dynasty-men">Best surnames · the men</a></h3>
+                        <div class="table-scroll">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th class="ctr">#</th>
+                                        <th>Household</th>
+                                        <th class="num">Avg</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+<!-- DYNASTY MEN (id dynasty-men): 12 households of 2+ men cover 91/108 confirmed men; top Knudson .677, bottom Darger .437; family average = mean of player averages -->
+        <tr class="hl"><td class="ctr num">1</td><td class="player">Knudson<span class="fam-meta">6 men · 4 clubs · 387 AB · best Curtis Knudson .756</span></td><td class="num big">.677</td></tr>
+        <tr><td class="ctr num">2</td><td class="player">Williams<span class="fam-meta">14 men · 9 clubs · 1028 AB · best Horatio Williams .742</span></td><td class="num big">.625</td></tr>
+        <tr><td class="ctr num">3</td><td class="player">Dockstader<span class="fam-meta">10 men · 7 clubs · 615 AB · best Sefton Dockstader .770</span></td><td class="num big">.620</td></tr>
+        <tr><td class="ctr num">4</td><td class="player">Hammon<span class="fam-meta">25 men · 10 clubs · 1433 AB · best Shem Hammon .771</span></td><td class="num big">.562</td></tr>
+        <tr><td class="ctr num">5</td><td class="player">Timpson<span class="fam-meta">18 men · 10 clubs · 1105 AB · best Cuervo Timpson .733</span></td><td class="num big">.556</td></tr>
+        <tr><td class="ctr num">6</td><td class="player">Barlow<span class="fam-meta">5 men · 4 clubs · 319 AB · best Caleb Barlow .639</span></td><td class="num big">.531</td></tr>
+        <tr><td class="ctr num">7</td><td class="player">Naylor<span class="fam-meta">3 men · 3 clubs · 143 AB · best Timothy Naylor .595</span></td><td class="num big">.525</td></tr>
+        <tr><td class="ctr num">8</td><td class="player">Horsley<span class="fam-meta">2 men · 2 clubs · 104 AB · best Max Horsley .565</span></td><td class="num big">.511</td></tr>
+        <tr><td class="ctr num">9</td><td class="player">Musser<span class="fam-meta">2 men · 2 clubs · 105 AB · best Moroni Musser .491</span></td><td class="num big">.485</td></tr>
+        <tr><td class="ctr num">10</td><td class="player">Johnson<span class="fam-meta">2 men · 2 clubs · 81 AB · best Anson Johnson .579</span></td><td class="num big">.477</td></tr>
+        <tr><td class="ctr num">11</td><td class="player">Cawley<span class="fam-meta">2 men · 2 clubs · 79 AB · best Seth Cawley .537</span></td><td class="num big">.453</td></tr>
+        <tr class="lo"><td class="ctr num">12</td><td class="player">Darger<span class="fam-meta">2 men · 2 clubs · 94 AB · best Nephi Darger .457</span></td><td class="num big">.437</td></tr>
+                                </tbody>
+                                <caption>
+                                    Confirmed men, households of two or more,
+                                    best first. Family average is the mean of
+                                    member averages.
+                                </caption>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="split-half">
+                        <h3 id="dynasty-women"><a href="#dynasty-women">Best surnames · the women</a></h3>
+                        <div class="table-scroll">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th class="ctr">#</th>
+                                        <th>Household</th>
+                                        <th class="num">Avg</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+<!-- DYNASTY WOMEN (id dynasty-women): 8 households of 2+ women cover 25/30 confirmed women; top Knudson .490, bottom Hammon .377; family average = mean of player averages -->
+        <tr class="hl"><td class="ctr num">1</td><td class="player">Knudson<span class="fam-meta">2 women · 2 clubs · 92 AB · best Jazlin Knudson .525</span></td><td class="num big">.490</td></tr>
+        <tr><td class="ctr num">2</td><td class="player">Williams<span class="fam-meta">5 women · 4 clubs · 298 AB · best Maureen Williams .568</span></td><td class="num big">.471</td></tr>
+        <tr><td class="ctr num">3</td><td class="player">Barlow<span class="fam-meta">2 women · 2 clubs · 75 AB · best Violet Barlow .596</span></td><td class="num big">.459</td></tr>
+        <tr><td class="ctr num">4</td><td class="player">Horsley<span class="fam-meta">2 women · 2 clubs · 114 AB · best Lizzy Horsley .486</span></td><td class="num big">.431</td></tr>
+        <tr><td class="ctr num">5</td><td class="player">Timpson<span class="fam-meta">6 women · 5 clubs · 280 AB · best Deborah Timpson .571</span></td><td class="num big">.423</td></tr>
+        <tr><td class="ctr num">6</td><td class="player">Dockstader<span class="fam-meta">3 women · 2 clubs · 169 AB · best Jayla Dockstader .483</span></td><td class="num big">.400</td></tr>
+        <tr><td class="ctr num">7</td><td class="player">Naylor<span class="fam-meta">2 women · 2 clubs · 99 AB · best Sabrina Naylor .443</span></td><td class="num big">.394</td></tr>
+        <tr class="lo"><td class="ctr num">8</td><td class="player">Hammon<span class="fam-meta">3 women · 3 clubs · 131 AB · best Sharon Hammon .429</span></td><td class="num big">.377</td></tr>
+                                </tbody>
+                                <caption>
+                                    Confirmed women, same gate, same method.
+                                    Six given names in this league have never
+                                    been confirmed either way and are counted
+                                    on neither side.
+                                </caption>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <ul class="notes">
+                    <li>
+                        <strong>Eight households appear on both boards.</strong>
+                        All eight sit higher on the men's side, and the
+                        interesting part is that it is not the same drop twice.
+                        The Barlows split closest, seventy-three thousandths
+                        apart; the Dockstaders widest at two hundred and
+                        twenty. Same surname, three times the distance.
+                    </li>
+                    <li>
+                        <strong>Three women's households out-hit the foot of the men's board.</strong>
+                        The Dargers and the Cawleys hold the last two rungs of
+                        a board twelve deep. The top three households of women
+                        bat above both of them.
+                    </li>
+                    <li>
+                        <strong>The Timpsons are the largest women's household in the league.</strong>
+                        Six of them over five clubhouses — more than any single
+                        club carries — and they finish fifth of eight. Volume
+                        is not the edge on either board: the biggest men's
+                        household is twenty-five deep and finishes fourth.
+                    </li>
+                    <li>
+                        <strong>Nobody is guessed into a column.</strong>
+                        Sidney, Kendall, Leslie, Avery, J Daunt and Emmerson
+                        have never been confirmed either way and sit on neither
+                        board. Two honest tables beat one tidy one.
+                    </li>
+                </ul>
             </section>
 
             <aside class="adv" aria-label="Advertisement">
@@ -2630,8 +2782,143 @@
                 </a>
             </aside>
 
+            <section id="better-half">
+                <div class="plate"><span class="pl-no">Section Nº 6</span><span class="pl-name">The Better Half</span><span class="pg">Thirty players, 697 hits</span>
+                </div>
+                <h2><a href="#better-half">Three top-half finishes, four spotless seasons, six hundred and ninety-seven hits</a></h2>
+                <p class="lede">
+                    Thirty women played in this league this season and put six
+                    hundred and ninety-seven hits on the board between them.
+                    Three finished in the top half of a hundred and forty-four.
+                    Four went the whole year without causing a single out —
+                    there were only twenty-four such seasons in the book.
+                </p>
+                <div class="cover-tiles">
+                    <div class="tile">
+                        <div class="tl-label">Best finish in the league</div>
+                        <div class="tl-val">#51 <span class="muted">of 144</span></div>
+                    </div>
+                    <div class="tile">
+                        <div class="tl-label">Hits between them</div>
+                        <div class="tl-val">697 <span class="muted">on 1,471 AB</span></div>
+                    </div>
+                    <div class="tile">
+                        <div class="tl-label">Seasons without a caused out</div>
+                        <div class="tl-val">4 <span class="muted">of 24 league-wide</span></div>
+                    </div>
+                    <div class="tile">
+                        <div class="tl-label">Worth more than their round</div>
+                        <div class="tl-val">13 <span class="muted">of 30</span></div>
+                    </div>
+                </div>
+                <p class="dek">
+                    Ranked by league position, best first. Every woman here
+                    took at least twenty-eight at-bats, so nothing below is a
+                    small sample dressed up as a season.
+                </p>
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="ctr">#</th>
+                                <th class="ctr">Lg rank</th>
+                                <th>Player</th>
+                                <th>Club</th>
+                                <th class="ctr">Drafted</th>
+                                <th class="num">Season</th>
+                                <th class="num">AB</th>
+                                <th class="num">CO</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+<!-- BETTER HALF (id better-half): top 20 of 30 confirmed women by league rank; cut line Dockstader, Isabel .362 at #126; leader Barlow, Violet .596 at #51, drafted R11; 0 women drafted in rounds 1-5, the first off the board at overall pick 69 (Horsley, Lizzy, R6); 9 of the 12 round-12 picks are women; women aggregate .428 on 1471 AB, mean draft round 9.93; 697 hits and 68 caused outs between them; 3 finish in the league's top half (rank <= 72); 4 finish the season without causing an out, out of 24 in the whole book; 6 given names unconfirmed and excluded -->
+        <tr class="hl"><td class="ctr num">1</td><td class="ctr num">#51</td><td class="player">Barlow, Violet</td><td class="team-name">Claude's team</td><td class="ctr num">R11</td><td class="num big">.596</td><td class="num">47</td><td class="num">2</td></tr>
+        <tr class="hl"><td class="ctr num">2</td><td class="ctr num">#61</td><td class="player">Timpson, Deborah</td><td class="team-name">Ephraims Daniel's team</td><td class="ctr num">R7</td><td class="num big">.571</td><td class="num">35</td><td class="num">1</td></tr>
+        <tr class="hl"><td class="ctr num">3</td><td class="ctr num">#62</td><td class="player">Williams, Maureen</td><td class="team-name">Boyds Daniel's team</td><td class="ctr num">R11</td><td class="num big">.568</td><td class="num">44</td><td class="num">0</td></tr>
+        <tr><td class="ctr num">4</td><td class="ctr num">#80</td><td class="player">Knudson, Jazlin</td><td class="team-name">Horatio's team</td><td class="ctr num">R10</td><td class="num big">.525</td><td class="num">59</td><td class="num">4</td></tr>
+        <tr><td class="ctr num">5</td><td class="ctr num">#85</td><td class="player">Williams, Marissa</td><td class="team-name">Horatio's team</td><td class="ctr num">R9</td><td class="num big">.500</td><td class="num">84</td><td class="num">3</td></tr>
+        <tr><td class="ctr num">6</td><td class="ctr num">#90</td><td class="player">Timpson, Lexi</td><td class="team-name">Claude's team</td><td class="ctr num">R7</td><td class="num big">.493</td><td class="num">67</td><td class="num">2</td></tr>
+        <tr><td class="ctr num">7</td><td class="ctr num">#94</td><td class="player">Horsley, Lizzy</td><td class="team-name">Elliot's team</td><td class="ctr num">R6</td><td class="num big">.486</td><td class="num">74</td><td class="num">0</td></tr>
+        <tr><td class="ctr num">8</td><td class="ctr num">#95</td><td class="player">Dockstader, Jayla</td><td class="team-name">Sefton's team</td><td class="ctr num">R10</td><td class="num big">.483</td><td class="num">60</td><td class="num">3</td></tr>
+        <tr><td class="ctr num">9</td><td class="ctr num">#99</td><td class="player">Timpson, Sarah</td><td class="team-name">Caleb's team</td><td class="ctr num">R12</td><td class="num big">.467</td><td class="num">45</td><td class="num">3</td></tr>
+        <tr><td class="ctr num">10</td><td class="ctr num">#102</td><td class="player">Knudson, Kaitlyn</td><td class="team-name">Caleb's team</td><td class="ctr num">R11</td><td class="num big">.455</td><td class="num">33</td><td class="num">2</td></tr>
+        <tr><td class="ctr num">11</td><td class="ctr num">#105</td><td class="player">Williams, Tammy</td><td class="team-name">Gideon's team</td><td class="ctr num">R8</td><td class="num big">.451</td><td class="num">71</td><td class="num">2</td></tr>
+        <tr><td class="ctr num">12</td><td class="ctr num">#106</td><td class="player">Dutson, Selena</td><td class="team-name">Caleb's team</td><td class="ctr num">R8</td><td class="num big">.446</td><td class="num">56</td><td class="num">2</td></tr>
+        <tr><td class="ctr num">13</td><td class="ctr num">#107</td><td class="player">Naylor, Sabrina</td><td class="team-name">Stafford's team</td><td class="ctr num">R10</td><td class="num big">.443</td><td class="num">70</td><td class="num">4</td></tr>
+        <tr><td class="ctr num">14</td><td class="ctr num">#109</td><td class="player">Williams, Angeline</td><td class="team-name">Jeremy's team</td><td class="ctr num">R7</td><td class="num big">.436</td><td class="num">39</td><td class="num">1</td></tr>
+        <tr><td class="ctr num">15</td><td class="ctr num">#110</td><td class="player">Monroy, Samantha</td><td class="team-name">Jeremy's team</td><td class="ctr num">R12</td><td class="num big">.429</td><td class="num">35</td><td class="num">2</td></tr>
+        <tr><td class="ctr num">16</td><td class="ctr num">#111</td><td class="player">Hammon, Sharon</td><td class="team-name">Seth's team</td><td class="ctr num">R12</td><td class="num big">.429</td><td class="num">35</td><td class="num">0</td></tr>
+        <tr><td class="ctr num">17</td><td class="ctr num">#118</td><td class="player">Williams, Heather</td><td class="team-name">Horatio's team</td><td class="ctr num">R12</td><td class="num big">.400</td><td class="num">60</td><td class="num">1</td></tr>
+        <tr><td class="ctr num">18</td><td class="ctr num">#121</td><td class="player">Timpson, Joanne Sis</td><td class="team-name">Seth's team</td><td class="ctr num">R9</td><td class="num big">.388</td><td class="num">49</td><td class="num">2</td></tr>
+        <tr><td class="ctr num">19</td><td class="ctr num">#122</td><td class="player">Horsley, Rebecca</td><td class="team-name">Michael's team</td><td class="ctr num">R10</td><td class="num big">.375</td><td class="num">40</td><td class="num">3</td></tr>
+        <tr><td class="ctr num">20</td><td class="ctr num">#126</td><td class="player">Dockstader, Isabel</td><td class="team-name">Sefton's team</td><td class="ctr num">R12</td><td class="num big">.362</td><td class="num">47</td><td class="num">3</td></tr>
+                        </tbody>
+                        <caption>
+                            The twenty best confirmed women in the league,
+                            best first. Thirty played; the other ten are in
+                            the full docket. Six given names have never been
+                            confirmed either way and are not counted here.
+                        </caption>
+                    </table>
+                </div>
+                <ul class="notes">
+                    <li>
+                        <strong>Violet Barlow finished fifty-first of a hundred and forty-four.</strong>
+                        Thirty hits in forty-seven trips, two caused outs all
+                        year, and a finish above the lowest first-round pick in
+                        the league. Deborah Timpson and Maureen Williams are up
+                        there with her, all three above the Divide. Thirteen of
+                        these thirty closed the year valued above the round
+                        they were taken in — a market judgment, not a
+                        compliment.
+                    </li>
+                    <li>
+                        <strong>Nobody gave back less.</strong>
+                        Lizzy Horsley went seventy-four at-bats without a
+                        single caused out; only five players in the book
+                        carried a bigger clean sheet. Maureen Williams, Sharon
+                        Hammon and Becky Wood also finished the year without
+                        one.
+                    </li>
+                    <li>
+                        <strong>The fourteenth-heaviest workload in the book.</strong>
+                        Marissa Williams took eighty-four at-bats — more than a
+                        hundred and thirty players and seven of the twelve
+                        captains — and finished at exactly
+                        <strong>.500</strong>.
+                    </li>
+                    <li>
+                        <strong>The two longest climbs start at the bottom.</strong>
+                        Sarah Timpson opened at <strong>.143</strong> and
+                        closed at <strong>.467</strong>, thirty-six places up
+                        the league. Angeline Williams began the year ranked
+                        last in the book, outright, and finished one hundred
+                        and ninth.
+                    </li>
+                    <li>
+                        <strong>The cleanest hands belong to the last name called.</strong>
+                        Becky Wood finished thirtieth of thirty and finished
+                        without causing a single out — thirty-six trips,
+                        nothing ever handed back, which is more than ten of the
+                        twelve captains managed. Still technically a bargain;
+                        the technicality is now structural.
+                    </li>
+                </ul>
+            </section>
+
+            <aside class="adv" aria-label="Advertisement">
+                <div class="adv-tag">Advertisement</div>
+                <a class="adv-card" href="https://yggr.xyz" target="_blank" rel="noopener">
+                    <img src="yggr-og.png" alt="yggr — coffee for sats" width="1200" height="630" loading="lazy" />
+                    <span>
+                        <p class="adv-line">The back of that table did more work than anybody drafting it expected. <strong>yggr</strong> — coffee for sats asks less of you than that: a Cash App with bitcoin in it checks out in a few taps.</p>
+                        <span class="adv-url">yggr.xyz →</span>
+                    </span>
+                </a>
+            </aside>
+
             <section id="arcs">
-                <div class="plate"><span class="pl-no">Section Nº 6</span><span class="pl-name">The Arcs</span><span class="pg">Seven snapshots, twelve clubs</span>
+                <div class="plate"><span class="pl-no">Section Nº 7</span><span class="pl-name">The Arcs</span><span class="pg">Seven snapshots, twelve clubs</span>
                 </div>
                 <h2><a href="#arcs">The whole season, drawn to seven points</a></h2>
                 <p class="dek">
@@ -2796,7 +3083,7 @@
             </aside>
 
             <section id="invoice">
-                <div class="plate"><span class="pl-no">Section Nº 7</span><span class="pl-name">The Invoice</span><span class="pg">Final statement of the season</span>
+                <div class="plate"><span class="pl-no">Section Nº 8</span><span class="pl-name">The Invoice</span><span class="pg">Final statement of the season</span>
                 </div>
                 <h2><a href="#invoice">The account closes in the black, and not by batting</a></h2>
                 <p class="dek">
@@ -2889,7 +3176,7 @@
             </aside>
 
             <section id="debits">
-                <div class="plate"><span class="pl-no">Section Nº 8</span><span class="pl-name">The Debits</span><span class="pg">The caused-out ledger, final notice</span>
+                <div class="plate"><span class="pl-no">Section Nº 9</span><span class="pl-name">The Debits</span><span class="pg">The caused-out ledger, final notice</span>
                 </div>
                 <h2><a href="#debits">Seven acts later, the epidemic names a champion</a></h2>
                 <p class="dek">
@@ -2968,7 +3255,7 @@
             </aside>
 
             <section id="late-rounds">
-                <div class="plate"><span class="pl-no">Section Nº 9</span><span class="pl-name">Late Round Shout Outs</span><span class="pg">Round 6 and later</span>
+                <div class="plate"><span class="pl-no">Section Nº 10</span><span class="pl-name">Late Round Shout Outs</span><span class="pg">Round 6 and later</span>
                 </div>
                 <h2><a href="#late-rounds">The ten best bats nobody wanted</a></h2>
                 <p class="dek">
@@ -3060,7 +3347,7 @@
             </aside>
 
             <section id="full-docket">
-                <div class="plate"><span class="pl-no">Section Nº 10</span><span class="pl-name">The Full Docket</span><span class="pg">All 144 picks, snake order</span>
+                <div class="plate"><span class="pl-no">Section Nº 11</span><span class="pl-name">The Full Docket</span><span class="pg">All 144 picks, snake order</span>
                 </div>
                 <h2><a href="#full-docket">Where everybody actually ended up</a></h2>
                 <p class="dek">

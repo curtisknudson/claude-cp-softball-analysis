@@ -474,6 +474,16 @@ Jammas R10 — a NEW player who replaced Layla Hammon when she left the league, 
 stays in `FEMALE_GIVEN` — she was real and appears in pre-0807 snapshots; the Slamma Jammas
 stay coed-legal either way: Maureen Williams and Alyssa Zitting.)
 
+**Gender has THREE states, not two (added 2026-08-19).** `is_female()` is the coed rule's
+test and treats every other name as male — fine for a roster gate, wrong for a board that
+prints a gender. So `UNCONFIRMED_GIVEN` (Avery, Kendall, Sidney, Leslie, J Daunt, Emmerson)
+names the six the desk has never had confirmed, `is_unconfirmed()` tests it, and
+`is_male()` = not female and not unconfirmed. **Any gendered board uses `is_male`, counts
+the six on NEITHER side, and says so in its caption** — two honest tables with six names
+missing beat one tidy table with six names invented. The coed rule and the Divide honour
+roll are unchanged; only the split boards use the third state. When Curtis confirms one,
+move the name out of `UNCONFIRMED_GIVEN` (into `FEMALE_GIVEN` if a woman) and re-emit.
+
 ## Analysis conventions
 
 Season (unchanged since the early editions):
@@ -484,6 +494,12 @@ Season (unchanged since the early editions):
   like team weeks. Don't mix these up.
 - **Dynasty ledger**: single-word surnames with ≥ 3 players (9 families), sorted best-to-worst
   by family average (owner's rule 2026-07-13).
+- **The split boards** (`gender_family_rows`, 2026-08-19): the dynasty ledger run once per
+  half — same arithmetic, **same gate on both sides: two or more confirmed members of that
+  half** (see the edition log for why not three). Unconfirmed given names count on neither.
+- **The better half** (`women_board`): the league table of confirmed women, best first **by
+  the file's league rank** — the authoritative order, since display averages tie at three
+  decimals where the rates underneath them do not. The page prints the top 20 of 30.
 - **Value** = (avg − league adj) × AB = net hits above a league-average bat; **true round** =
   value rank dealt into rounds of 12; the Dream Team = best value per round under the coed rule.
 - **League rank**: the file's `rank` column when present.
@@ -592,7 +608,7 @@ What stays stable underneath — the spine:
   every edition, whatever form their sections take. Every table carries an h3 anchor. Module
   ids that recur keep their names across editions (`scoreboard`, `weeklies`, `arcs`, `rebound`,
   `clubhouse`, `chase`, `crown-history`, `arcs-table`, `value`, `value-movers`, `club-<slug>`,
-  `gauntlet`, `full-docket`).
+  `gauntlet`, `full-docket`, `better-half`, `dynasty-split`, `dynasty-men`, `dynasty-women`).
 - **The reference back**: standings, race, records, dream team, and a find-yourself surface
   (currently the clubhouse roster tables) appear in some form every edition. Anything deeper
   (full docket, round rooms, draft board…) may **rest** — say where it rests (the archive), and
@@ -784,6 +800,28 @@ What stays stable underneath — the spine:
   after `watch` moves up to close the page; the notice, cover, bulletin, divide, Form 3B,
   debits, invoice, gauntlet, docket, portrait, and ads all stay.
 
+- **2026-08-19 — THE BETTER HALF** (added to the live season-final edition, owner request):
+  the paper's first gendered split. Three new emitters, registered after `DYNASTY`:
+  **`emit_dynasty_men`** / **`emit_dynasty_women`** (`gender_family_rows`) run the dynasty
+  ledger's own arithmetic — family average = MEAN OF PLAYER AVERAGES — once over each half,
+  and **`emit_better_half`** prints the league table of confirmed women, top 20 by league
+  rank; its HTML comment carries the performance figures the page quotes (hits, caused
+  outs, top-half finishes, clean seasons) and the digest block carries the June-to-finish
+  climbs, so every number in the prose greps out of the script. **The section was REFRAMED
+  the same day at the owner's instruction — lead with the play, not the draft slot; see the
+  gag ledger.** **The gate is TWO of that half, identical on both boards, and it is stated in both
+  captions.** Three was tried first (the ledger's own rule) and rejected: at three only four
+  surnames field enough women, so the board built to celebrate one half would have been the
+  thinner one by construction. If the gate ever moves, move it on both sides in the same
+  edit. On the page: `#dynasty` grew an h3 `dynasty-split` ("The ledger, split down the
+  middle") with the two boards side by side in a new `.split` grid (`.split-half`,
+  `.fam-meta` for the household's meta line — n · clubs · AB · best bat — stacking at
+  ≤860px, registered on the wide track), plus a second `.notes` list; then a NEW section
+  **`better-half`** (Section Nº 6, everything after it renumbered 7–11, contents-nav entry
+  added, a fresh `.adv` unit after it carrying the Cash-App-in-a-few-taps beat). It runs
+  plate → h2 → lede → four `.cover-tiles` → the top-20 table → five notes. When this edition
+  archives both stay: they are season reference, not foreshadowing.
+
 **Retired ids** (pre-2026-07-17; they resolve in the archives, never reuse for new meanings):
 `the-week, week-bats, temperature, glance, draft-board, sleepers, teams, second-look,
 missing-pages, what-changed, team-sheets, verdict, round-rooms, dynasty, hot-bats, cold-bats,
@@ -830,7 +868,12 @@ revived, same meaning, as a recurring module.)
   1-for-4, swing exactly .000 against her own .250, rank #141 — "files another extension."
   2026-08-07: 1-for-7, season down to .226, rank #141 — the bit now lives in the rebound
   notes as the "tracked by charter" clause ("'still technically a bargain' survives on the
-  technicality alone — she still out-ranks three names in the book"). Keep tracking; never
+  technicality alone — she still out-ranks three names in the book").
+  **2026-08-19 — the technicality became STRUCTURAL:** the Better Half section found that the
+  last pick of the entire draft finished the season having caused zero outs — nothing ever
+  handed back, from the last seat in the building. Current wording: "still technically a
+  bargain: the technicality is now structural, and the desk has stopped calling it one." She
+  is the one player the joke is allowed to resolve in favour of. Keep tracking; never
   invent numbers for her.
 - **The invoice** (the luck account — now attached to the CHAIR, not the man): opened +.243
   on Stafford's club (July 10), installment collected 2026-07-17 (+.200), re-inflated to
@@ -1028,6 +1071,27 @@ revived, same meaning, as a recurring module.)
   hands") is the extra's live cliffhanger — whichever club takes the fourth chair, the next
   edition reports how the coin landed; if it lands on the 19, the unpublished-tiebreaker
   mystery finally has a face and IS the story.
+- **The Better Half** (owner request, 2026-08-19): the paper
+  celebrates the women of this league on the numbers and says the quiet part in the same
+  breath. **The framing is ARITHMETIC, never chivalry** — the affection is proved with what
+  they DID (697 hits; three top-half finishes in a league of 144; four seasons with no
+  caused out at all, out of 24 in the whole book; Sarah Timpson and Angeline Williams
+  climbing 36 and 35 places off the foot of the book), never with a compliment about
+  effort. **The draft-position angle is DEMOTED and stays demoted (owner, 2026-08-19):**
+  the section first shipped headlined "Sixty-eight picks went by before anybody drafted a
+  woman," with all four stat tiles given over to draft position, and he called it — "don't
+  put so much emphasis on the girls not getting picked until 68 picks lmfao… make it sound
+  better about how well they played." The price story survives as ONE clause inside one
+  note (thirteen of the thirty finished valued above the round they were taken in); the
+  headline, the lede and every tile are performance. The honest half still gets printed —
+  the women's aggregate trails the men's and the desk does not hide it — but the section
+  is about how they played, not about what they cost. **The Tammy bit was TRIED TWICE AND PULLED (owner,
+  2026-08-19) — do not rebuild it.** A note denying a charge of misandry went in first and
+  was called "way too on the nose"; rewritten to deny MISOGYNY and tease her ejection, it
+  was cut outright — "just pull the whole section about Tammy." She stays where she earned
+  the place, eleventh in the top-20 table, and the section makes no argument on its own
+  behalf. **The table is the whole defence — do not write a paragraph saying so, and do not
+  build one on Tammy.**
 
 ## Weekly update procedure
 

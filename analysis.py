@@ -313,6 +313,33 @@ def is_female(p):
     return given(p) in FEMALE_GIVEN
 
 
+# The coed rule only ever needed to know who IS a woman, so `is_female` treats
+# every other name as male. That is fine for a roster gate and wrong for a
+# board that prints a gender: six given names in this league have never been
+# confirmed either way (Sidney and Leslie sit off the Divide's honour roll on
+# the owner's explicit call, 2026-08-12; the rest are on the never-guess list),
+# and the desk will not deal them into a men's table to round the numbers out.
+# They are excluded from both sides and the count is disclosed wherever the
+# split prints. Ask Curtis; never guess a gender into print.
+UNCONFIRMED_GIVEN = {
+    "Avery",
+    "Kendall",
+    "Sidney",
+    "Leslie",
+    "J Daunt",
+    "Emmerson",
+}
+
+
+def is_unconfirmed(p):
+    return given(p) in UNCONFIRMED_GIVEN
+
+
+def is_male(p):
+    """A CONFIRMED man — not in FEMALE_GIVEN and not on the never-guess list."""
+    return not is_female(p) and not is_unconfirmed(p)
+
+
 def dream_team(players):
     """Best value per round, then enforce the coed rule (>= 2 women).
 
@@ -1936,6 +1963,77 @@ def afternoon_digest(snaps, games, st, prev_st):
     gb = games_back(st)
     stk = streaks(gpast)
     lws = longest_win_streaks(gpast)
+    # ---- the better half: the women's league table and the split boards
+    women = sorted((p for p in cur if is_female(p)), key=lambda q: q["rank"])
+    men = [p for p in cur if is_male(p)]
+    unconf = sorted((p for p in cur if is_unconfirmed(p)), key=lambda q: q["rank"])
+    print(
+        f"\n--- THE BETTER HALF ({len(women)} confirmed women, {len(men)} "
+        f"confirmed men, {len(unconf)} unconfirmed on neither side) ---"
+    )
+    for lbl, grp in (("women", women), ("men", men)):
+        ab = sum(p["ab"] for p in grp)
+        print(
+            f"  {lbl:5s} n {len(grp):3d}  aggregate "
+            f"{A(sum(p['h'] - p['co'] for p in grp) / ab)}  AB {ab:5d}  "
+            f"mean draft round {statistics.mean(p['pick'] for p in grp):5.2f}  "
+            f"earliest R{min(p['pick'] for p in grp):<2d}  "
+            f"value {sum(p['value'] for p in grp):+7.1f}  "
+            f"CO/AB {sum(p['co'] for p in grp) / ab:.4f}"
+        )
+    print(
+        "  women by draft round: "
+        + "  ".join(
+            f"R{rd}:{sum(1 for p in women if p['pick'] == rd)}"
+            for rd in range(1, ROUNDS + 1)
+        )
+    )
+    print(
+        "  unconfirmed, never guessed: "
+        + " | ".join(f"{p['name']} ({p['team']})" for p in unconf)
+    )
+    print(f"  the women's table ({len(women)}, best first; page prints the top 20):")
+    for i, p in enumerate(women, 1):
+        print(
+            f"   {i:2d}. #{p['rank']:<4d} {p['name']:24s} {p['team']:32s} "
+            f"R{p['pick']:<3d} {disp(p)}  AB {p['ab']:3d}  H {p['h']:3d}  "
+            f"CO {p['co']:2d}  value {p['value']:+6.1f}"
+        )
+    for female, lbl in ((False, "men"), (True, "women")):
+        rows = gender_family_rows(cur, female)
+        print(f"  best surnames, {lbl}'s side (households with 2+ {lbl}):")
+        for i, r in enumerate(rows, 1):
+            print(
+                f"   {i:2d}. {r['sn']:12s} n {r['n']:2d}  clubs {r['teams']}  "
+                f"AB {r['ab']:4d}  best {display_name(r['best']['name']):22s} "
+                f"{disp(r['best'])}  famavg {A(r['famavg'])}"
+            )
+    if len(snaps) > 1:
+        opener = {(p["team"], p["pick"]): p for p in snaps[0][1]}
+        climbs = []
+        for p in women:
+            q = opener.get((p["team"], p["pick"]))
+            if q:
+                climbs.append((q["rank"] - p["rank"], p, q))
+        climbs.sort(key=lambda c: -c[0])
+        print(
+            f"  season climb, {snaps[0][0].strftime('%b %-d')} to the finish "
+            f"(joined on (team, pick), best five):"
+        )
+        for mv, p, q in climbs[:5]:
+            print(
+                f"   {p['name']:24s} #{q['rank']:<4d} -> #{p['rank']:<4d} "
+                f"({mv:+d})   {disp(q)} -> {disp(p)}"
+            )
+    both = {r["sn"]: r["famavg"] for r in gender_family_rows(cur, False)}
+    print("  households on BOTH boards (men − women):")
+    for r in gender_family_rows(cur, True):
+        if r["sn"] in both:
+            print(
+                f"   {r['sn']:12s} men {A(both[r['sn']])}  women {A(r['famavg'])}  "
+                f"gap {both[r['sn']] - r['famavg']:+.3f}"
+            )
+
     print("\n--- GAMES BACK & STREAKS ---")
     for s in st:
         t = s["team"]
@@ -3511,6 +3609,132 @@ def emit_dynasty(c):
         )
 
 
+
+def gender_family_rows(cur, female, min_n=2):
+    """Best surnames on one side of the league — the dynasty ledger, split.
+
+    Same arithmetic as `dynasty_rows` (family average is the MEAN OF PLAYER
+    AVERAGES, the house rule) and deliberately the SAME gate on both sides: a
+    household needs `min_n` confirmed members of that half to make its board.
+    Two, not the ledger's three, because at three only four surnames in this
+    league field enough women to appear, and a board built to celebrate one
+    half should not be the thinner one by construction.
+
+    Unconfirmed given names (`UNCONFIRMED_GIVEN`) are counted on neither side.
+    """
+    test = is_female if female else is_male
+    fams = {}
+    for p in cur:
+        if not test(p):
+            continue
+        sn = surname(p)
+        if " " in sn:
+            continue
+        fams.setdefault(sn, []).append(p)
+    out = []
+    for sn, ps in fams.items():
+        live = [p for p in ps if p["ab"] > 0]
+        if len(ps) < min_n or not live:
+            continue
+        out.append(
+            dict(
+                sn=sn,
+                n=len(ps),
+                teams=len({p["team"] for p in ps}),
+                ab=sum(p["ab"] for p in ps),
+                famavg=statistics.mean(p["avg"] for p in live),
+                best=max(live, key=lambda q: (q["avg"], q["ab"])),
+            )
+        )
+    return sorted(out, key=lambda r: -r["famavg"])
+
+
+def women_board(cur, top=20):
+    """The league table of confirmed women, best first by the file's league
+    rank — the authoritative order, since display averages tie at three
+    decimals where the rates underneath them do not. Returns (top N, all)."""
+    women = sorted((p for p in cur if is_female(p)), key=lambda q: q["rank"])
+    return women[:top], women
+
+
+def _emit_family_side(c, female):
+    """One half of the split dynasty board (three columns: rank, household
+    with its meta line, family average)."""
+    cur = c["cur"]
+    rows = gender_family_rows(cur, female)
+    side = "women" if female else "men"
+    noun = "women" if female else "men"
+    pool = [p for p in cur if (is_female if female else is_male)(p)]
+    covered = sum(r["n"] for r in rows)
+    print(
+        f"<!-- DYNASTY {side.upper()} (id dynasty-{side}): {len(rows)} households "
+        f"of 2+ {noun} cover {covered}/{len(pool)} confirmed {noun}; top "
+        f"{rows[0]['sn']} {A(rows[0]['famavg'])}, bottom {rows[-1]['sn']} "
+        f"{A(rows[-1]['famavg'])}; family average = mean of player averages -->"
+    )
+    for i, r in enumerate(rows, 1):
+        cls = ' class="hl"' if i == 1 else (' class="lo"' if i == len(rows) else "")
+        print(
+            f'        <tr{cls}><td class="ctr num">{i}</td>'
+            f'<td class="player">{r["sn"]}'
+            f'<span class="fam-meta">{r["n"]} {noun} · {r["teams"]} '
+            f'{"clubs" if r["teams"] > 1 else "club"} · {r["ab"]} AB · best '
+            f'{display_name(r["best"]["name"])} {disp(r["best"])}</span></td>'
+            f'<td class="num big">{A(r["famavg"])}</td></tr>'
+        )
+
+
+def emit_dynasty_men(c):
+    _emit_family_side(c, female=False)
+
+
+def emit_dynasty_women(c):
+    _emit_family_side(c, female=True)
+
+
+def emit_better_half(c):
+    """The Better Half: the league table of confirmed women, top 20."""
+    cur = c["cur"]
+    top, women = women_board(cur)
+    unconf = sorted((p for p in cur if is_unconfirmed(p)), key=lambda q: q["rank"])
+    by_round = {rd: sum(1 for p in women if p["pick"] == rd) for rd in range(1, ROUNDS + 1)}
+    first = min(women, key=lambda q: q["pickno"])
+    tophalf = sum(1 for p in women if p["rank"] <= len(cur) // 2)
+    clean = [p for p in women if p["co"] == 0 and p["ab"] > 0]
+    leagueclean = sum(1 for p in cur if p["co"] == 0 and p["ab"] > 0)
+    early = sum(n for rd, n in by_round.items() if rd <= 5)
+    wab = sum(p["ab"] for p in women)
+    print(
+        f"<!-- BETTER HALF (id better-half): top {len(top)} of {len(women)} "
+        f"confirmed women by league rank; cut line {top[-1]['name']} "
+        f"{disp(top[-1])} at #{top[-1]['rank']}; leader {top[0]['name']} "
+        f"{disp(top[0])} at #{top[0]['rank']}, drafted R{top[0]['pick']}; "
+        f"{early} women drafted in rounds 1-5, the first off the board at "
+        f"overall pick {first['pickno']} ({first['name']}, R{first['pick']}); "
+        f"{by_round[ROUNDS]} of the {ROUNDS} round-{ROUNDS} picks are women; "
+        f"women aggregate {A(sum(p['h'] - p['co'] for p in women) / wab)} on "
+        f"{wab} AB, mean draft round "
+        f"{statistics.mean(p['pick'] for p in women):.2f}; "
+        f"{sum(p['h'] for p in women)} hits and {sum(p['co'] for p in women)} "
+        f"caused outs between them; {tophalf} finish in the league's top half "
+        f"(rank <= {len(cur) // 2}); {len(clean)} finish the season without "
+        f"causing an out, out of {leagueclean} in the whole book; "
+        f"{len(unconf)} given names unconfirmed and excluded -->"
+    )
+    for i, p in enumerate(top, 1):
+        cls = ' class="hl"' if i <= 3 else ""
+        print(
+            f'        <tr{cls}><td class="ctr num">{i}</td>'
+            f'<td class="ctr num">#{p["rank"]}</td>'
+            f'<td class="player">{p["name"]}</td>'
+            f'<td class="team-name">{team_label(p["team"])}</td>'
+            f'<td class="ctr num">R{p["pick"]}</td>'
+            f'<td class="num big">{disp(p)}</td>'
+            f'<td class="num">{p["ab"]}</td>'
+            f'<td class="num">{p["co"]}</td></tr>'
+        )
+
+
 def emit_late_rounds(c):
     cur = c["cur"]
     lr = late_round_leaders(cur)
@@ -4177,6 +4401,9 @@ AFTERNOON_EMITTERS = [
     ("VALUE DESK", emit_value_desk),
     ("DIVIDE", emit_divide),
     ("DYNASTY", emit_dynasty),
+    ("DYNASTY MEN", emit_dynasty_men),
+    ("DYNASTY WOMEN", emit_dynasty_women),
+    ("BETTER HALF", emit_better_half),
     ("LATE ROUNDS", emit_late_rounds),
     ("FULL DOCKET", emit_full_docket),
     ("ARCS SVG", emit_arcs_svg),

@@ -495,6 +495,11 @@ input[type="text"]:focus {
     outline: none;
     border-color: var(--gold);
 }
+/* the bracket is finished and the name is all that is left */
+input[type="text"].wanted {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px var(--gold-soft);
+}
 .who-echo {
     font-family: var(--mono);
     font-size: 0.68rem;
@@ -1924,8 +1929,10 @@ footer {
     function entryText(occ) {
         var who = whoTyped();
         return (
-            "Name: " + who.name + "\n" +
-            "Club: " + (who.club ? label(who.club) : "(not matched to the roster)") + "\n" +
+            "Name: " + (who.name || "— type your name above —") + "\n" +
+            "Club: " +
+            (who.club ? label(who.club) : who.raw ? "(not matched to the roster)" : "—") +
+            "\n" +
             "Code: " + bracketCode(occ) + "\n" +
             "Champion: " + (occ[22].w ? label(occ[22].w) : "—") + "\n\n" +
             pickLine(occ) + "\n\n" +
@@ -1944,7 +1951,13 @@ footer {
         var n = pickedCount(occ);
         var who = whoTyped();
         var named = who.raw.length > 1;
-        var done = n === 22 && named;
+        // Two separate things, and conflating them was a bug: the bracket being
+        // COMPLETE is what fills the entry in, and having a NAME on it is what
+        // makes it sendable. The old <select> always carried a name, so nothing
+        // noticed; a text field starts empty, and gating the whole panel on it
+        // meant a finished bracket showed the reader nothing at all.
+        var complete = n === 22;
+        var sendable = complete && named;
         var echo = el("who-echo");
         echo.className = "who-echo" + (who.known ? " found" : "");
         echo.textContent = !who.raw
@@ -1952,8 +1965,9 @@ footer {
             : who.known
             ? who.name + " · " + label(who.club)
             : "Not on the roster as spelled — send it anyway, the desk will match it up.";
+        el("who").classList.toggle("wanted", complete && !named);
         var st = el("enter-status");
-        st.className = "enter-status" + (done ? " ready" : "");
+        st.className = "enter-status" + (sendable ? " ready" : "");
         st.innerHTML =
             n < 22
                 ? "<b>" + n + " of 22</b> games picked — " + (22 - n) +
@@ -1965,7 +1979,7 @@ footer {
 
         var mail = el("enter-mail");
         var copy = el("enter-copy");
-        if (done) {
+        if (sendable) {
             var subject = "Bracket entry — " + who.name;
             mail.href =
                 "mailto:" + data.prize.to +
@@ -1977,11 +1991,11 @@ footer {
             mail.href = "#enter";
             mail.setAttribute("aria-disabled", "true");
         }
-        copy.disabled = !done;
-        el("slip").innerHTML = done
+        copy.disabled = !sendable;
+        el("slip").innerHTML = complete
             ? esc(entryText(occ)).replace(/^(Name|Club|Code|Champion):/gm, "<b>$1:</b>")
-            : "Your entry appears here once every game is called and your name " +
-              "is on it. Nothing is sent from this page — you send it yourself, " +
+            : "Your entry is written here as soon as all twenty-two games are " +
+              "called. Nothing is sent from this page — you send it yourself, " +
               "from your own mail.";
     }
 

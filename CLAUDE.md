@@ -305,7 +305,13 @@ unmatched and the desk sorts it out. `load_brackets()` resolves names the same f
 and stores the canonical spelling, so the two ends of the contest never disagree about
 whether two strings are the same person; a genuine miss is rejected with `difflib`
 did-you-mean suggestions. The typed name is remembered in localStorage under
-`<STORE>-who`. Also carried: `entries` and `results`. `resolve_code()` in Python mirrors `resolveBracket()`
+`<STORE>-who`. **`renderEntry` keeps COMPLETE and SENDABLE apart, and must keep doing so**
+(bug found in the wild 2026-08-19, after publishing): a finished bracket fills the entry
+preview in, and a name on it is what enables the buttons. The old `<select>` always carried
+a name so the two could be conflated; a text field starts empty, and gating the preview on
+it meant a reader who finished all twenty-two games was shown nothing at all. Unnamed, the
+slip prints `Name: — type your name above —`, the input takes a gold `.wanted` ring, and the
+buttons stay disabled. Also carried: `entries` and `results`. `resolve_code()` in Python mirrors `resolveBracket()`
 in the page; both produce the identical chalk code `1111111122111111121211`, which is how
 we know the arithmetic that pays out a prize agrees in both languages. Looking at another
 reader's entry stashes your own bracket and hands it back — **looking is never losing your

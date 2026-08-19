@@ -24,6 +24,7 @@ import bisect
 import csv
 import dataclasses
 import datetime
+import difflib
 import itertools
 import json
 import math
@@ -3696,6 +3697,196 @@ PLAYOFF_BRACKET = [
 ]
 
 
+# ------------------------------------------------------------- contest desk
+#
+# Playoff Prediction Brackets (playoffs.html) runs a prize contest: readers fill
+# in the league's twenty-two game bracket and mail the entry to the desk FROM
+# THEIR OWN ADDRESS, which is what verifies them — a magic link would only prove
+# somebody controls an inbox, whereas mail from Shem Hammon proves it is Shem,
+# because the desk knows Shem. Accepted entries are pasted into MMDD-brackets.csv
+# and this desk validates, resolves and (once results land) scores them.
+#
+# Nothing here touches a network: the CSV is the inbox and the island is the page.
+
+# The address entries are mailed to (owner's, supplied 2026-08-19). It ships in
+# the island and the page assembles the mailto from it in JS, so the address is
+# not sitting in the markup for scrapers to harvest.
+ENTRY_EMAIL = "curtis@yggr.xyz"
+PRIZE_SATS = 75000
+PRIZE_SPONSOR = "yggr"
+ENTRY_DEADLINE = "first pitch, Friday August 21"
+
+
+def display_name(name):
+    """"Hammon, Shem" -> "Shem Hammon".
+
+    The comma is the split and whitespace never is: surnames in this league run
+    to two words ("Dockstader Ephraims, Daniel") and given names to two tokens
+    ("Timpson, Jason W").
+    """
+    if ", " in name:
+        last, given = name.split(", ", 1)
+        return f"{given} {last}"
+    return name
+
+
+def _slot_value(slot, occ, seed_slug):
+    """Resolve one bracket slot: s5 = the fifth seed, w4 / l4 = G4's winner/loser."""
+    if slot[0] == "s":
+        return seed_slug[slot]
+    g = occ[int(slot[1:])]
+    return g["w"] if slot[0] == "w" else g["l"]
+
+
+def resolve_code(code, seed_slug):
+    """Run a 22-digit bracket code through the posted topology, one forward pass.
+
+    Digits are the page's own codec: 1 = the home slot's club advances, 2 = the
+    away slot's, 0 = not picked. Returns {game: {h, a, w, l}} with w/l None
+    wherever the code stops. This mirrors resolveBracket() in playoffs.html and
+    the two are checked against each other by the jsdom suite — the arithmetic
+    that pays out a prize should not exist in only one language.
+    """
+    occ = {}
+    for no, home, away, _day in PLAYOFF_BRACKET:
+        h = _slot_value(home, occ, seed_slug)
+        a = _slot_value(away, occ, seed_slug)
+        d = code[no - 1]
+        w = l = None
+        if h and a and d in "12":
+            w, l = (h, a) if d == "1" else (a, h)
+        occ[no] = dict(h=h, a=a, w=w, l=l)
+    return occ
+
+
+def seed_slugs(st):
+    """{"s1": "jeremy", ...} from the standings, which ARE the posted seeding."""
+    return {f"s{s['rank']}": cap_slug(s["team"]) for s in st}
+
+
+def load_brackets(path, st, cur):
+    """Load contest entries: name,club,code,received.
+
+    name      the player, spelled as the roster spells them ("Shem Hammon")
+    club      the captain slug of the club they play for ("sefton")
+    code      22 digits, one per bracket game: 1 = home club, 2 = away club
+    received  when the entry mail arrived, ISO 8601 — this is the clock the
+              deadline is read on and the last tiebreak is settled on
+
+    Every field is checked: a COMPLETE code (all twenty-two games called), a
+    real rostered player, the club that player actually plays for, and one entry
+    per player. A bad row exits hard with the row named. These entries carry a
+    prize; a silently mangled one is not an option.
+    """
+    roster = {display_name(p["name"]): cap_slug(p["team"]) for p in cur}
+    # The page resolves a TYPED name against the roster ignoring case and
+    # doubled spaces, and mails the roster's own spelling. This loader matches
+    # the same way and stores the canonical spelling, so the two ends of the
+    # contest never disagree about whether two strings are the same person.
+    canon = {" ".join(k.lower().split()): k for k in roster}
+    ss = seed_slugs(st)
+    entries, seen = [], {}
+    with open(path, newline="") as f:
+        for i, r in enumerate(csv.DictReader(f), start=2):
+            who = r["name"].strip()
+            where = r["club"].strip()
+            code = r["code"].strip()
+            at = r["received"].strip()
+            tag = f"{path} line {i} ({who!r})"
+            who = canon.get(" ".join(who.lower().split()), who)
+            if who not in roster:
+                near = difflib.get_close_matches(who, roster, n=3, cutoff=0.6)
+                hint = f" — did you mean {' / '.join(near)}?" if near else ""
+                raise AssertionError(f"{tag}: not a rostered player{hint}")
+            assert roster[who] == where, (
+                f"{tag}: entered under {where!r} but plays for {roster[who]!r}"
+            )
+            assert who not in seen, f"{tag}: already entered at line {seen[who]}"
+            seen[who] = i
+            assert len(code) == 22 and all(d in "12" for d in code), (
+                f"{tag}: code must be 22 digits of 1/2 — every game called, got {code!r}"
+            )
+            occ = resolve_code(code, ss)
+            assert occ[22]["w"], f"{tag}: code does not resolve to a champion"
+            entries.append(
+                dict(
+                    name=who,
+                    club=where,
+                    code=code,
+                    received=datetime.datetime.fromisoformat(at),
+                    champ=occ[22]["w"],
+                )
+            )
+    entries.sort(key=lambda e: e["received"])
+    return entries
+
+
+def load_playoff_results(path, st):
+    """Load played playoff games: game,winner — any subset of 1..22, any order.
+
+    Returns the same 22-digit codec the entries use, with 0 for games not yet
+    played. **This is the schema question CLAUDE.md left open:** playoff results
+    ride their own small file keyed by BRACKET GAME NUMBER, because
+    MMDD-schedule.csv is a date/field slate with no game-number column and the
+    bracket is not a slate. Winners are raw team names, as everywhere else in
+    the CSVs.
+    """
+    ss = seed_slugs(st)
+    want = {}
+    with open(path, newline="") as f:
+        for i, r in enumerate(csv.DictReader(f), start=2):
+            no = int(r["game"])
+            assert 1 <= no <= 22, f"{path} line {i}: game {no} is not in the bracket"
+            assert no not in want, f"{path} line {i}: game {no} listed twice"
+            want[no] = cap_slug(r["winner"].strip())
+    digits = ["0"] * 22
+    occ = {}
+    for no, home, away, _day in PLAYOFF_BRACKET:
+        h = _slot_value(home, occ, ss)
+        a = _slot_value(away, occ, ss)
+        w = l = None
+        if no in want:
+            assert h and a, (
+                f"{path}: G{no} has a result but its participants are not decided — "
+                "an earlier game is missing"
+            )
+            assert want[no] in (h, a), (
+                f"{path}: G{no} winner {want[no]!r} did not play in it ({h} v {a})"
+            )
+            w = want[no]
+            l = a if w == h else h
+            digits[no - 1] = "1" if w == h else "2"
+        occ[no] = dict(h=h, a=a, w=w, l=l)
+    return "".join(digits)
+
+
+def score_entries(entries, res_code, st):
+    """Flat scoring — the owner's rule, 2026-08-18: one point per game whose
+    winner the entry called, over the games actually played so far.
+
+    A game only scores if the entry named the club that really won it. An entry
+    whose bracket has a different club in that game cannot be right about it,
+    which is what makes a wrong early pick cost more than a single point without
+    any weighting having to be invented.
+
+    Ties go to WHOEVER ENTERED FIRST — the owner's rule, 2026-08-19, and the
+    only tiebreak there is. An earlier draft also gave precedence to whoever
+    called the champion; that was dropped so the rule the page prints is the
+    whole rule, because a prize that pays real money should not be settled by a
+    step nobody was told about. The clock is the `received` timestamp on the
+    entry mail, which is the same clock the deadline is read on.
+    """
+    ss = seed_slugs(st)
+    truth = resolve_code(res_code, ss)
+    played = [no for no in range(1, 23) if truth[no]["w"]]
+    for e in entries:
+        occ = resolve_code(e["code"], ss)
+        e["score"] = sum(1 for no in played if occ[no]["w"] == truth[no]["w"])
+        e["played"] = len(played)
+    entries.sort(key=lambda e: (-e["score"], e["received"]))
+    return entries
+
+
 def emit_playoff_seeds(c):
     """The FINAL island: the twelve posted playoff seeds, nothing enumerated.
 
@@ -3732,15 +3923,50 @@ def emit_playoff_seeds(c):
                 assert int(slot[1:]) < no, f"G{no} refers forward to {slot}"
     assert sorted(seats) == list(range(1, len(st) + 1)), f"bracket seats {sorted(seats)}"
 
+    n_played = sum(1 for d in (c.get("results") or "") if d != "0")
     print(
         f"<!-- PLAYOFFS (id playoffs): season complete at {gp.pop()} games — "
-        f"final seeding island, {len(PLAYOFF_BRACKET)} bracket games Aug 21-22 -->"
+        f"final seeding island, {len(PLAYOFF_BRACKET)} bracket games Aug 21-22, "
+        f"{len(c.get('brackets') or [])} contest entries, {n_played} results in -->"
     )
+    entries = c.get("brackets") or []
+    res_code = c.get("results") or "0" * 22
+    if any(d != "0" for d in res_code):
+        score_entries(entries, res_code, st)
+    seat = {cap_slug(s["team"]): s["rank"] for s in st}
     data = dict(
         final=True,
         asof=c["dcur"].strftime("%B ") + str(c["dcur"].day),
         days="August 21\u201322",
         bracket=[list(g) for g in PLAYOFF_BRACKET],
+        # the contest: prize, where entries are mailed, and when they close
+        prize=dict(
+            sats=PRIZE_SATS,
+            sponsor=PRIZE_SPONSOR,
+            to=ENTRY_EMAIL,
+            deadline=ENTRY_DEADLINE,
+        ),
+        # the 144 rostered players, club by club in seed order — the entry
+        # panel picks from this, so an entry can only name a real player
+        roster=[
+            dict(n=display_name(p["name"]), c=cap_slug(p["team"]))
+            for p in sorted(
+                c["cur"],
+                key=lambda p: (seat[cap_slug(p["team"])], display_name(p["name"])),
+            )
+        ],
+        # verified entries, in the order the desk received them
+        entries=[
+            dict(
+                n=e["name"],
+                c=e["club"],
+                k=e["code"],
+                r=e["received"].isoformat(timespec="minutes"),
+                **({"s": e["score"], "p": e["played"]} if "score" in e else {}),
+            )
+            for e in entries
+        ],
+        results=res_code,
         teams=[
             dict(
                 s=cap_slug(s["team"]),
@@ -3959,7 +4185,7 @@ AFTERNOON_EMITTERS = [
 ]
 
 
-def html_afternoon(snaps, games, st, prev_st):
+def html_afternoon(snaps, games, st, prev_st, brackets=None, results=None):
     """Emit every Afternoon Final module, page order, one emitter per module."""
     for _, s in snaps:
         enrich(s)
@@ -4003,6 +4229,8 @@ def html_afternoon(snaps, games, st, prev_st):
         report=records_report(snaps),
         gr=game_records(gpast),
         lws=longest_win_streaks(gpast),
+        brackets=brackets,
+        results=results,
     )
     for banner, fn in AFTERNOON_EMITTERS:
         print(f"\n\n<!-- ══════════════════ {banner} ══════════════════ -->")
@@ -4377,6 +4605,14 @@ def main():
         "--prev2",
         help="snapshot before --prev, for two-week arcs (streaks & slides)",
     )
+    ap.add_argument(
+        "--brackets",
+        help="contest entries CSV (name,club,code,received) for playoffs.html",
+    )
+    ap.add_argument(
+        "--playoff-results",
+        help="played playoff games CSV (game,winner) — scores the contest entries",
+    )
     ap.add_argument("--min-ab-sleeper", type=int, default=15)
     ap.add_argument("--min-ab-outlier", type=int, default=10)
     ap.add_argument("--prev-min-ab-sleeper", type=int, default=10)
@@ -4509,7 +4745,14 @@ def main():
                 "--html-afternoon needs --games, --standings, --prev-standings and "
                 "--history with at least two snapshots"
             )
-        html_afternoon(snaps, games, st, prev_st)
+        brackets = load_brackets(args.brackets, st, cur) if args.brackets else None
+        results = load_playoff_results(args.playoff_results, st) if args.playoff_results else None
+        if brackets is not None:
+            print(
+                f"BRACKETS OK: {args.brackets}: {len(brackets)} verified entries",
+                file=sys.stderr,
+            )
+        html_afternoon(snaps, games, st, prev_st, brackets, results)
         return
 
     if args.html_tables:

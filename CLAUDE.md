@@ -43,6 +43,8 @@ the site.
 | `MMDD-standings.csv` | Standings snapshots from https://cpsoftball.com/standings.php (`rank,team,w,l,t,gp,win_pct,pf,pa,diff`; first one: `0706-standings.csv`) |
 | `MMDD-schedule.csv` | **The season game book** (first one: `0717-schedule.csv`) — every game, completed and upcoming, from https://cpsoftball.com/schedule.php. See **Harvesting the schedule** |
 | `analysis.py` | **The single source of truth for every number on every page.** Stdlib-only Python 3; digests + per-module HTML emitters (`--html-afternoon` registry, legacy `--html-tables` kept frozen for the archives' era) |
+| `MMDD-brackets.csv` | **Contest entries** (`name,club,code,received`; first: `0821-brackets.csv`) — the desk's inbox, by hand. One row per verified entry: the player as the roster spells them, their captain slug, a 22-digit bracket code, and the ISO time the entry mail arrived. `load_brackets()` rejects a non-rostered name, a wrong club, an incomplete code, a duplicate player or a bad timestamp — hard exit, row named. **The prize is real money; a silently mangled entry is not an option** |
+| `MMDD-playoff-results.csv` | **Played playoff games** (`game,winner` — bracket game number 1–22, raw team name; any subset, any order). This is the schema question the 08-14 notes left open: results ride their own file keyed by BRACKET GAME NUMBER, because `MMDD-schedule.csv` is a date/field slate with no game-number column. `load_playoff_results()` rejects a winner that did not play in that game, a result whose participants are not yet decided, a duplicate or an out-of-range game |
 | `pyrightconfig.json` | `typeCheckingMode: "standard"` — 0 errors / 0 warnings must hold. basedpyright's default mode fires ~1,500 false `reportUnknown*` on this plain-dict script; standard is the right mode. Schema is enforced at **runtime** (loaders exit loudly) |
 | `CNAME` | GitHub Pages custom-domain file (`softball.best`) — never edit or delete |
 | `favicon.svg` · `apple-touch-icon.png` · `og.png` | Site chrome (og.png referenced absolutely as `https://softball.best/og.png` from every page's meta block). An edition MAY ship a special OG card as `og-YYYY-MM-DD.png` (first: `og-2026-07-24.png`, the "Ryan Hammon bat 1.000" tease, rendered with Pillow in the site palette scanned from og.png) — only that edition's index points at it; when the edition archives it keeps its card, and the next index reverts to og.png unless it ships its own |
@@ -51,7 +53,7 @@ the site.
 | `yggr-og.png` | The **house-ad card** (1200×630, downloaded from yggr.xyz/images/og.png, 2026-08-12): "yggr — coffee for sats," the owner's company. Used by every `.adv` unit; self-hosted on purpose — never hotlink it |
 | `playoffs.html` | **Playoff Prediction Brackets** — "the Seeding Machine" at debut, then "the Scenario Simulator", renamed again by the owner 2026-08-18 (2026-08-14; REBUILT the same day — see **The machine's second design** — and NARROWED 2026-08-18 once the finale was played — see **The machine's third cut**). Today it is a pure bracket-prediction page: the twelve posted seeds as a reference table, and the league's real 22-game double-elimination bracket, drawn, that you click through to a champion. Own design language (dark scorebug + gold; light scheme included). All numbers from the spliced `machine-data` island; self-checks against it. See the playoffs section below |
 | `confetti.min.js` | Vendored library for playoffs.html (canvas-confetti 1.9.3 ISC — the pennant moment). Local on purpose, never CDN; app pages only, never the paper. (`anime.min.js` drove the seed table's FLIP reorder and was DELETED 2026-08-18 at the owner's instruction, once the posted seeding stopped moving.) |
-| `og-playoffs.png` | The simulator's share card (1200×630, Pillow at 3× in a scratchpad venv, simulator palette/fonts — Avenir Next Condensed Heavy + Menlo). **Re-cut 2026-08-14** after the owner called the first one ugly and asked for something clean and inviting for a community post: full-width wordmark banner (SIMULATOR in gold), the pitch "Make your picks. The bracket builds itself.", a gold URL button, and — as the visual — a faithful crop of the bracket the page really draws (the league's actual opening round feeding the actual quarterfinals) with two games already picked, one of them an 11-over-6 upset, ending on a gold "YOUR CALL" grand-final card. It demonstrates the mechanic instead of describing it; keep that principle if it is ever re-cut. Referenced by playoffs.html only |
+| `og-playoffs.png` | The page's share card (1200×630, Pillow at 3× in a scratchpad venv — Pillow is NOT installed system-wide — then downsampled LANCZOS; simulator palette, Avenir Next Condensed Heavy + Menlo). **Re-cut 2026-08-19** at the owner's request to advertise the contest: gold top bar, the wordmark split ink/gold exactly as the page's topbar splits it, a filled GOLD PLAQUE reading **75,000 SATS** as the hero. The plaque is a BAND, deliberately wider than its words — the trailing gold is what gives it presence — so its right edge is chosen (616px) rather than measured, and two asserts guard it: that it still clears the bracket column at 654, and that the copy has not outgrown the band. Both fired for real when the satoshi sign was briefly added, and a PRESENTED BY yggr lockup in the footer. **Footer discipline (owner called the first attempt out, 2026-08-19): it is ONE row, everything centred on a single line — url left, sponsor right — at 19% of the card.** The rejected version stacked PRESENTED BY above the lockup and left a 64px dead zone beneath, spending a quarter of the card on 62px of ink. If it is ever re-cut, measure the bands before shipping (`np.abs(img-bg).sum(2)` per row finds the dead air immediately) and give reclaimed space to the plaque and the bracket, which are the message. **The yggr helm-of-awe mark and wordmark are LIFTED from `yggr-og.png` and recoloured** (alpha taken from the source's darkness so the antialiasing survives) — never redrawn, it is somebody's brand; "sats" keeps their own Bitcoin orange `#F7931A`, sampled from that file. **The standing principle survives both cuts: the visual DEMONSTRATES the mechanic rather than describing it** — the bracket is the one the page really draws (G1 5v12 and G2 6v11 feeding G8 and G7, which is genuinely where those winners go), two games already picked, one an 11-over-6 upset, ending on a gold YOUR CALL grand final. The two runs into G22 are drawn BROKEN, deliberately: G8 and G7 do not feed the final directly, and a trailer must not diagram a bracket the league is not playing. Keep both principles if it is re-cut. Referenced by playoffs.html only |
 
 ## The data
 
@@ -264,6 +266,86 @@ The rebuild's rules, which hold for any future version of this page:
   (`0–486`, `1,458–13,122`, …) — the live JS enumeration and the Python one must agree,
   and the jsdom suite asserts it against those literals.
 
+### The contest (owner's brief, 2026-08-18) — 75,000 sats, sponsored by yggr
+
+The owner turned the page into a prize contest: **yggr pays 75,000 sats to whoever
+predicts the most accurate bracket.** Decisions he made when asked:
+
+- **Submission = `mailto:`, verification = the desk.** The page prefills an entry in the
+  reader's OWN mail app; they send it; it arrives from their real address. **A magic link
+  was considered and rejected on the facts: sending email needs a server, so "magic link,
+  browser only, no backend" is not achievable.** The inversion is better anyway — a magic
+  link proves somebody controls an inbox, whereas mail from Shem proves it is Shem,
+  because Curtis knows Shem. Say this plainly on the page; do not dress it up as
+  cryptography.
+- **Scoring is FLAT: one point per game whose winner the entry called**, over the games
+  played so far. A game only scores if the entry named the club that actually won it — so
+  a wrong early pick costs more than one point without any weighting being invented.
+- **Ties go to WHOEVER ENTERED FIRST, and that is the whole rule** (owner, 2026-08-19). An
+  earlier draft ranked a correct champion ahead of an earlier entry; that step was DROPPED
+  when the owner asked for the tie rule to be printed, because a prize paying real money
+  must not be settled by a step nobody was told about. The rule appears twice on the page —
+  in the prize band and in the leaderboard caption — and `score_entries` sorts on
+  `(-score, received)` and nothing else. The clock is the `received` timestamp on the mail,
+  the same clock the deadline is read on.
+- **Entries are public as soon as the desk verifies them**, in arrival order; the section
+  re-heads itself "The leaderboard" and re-sorts by score the moment results exist.
+- **Deadline: first pitch, Friday August 21.** The clock is the `received` timestamp on
+  the mail, which is also the last tiebreak.
+
+How it is built: `emit_playoff_seeds` carries `prize` (sats, sponsor, `to`, deadline), the
+144-player `roster` (name → captain slug, club by club in seed order). **The entry field is
+a TYPED name with the roster behind it as a `<datalist>`** (owner's call, 2026-08-18 — it
+replaced a 144-option `<select>`, which was accurate but a chore on a phone). The page
+resolves what is typed against the roster ignoring case and doubled spaces, echoes back the
+roster's own spelling plus the club it derived, and mails THAT — so a sloppy "shem  HAMMON"
+still arrives as "Shem Hammon · Sefton's team". An unmatched name is **not blocked**: someone
+may spell their own name differently than the league does, so it sends with the club marked
+unmatched and the desk sorts it out. `load_brackets()` resolves names the same forgiving way
+and stores the canonical spelling, so the two ends of the contest never disagree about
+whether two strings are the same person; a genuine miss is rejected with `difflib`
+did-you-mean suggestions. The typed name is remembered in localStorage under
+`<STORE>-who`. Also carried: `entries` and `results`. `resolve_code()` in Python mirrors `resolveBracket()`
+in the page; both produce the identical chalk code `1111111122111111121211`, which is how
+we know the arithmetic that pays out a prize agrees in both languages. Looking at another
+reader's entry stashes your own bracket and hands it back — **looking is never losing your
+work**, and localStorage keeps YOURS while somebody else's is on screen; editing theirs
+forks it and says so. Opening an entry also writes `#e=<name-slug>` into the address bar
+(`history.replaceState`, so no history spam), and an inbound `#e=` link auto-populates
+that reader's bracket on arrival — **the slug is the NAME, never the list index, because
+the list re-sorts by score the moment results land and an index link would silently
+repoint at somebody else.** The seed table's last column re-heads itself "In this bracket"
+while you are looking at someone else's. **This is still not a share button** — the owner
+removed that 2026-08-14 and the rule stands; the URL merely tells the truth about what is
+on screen, so copying the address happens to work. `scrollIntoView` is guarded: it is a
+courtesy and must never take the hash, the toast or the bracket down with it (jsdom does
+not implement it, which is how that got caught).
+
+**`ENTRY_EMAIL` in analysis.py is `curtis@yggr.xyz`** (owner-supplied 2026-08-19 — his
+company address, chosen deliberately over a softball.best one). It ships in the island and
+the page assembles the mailto from it at runtime, so the address never sits in the markup
+for scrapers; the only copy in the file is inside the JSON island. Change it in analysis.py
+and re-splice — never hand-edit the address into the page.
+
+**The satoshi sign was TRIED AND REVERTED, 2026-08-19 — do not re-add it.** The owner
+asked for the symbol plus the unit spelled "Satoshis" (supplying a Font Awesome kit,
+`kit.fontawesome.com/090ca49637.js`, which was declined: a CDN hotlink and an extra network
+call, both forbidden on app pages by this project's own terms, account-tied, and no help at
+all to the PNG, which needs the shape drawn regardless — it shipped as five inline-SVG
+rectangles and as rectangles in the Pillow render instead). Seeing it, he called it himself:
+**"It's like saying dollars after using the dollar sign $."** He was right, and the desk
+should have said so when the request came in rather than building the redundancy first.
+The prize reads **`75,000 sats`** — figure, then unit, once. If a symbol is ever wanted
+again it replaces the word, it does not accompany it.
+
+**Advertising rules on this page:** the prize band is SPONSORSHIP and wears "Presented by
+yggr · coffee for sats"; the separate `.adv` unit wears the honest "Advertisement" eyebrow
+per house rule and carries ONE informative beat (debut: the myth-buster — people assume
+they cannot check out with bitcoin, and they can, in a few taps over Lightning). The
+no-digits-in-ad-copy rule still binds the `.adv` unit; the prize band deliberately carries
+the figure, because the figure IS the message and this page has no de-dup grep. Never
+"bean(s)" — always "coffee". Never claim a player endorses anything.
+
 ### The machine's third cut (the speculation comes out, 2026-08-18)
 
 The August 14 finale was played, so the page's whole premise — *what does my club still
@@ -283,8 +365,17 @@ nothing on the page is level on points any more — the league posted its seeds.
 since moved, so honouring an old link would silently advance the wrong club. The page
 reads `#b=<22 digits>` now and localStorage keys off the island's date.
 
-**What the page is:** one chain, still no tabs and no modes — **the twelve posted seeds →
-the twenty-two game bracket → a champion.** Section 01 is a real reference table (seed,
+**What the page is:** one chain, still no tabs and no modes — the prize band, then **the
+twelve posted seeds → the twenty-two game bracket → your entry → everyone else's.**
+
+**Do not reorder these sections.** Putting the bracket first was tried 2026-08-19 at the
+owner's request (so a reader meets the thing they are playing straight after the sponsor)
+and reverted by him the same day: it pushed the seed table between the bracket and the
+entry desk, so a reader who had just finished picking could not see how to submit. The fix
+that survived is a standing route rather than a new order — **`#bk-enter`**, an anchor in
+the bracket's own toolbar, on screen the whole time the reader is picking, counting down
+("6 to go, then enter →") and turning gold at 22/22. If getting the bracket higher up the
+page comes up again, reach for that pattern, not the section order. Section 01 is a real reference table (seed,
 club, record, points, run differential, *Enters at* — computed from the bracket, so seed 5
 reads "G1 home v Seth" and seed 1 reads "Bye · G5 home v Winner G4" — and a last column
 that follows your picks live). Section 02 is the drawn bracket, unchanged: absolute

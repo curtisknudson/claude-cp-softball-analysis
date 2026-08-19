@@ -6,7 +6,7 @@
         <title>Playoff Prediction Brackets — CP Softball</title>
         <meta
             name="description"
-            content="The seeds are final. Fill in the league's real twenty-two game double-elimination playoff bracket: pick a winner in any game and the clubs move themselves through, winners forward, losers onto the elimination road, all the way to a pennant."
+            content="75,000 sats to whoever predicts the most accurate bracket, presented by yggr. Fill in the league's real twenty-two game double-elimination playoff bracket: pick a winner in any game and the clubs move themselves through, winners forward, losers onto the elimination road, all the way to a pennant."
         />
         <link rel="canonical" href="https://softball.best/playoffs.html" />
         <link rel="icon" type="image/svg+xml" href="favicon.svg" />
@@ -18,7 +18,7 @@
         <meta property="og:title" content="Playoff Prediction Brackets — CP Softball" />
         <meta
             property="og:description"
-            content="Make your picks. The bracket builds itself — twelve clubs, double elimination, twenty-two games, August 21–22."
+            content="75,000 sats to whoever predicts the most accurate bracket, presented by yggr. Twelve clubs, double elimination, twenty-two games, August 21–22 — make your picks and the bracket builds itself."
         />
         <meta property="og:url" content="https://softball.best/playoffs.html" />
         <meta property="og:image" content="https://softball.best/og-playoffs.png" />
@@ -27,13 +27,13 @@
         <meta property="og:image:height" content="630" />
         <meta
             property="og:image:alt"
-            content="Playoff Prediction Brackets — fill in the CP Softball playoff bracket, all 22 games to a champion."
+            content="Playoff Prediction Brackets — 75,000 sats to the most accurate bracket, presented by yggr. The CP Softball playoff bracket, all 22 games to a champion."
         />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Playoff Prediction Brackets — CP Softball" />
         <meta
             name="twitter:description"
-            content="Make your picks. The bracket builds itself."
+            content="75,000 sats to the most accurate bracket, presented by yggr. Make your picks — the bracket builds itself."
         />
         <meta name="twitter:image" content="https://softball.best/og-playoffs.png" />
         <style>
@@ -114,7 +114,9 @@ a {
     color: var(--gold);
 }
 button,
-select {
+button,
+select,
+input {
     font: inherit;
     color: inherit;
 }
@@ -372,6 +374,296 @@ caption,
     color: var(--dim2);
     padding-top: 9px;
 }
+/* ── the prize band: yggr's 75,000 sats, the reason to scroll ── */
+.prize {
+    display: grid;
+    grid-template-columns: 190px 1fr;
+    gap: 22px;
+    align-items: center;
+    margin: 26px 0 34px;
+    padding: 20px 24px;
+    border: 1px solid var(--gold);
+    border-radius: 12px;
+    background:
+        linear-gradient(180deg, var(--gold-soft), transparent 65%),
+        var(--panel);
+}
+.prize-fig {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    border: 1px solid var(--edge);
+}
+.prize-eyebrow {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 8px;
+}
+.prize-n {
+    font-size: clamp(2.1rem, 6vw, 3.4rem);
+    font-weight: 700;
+    line-height: 0.95;
+    letter-spacing: -0.01em;
+    margin: 0 0 6px;
+}
+.prize-n b {
+    color: var(--gold);
+    font-family: var(--mono);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+.prize-sub {
+    margin: 0 0 14px;
+    color: var(--dim);
+    font-size: 1.02rem;
+    max-width: 56ch;
+}
+.prize-sub b {
+    color: var(--ink);
+}
+.prize-acts {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+.prize-fine {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    color: var(--dim2);
+    text-decoration: none;
+}
+.prize-fine:hover {
+    color: var(--gold);
+}
+.prize a.btn.solid {
+    text-decoration: none;
+}
+
+/* ── the entry desk ── */
+.enter {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 26px;
+    align-items: start;
+}
+.enter-status {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--dim);
+    border-left: 3px solid var(--edge2);
+    padding: 3px 0 3px 11px;
+    margin-bottom: 16px;
+}
+.enter-status.ready {
+    border-left-color: var(--gold);
+    color: var(--ink);
+}
+.enter-status b {
+    color: var(--gold);
+}
+.who {
+    display: block;
+    margin-bottom: 14px;
+}
+.who span {
+    display: block;
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--dim2);
+    margin-bottom: 6px;
+}
+select,
+input[type="text"] {
+    width: 100%;
+    background: var(--panel2);
+    border: 1px solid var(--edge2);
+    border-radius: 7px;
+    padding: 9px 11px;
+    font-size: 0.98rem;
+}
+input[type="text"]::placeholder {
+    color: var(--dim2);
+}
+input[type="text"]:focus {
+    outline: none;
+    border-color: var(--gold);
+}
+.who-echo {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    line-height: 1.5;
+    color: var(--dim2);
+    margin: -8px 0 14px;
+    min-height: 1.5em;
+}
+.who-echo.found {
+    color: var(--gold);
+}
+.enter-acts {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.btn[disabled] {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+.slip {
+    background: var(--panel2);
+    border: 1px solid var(--edge);
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    line-height: 1.7;
+    color: var(--dim);
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 320px;
+    overflow: auto;
+}
+.slip b {
+    color: var(--ink);
+}
+
+/* ── the gallery of entries ── */
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(228px, 1fr));
+    gap: 12px;
+}
+.ecard {
+    background: var(--panel);
+    border: 1px solid var(--edge);
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.ecard.lead {
+    border-color: var(--gold);
+    background: linear-gradient(180deg, var(--gold-soft), transparent 70%), var(--panel);
+}
+.ecard.viewing {
+    border-color: var(--gold);
+    box-shadow: inset 0 0 0 1px var(--gold);
+}
+.ecard-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+}
+.ecard-n {
+    font-weight: 700;
+    font-size: 1.02rem;
+    line-height: 1.15;
+}
+.ecard-rank {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    color: var(--dim2);
+}
+.ecard.lead .ecard-rank {
+    color: var(--gold);
+}
+.ecard-c {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    color: var(--dim2);
+}
+.ecard-pick {
+    font-size: 0.9rem;
+    color: var(--dim);
+    margin-top: 3px;
+}
+.ecard-pick b {
+    color: var(--ink);
+}
+.ecard-score {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--gold);
+}
+.ecard button {
+    margin-top: 8px;
+    align-self: flex-start;
+}
+.empty-note {
+    background: var(--panel);
+    border: 1px dashed var(--edge2);
+    border-radius: 10px;
+    padding: 18px 20px;
+    color: var(--dim);
+}
+.viewing-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    background: var(--gold-soft);
+    border: 1px solid var(--gold);
+    border-radius: 8px;
+    padding: 9px 13px;
+    margin-bottom: 14px;
+    font-size: 0.94rem;
+}
+.viewing-bar b {
+    color: var(--gold);
+}
+
+/* ── the house advertisement (honest eyebrow; the label is the joke) ── */
+.adv {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    gap: 18px;
+    align-items: center;
+    border-top: 1px solid var(--edge);
+    border-bottom: 1px solid var(--edge);
+    padding: 18px 0;
+    margin: 40px 0 8px;
+}
+.adv img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 6px;
+    border: 1px solid var(--edge);
+}
+.adv-k {
+    font-family: var(--mono);
+    font-size: 0.55rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--dim2);
+    margin-bottom: 7px;
+}
+.adv-h {
+    font-size: 1.24rem;
+    font-weight: 700;
+    margin: 0 0 5px;
+}
+.adv-p {
+    margin: 0;
+    color: var(--dim);
+    font-size: 0.98rem;
+    max-width: 58ch;
+}
+.adv a {
+    text-decoration: none;
+}
+.adv a:hover .adv-h {
+    color: var(--gold);
+}
+
 /* ── the bracket ── */
 .bk-bar {
     display: flex;
@@ -382,6 +674,23 @@ caption,
 }
 .bk-bar .spacer {
     flex: 1;
+}
+/* the route to the entry desk: quiet while the bracket is unfinished, gold
+   the moment it is done, and never hidden — the reader should not have to go
+   looking for the way in. */
+.btn.go {
+    text-decoration: none;
+    border-color: var(--edge2);
+    color: var(--dim);
+}
+.btn.go.ready {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: var(--gold-ink);
+    font-weight: 700;
+}
+.btn.go.ready:hover {
+    filter: brightness(1.06);
 }
 .legend {
     display: flex;
@@ -676,9 +985,29 @@ footer {
 }
 
 /* ── narrow ── */
+@media (max-width: 900px) {
+    .enter {
+        grid-template-columns: 1fr;
+    }
+}
 @media (max-width: 620px) {
     body {
         font-size: 16px;
+    }
+    .prize {
+        grid-template-columns: 1fr;
+        gap: 14px;
+        padding: 16px 16px 18px;
+    }
+    .prize-fig {
+        max-width: 220px;
+    }
+    .adv {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    .adv img {
+        max-width: 200px;
     }
     .wrap {
         padding: 0 13px;
@@ -750,6 +1079,29 @@ footer {
                 </p>
             </div>
 
+            <!-- ══ THE PRIZE ════════════════════════════ -->
+            <div class="prize" id="prize">
+                <a href="https://yggr.xyz"><img class="prize-fig" src="yggr-og.png"
+                     width="1200" height="630" alt="yggr — coffee for sats" /></a>
+                <div>
+                    <div class="prize-eyebrow">Presented by yggr · coffee for sats</div>
+                    <p class="prize-n"><b id="prize-n">75,000</b> sats<br />to the best bracket.</p>
+                    <p class="prize-sub">
+                        Fill in all twenty-two games below, then send the desk
+                        your entry. The bracket that calls the most games right
+                        takes the lot — paid in bitcoin by the editor’s other
+                        desk, which sells coffee and takes the same currency.
+                        <b id="prize-deadline"></b> One entry per rostered
+                        player, and <b>a tie goes to whoever entered first</b> —
+                        so the clock on your mail is the tiebreak.
+                    </p>
+                    <div class="prize-acts">
+                        <a class="btn solid" href="#enter">Enter your bracket ↓</a>
+                        <a class="prize-fine" href="https://yggr.xyz">yggr.xyz · coffee for sats</a>
+                    </div>
+                </div>
+            </div>
+
             <!-- ══ 01 · THE FIELD ═══════════════════════ -->
             <section id="field">
                 <div class="sec-h">
@@ -771,7 +1123,7 @@ footer {
                                 <th class="r">Pts</th>
                                 <th class="c-diff r"><span class="lg">Run diff</span><span class="sm">Diff</span></th>
                                 <th><span class="lg">Enters at</span><span class="sm">Opens</span></th>
-                                <th class="r"><span class="lg">In your bracket</span><span class="sm">Yours</span></th>
+                                <th class="r" id="col-live"><span class="lg">In your bracket</span><span class="sm">Yours</span></th>
                             </tr>
                         </thead>
                         <tbody id="seed-rows"></tbody>
@@ -799,6 +1151,7 @@ footer {
                     <button type="button" class="btn solid" id="bk-chalk">Higher seed wins out</button>
                     <button type="button" class="btn" id="bk-random">Random</button>
                     <button type="button" class="btn quiet" id="bk-clear">Clear bracket</button>
+                    <a class="btn go" id="bk-enter" href="#enter">Enter your bracket →</a>
                     <span class="spacer"></span>
                     <span class="legend">
                         <i><span class="sw"></span>advances</i>
@@ -829,6 +1182,87 @@ footer {
                 </p>
             </section>
 
+            <!-- ══ 03 · ENTER ══════════════════════════ -->
+            <section id="enter">
+                <div class="sec-h">
+                    <span class="sec-n">03</span>
+                    <h2>Enter your bracket</h2>
+                </div>
+                <p class="sec-sub">
+                    Pick every game above, put your name to it, and mail it in.
+                    <b>The mail comes from your own address, and that is what
+                    verifies you</b> — the desk knows who plays in this league.
+                </p>
+                <div class="enter">
+                    <div>
+                        <div class="enter-status" id="enter-status">—</div>
+                        <label class="who">
+                            <span>Who is entering</span>
+                            <input id="who" type="text" list="roster-list" autocomplete="name"
+                                   spellcheck="false" placeholder="Type your name" />
+                            <datalist id="roster-list"></datalist>
+                        </label>
+                        <div class="who-echo" id="who-echo"></div>
+                        <div class="enter-acts">
+                            <a class="btn solid" id="enter-mail" href="#">Open my entry email</a>
+                            <button type="button" class="btn" id="enter-copy">Copy my entry</button>
+                        </div>
+                        <p class="cap">
+                            The button opens your own mail app with the entry
+                            already written; you just send it. If your device
+                            has no mail app set up, copy the entry instead and
+                            send it however you like — the code is the entry.
+                            Nothing on this page is transmitted anywhere by
+                            itself.
+                        </p>
+                    </div>
+                    <div>
+                        <div class="slip" id="slip"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══ 04 · THE ENTRIES ════════════════════ -->
+            <section id="entries">
+                <div class="sec-h">
+                    <span class="sec-n">04</span>
+                    <h2 id="entries-h">The entries</h2>
+                </div>
+                <p class="sec-sub" id="entries-sub"></p>
+                <div class="viewing-bar" id="viewing-bar" hidden>
+                    <span id="viewing-who"></span>
+                    <button type="button" class="btn quiet" id="viewing-back">Back to my bracket</button>
+                </div>
+                <div id="entries-body"></div>
+                <p class="cap">
+                    Every entry here was mailed to the desk and checked against
+                    the league roster before it appeared — that is the whole
+                    verification, and it is deliberately a person rather than a
+                    machine. Entries show in the order they arrived until the
+                    games start, and by score after that — and where two entries
+                    finish level on score, the earlier one is ranked ahead,
+                    which is the only tiebreak there is. Opening an entry puts
+                    it in the address bar, so the link you copy is the bracket
+                    you are looking at.
+                </p>
+            </section>
+
+            <!-- ══ ADVERTISEMENT ═══════════════════════ -->
+            <a class="adv" href="https://yggr.xyz">
+                <img src="yggr-og.png" width="1200" height="630" alt="yggr — coffee for sats" />
+                <div>
+                    <div class="adv-k">Advertisement</div>
+                    <p class="adv-h">People see “bitcoin” and assume they cannot buy the coffee.</p>
+                    <p class="adv-p">
+                        They can. Checkout takes a few taps, the payment rides
+                        the Lightning Network, and the whole thing is over
+                        before the next batter is announced. If you can read a
+                        box score, you can read the checkout. <b>yggr — coffee
+                        for sats.</b>
+                    </p>
+                </div>
+            </a>
+
             <footer>
                 <p class="fine">
                     The seeding here is the league’s posted bracket, checked
@@ -836,9 +1270,13 @@ footer {
                     from the season’s own game book; the prophecy is yours.
                     This page predicts nothing and weights nobody’s chances —
                     it draws the bracket the league is about to play and lets
-                    you fill it in. Nothing leaves this browser. The season
-                    behind all of it — the standings, the batting race, the
-                    record board and the rest of the numbers — is printed in
+                    you fill it in. Nothing leaves this browser: entries are
+                    mailed to the desk by the reader, from the reader’s own
+                    address, which is exactly what verifies them. Every entry
+                    shown was checked against the league roster by a person
+                    before it appeared. The season behind all of it — the
+                    standings, the batting race, the record board and the rest
+                    of the numbers — is printed in
                     <a href="index.html">the paper</a>.
                 </p>
             </footer>
@@ -850,16 +1288,18 @@ footer {
             <div class="wrap">
                 <div class="noscript">
                     The bracket is script, and your reader has script off —
-                    the desk respects the choice. There is no ink edition of
-                    this page: the playoff bracket lives here and nowhere
-                    else. The season’s numbers — the standings, the batting
-                    race, the record board — are printed in
-                    <a href="index.html">the paper</a>.
+                    the desk respects the choice, but the bracket and the
+                    contest both need it. There is no ink edition of this
+                    page. If you want to enter, turn script on here or mail
+                    the desk your twenty-two picks in writing; the prize is
+                    open to every rostered player either way. The season’s
+                    numbers — the standings, the batting race, the record
+                    board — are printed in <a href="index.html">the paper</a>.
                 </div>
             </div>
         </noscript>
 
-        <script type="application/json" id="machine-data">{"final":true,"asof":"August 14","days":"August 21\u201322","bracket":[[1,"s5","s12",21],[2,"s6","s11",21],[3,"s7","s10",21],[4,"s8","s9",21],[5,"s1","w4",21],[6,"s2","w3",21],[7,"s3","w2",21],[8,"s4","w1",21],[9,"l1","l4",21],[10,"l2","l3",21],[11,"l5","w9",22],[12,"l6","w10",22],[13,"w5","w6",22],[14,"w7","w8",22],[15,"w13","w14",22],[16,"l7","w11",22],[17,"l8","w12",22],[18,"w16","w17",22],[19,"l13","w18",22],[20,"l14","w19",22],[21,"w20","l15",22],[22,"w15","w21",22]],"teams":[{"s":"jeremy","label":"Jeremy's team","seed":1,"w":15,"l":5,"t":0,"pts":30,"pf":273,"pa":217,"diff":56},{"s":"caleb","label":"Caleb's team","seed":2,"w":14,"l":5,"t":1,"pts":29,"pf":262,"pa":200,"diff":62},{"s":"horatio","label":"Horatio's team","seed":3,"w":14,"l":6,"t":0,"pts":28,"pf":292,"pa":159,"diff":133},{"s":"sefton","label":"Sefton's team","seed":4,"w":14,"l":6,"t":0,"pts":28,"pf":279,"pa":195,"diff":84},{"s":"stafford","label":"Stafford's team","seed":5,"w":13,"l":7,"t":0,"pts":26,"pf":255,"pa":224,"diff":31},{"s":"claude","label":"Claude's team","seed":6,"w":11,"l":8,"t":1,"pts":23,"pf":211,"pa":196,"diff":15},{"s":"gideon","label":"Gideon's team","seed":7,"w":9,"l":11,"t":0,"pts":18,"pf":209,"pa":221,"diff":-12},{"s":"elliot","label":"Elliot's team","seed":8,"w":8,"l":12,"t":0,"pts":16,"pf":225,"pa":248,"diff":-23},{"s":"michael","label":"Michael's team","seed":9,"w":7,"l":13,"t":0,"pts":14,"pf":179,"pa":238,"diff":-59},{"s":"boyds-daniel","label":"Boyds Daniel's team","seed":10,"w":6,"l":14,"t":0,"pts":12,"pf":176,"pa":250,"diff":-74},{"s":"ephraims-daniel","label":"Ephraims Daniel's team","seed":11,"w":4,"l":16,"t":0,"pts":8,"pf":211,"pa":301,"diff":-90},{"s":"seth","label":"Seth's team","seed":12,"w":4,"l":16,"t":0,"pts":8,"pf":159,"pa":282,"diff":-123}]}</script>
+        <script type="application/json" id="machine-data">{"final":true,"asof":"August 14","days":"August 21\u201322","bracket":[[1,"s5","s12",21],[2,"s6","s11",21],[3,"s7","s10",21],[4,"s8","s9",21],[5,"s1","w4",21],[6,"s2","w3",21],[7,"s3","w2",21],[8,"s4","w1",21],[9,"l1","l4",21],[10,"l2","l3",21],[11,"l5","w9",22],[12,"l6","w10",22],[13,"w5","w6",22],[14,"w7","w8",22],[15,"w13","w14",22],[16,"l7","w11",22],[17,"l8","w12",22],[18,"w16","w17",22],[19,"l13","w18",22],[20,"l14","w19",22],[21,"w20","l15",22],[22,"w15","w21",22]],"prize":{"sats":75000,"sponsor":"yggr","to":"curtis@yggr.xyz","deadline":"first pitch, Friday August 21"},"roster":[{"n":"Angeline Williams","c":"jeremy"},{"n":"Curtis Hammon","c":"jeremy"},{"n":"Daniel Dockstader Marvins","c":"jeremy"},{"n":"Dorothy Dockstader","c":"jeremy"},{"n":"Jeremy Dockstader Boyds","c":"jeremy"},{"n":"Jeremy Dockstader Marvins","c":"jeremy"},{"n":"Marvin Dockstader","c":"jeremy"},{"n":"Paul Hammon","c":"jeremy"},{"n":"Samantha Monroy","c":"jeremy"},{"n":"Taylor Timpson","c":"jeremy"},{"n":"Wesley Williams","c":"jeremy"},{"n":"William Timpson","c":"jeremy"},{"n":"Anson Johnson","c":"caleb"},{"n":"Aryck Hammon","c":"caleb"},{"n":"Caleb Barlow","c":"caleb"},{"n":"Daniel Williams","c":"caleb"},{"n":"Kaitlyn Knudson","c":"caleb"},{"n":"Kyle Hammon","c":"caleb"},{"n":"Matt Williams","c":"caleb"},{"n":"Merlek Timpson","c":"caleb"},{"n":"Nathan Hammon","c":"caleb"},{"n":"Ryan Hammon","c":"caleb"},{"n":"Sarah Timpson","c":"caleb"},{"n":"Selena Dutson","c":"caleb"},{"n":"Aaron Zitting","c":"horatio"},{"n":"Anthony Williams","c":"horatio"},{"n":"Benjiman Hammon Legrands","c":"horatio"},{"n":"Curt White","c":"horatio"},{"n":"Curtis Knudson","c":"horatio"},{"n":"David Hammon","c":"horatio"},{"n":"Heather Williams","c":"horatio"},{"n":"Horatio Williams","c":"horatio"},{"n":"Jazlin Knudson","c":"horatio"},{"n":"Lewis Hammon","c":"horatio"},{"n":"Marissa Williams","c":"horatio"},{"n":"Treyton Timpson","c":"horatio"},{"n":"Alma Timpson","c":"sefton"},{"n":"Andrew Musser","c":"sefton"},{"n":"Brayden Hammon","c":"sefton"},{"n":"Daniel Knudson","c":"sefton"},{"n":"Isabel Dockstader","c":"sefton"},{"n":"Jayla Dockstader","c":"sefton"},{"n":"Kendall Hammon","c":"sefton"},{"n":"Preston Knudson","c":"sefton"},{"n":"Riley Barlow","c":"sefton"},{"n":"Sefton Dockstader","c":"sefton"},{"n":"Seth Timpson","c":"sefton"},{"n":"Shem Hammon","c":"sefton"},{"n":"Adam Dockstader","c":"stafford"},{"n":"Bruce Hammon","c":"stafford"},{"n":"Charles Williams","c":"stafford"},{"n":"Cleeson Bauer","c":"stafford"},{"n":"Gerard Hammon","c":"stafford"},{"n":"Jerold Williams","c":"stafford"},{"n":"Monte Hammon","c":"stafford"},{"n":"Pauline Timpson","c":"stafford"},{"n":"Sabrina Naylor","c":"stafford"},{"n":"Samantha Hammon","c":"stafford"},{"n":"Stafford Hammon","c":"stafford"},{"n":"Timothy Naylor","c":"stafford"},{"n":"Avery Hammon","c":"claude"},{"n":"Brigham Hammon","c":"claude"},{"n":"Claude Timpson","c":"claude"},{"n":"Connor Williams","c":"claude"},{"n":"Jonathan Timpson Rays","c":"claude"},{"n":"Kayden Timpson","c":"claude"},{"n":"Lexi Timpson","c":"claude"},{"n":"Lindsey Timpson","c":"claude"},{"n":"Logan Hammon","c":"claude"},{"n":"Moroni Musser","c":"claude"},{"n":"Sean Hammon","c":"claude"},{"n":"Violet Barlow","c":"claude"},{"n":"Abe Dockstader","c":"gideon"},{"n":"Becky Wood","c":"gideon"},{"n":"Benjiman Barlow","c":"gideon"},{"n":"Douglas Hammon","c":"gideon"},{"n":"Evan Williams","c":"gideon"},{"n":"Gideon Hammon","c":"gideon"},{"n":"Jairus Hammon","c":"gideon"},{"n":"Jason Hammon","c":"gideon"},{"n":"Justin Timpson","c":"gideon"},{"n":"Kyle Dockstader","c":"gideon"},{"n":"Tammy Williams","c":"gideon"},{"n":"Wallace Barlow","c":"gideon"},{"n":"Austin Ivory","c":"elliot"},{"n":"Bryan Dockstader","c":"elliot"},{"n":"Elliot Hammon","c":"elliot"},{"n":"Jarom Dockstader","c":"elliot"},{"n":"Karen Hammon","c":"elliot"},{"n":"Larry Stubbs","c":"elliot"},{"n":"Lincoln Wood","c":"elliot"},{"n":"Lizzy Horsley","c":"elliot"},{"n":"Lonnie Timpson","c":"elliot"},{"n":"Max Horsley","c":"elliot"},{"n":"Michael Timpson","c":"elliot"},{"n":"Roy Hammon","c":"elliot"},{"n":"Amie Z Barlow","c":"michael"},{"n":"Benjiman Hammon Hebers","c":"michael"},{"n":"Hyrum Timpson","c":"michael"},{"n":"Jason W Timpson","c":"michael"},{"n":"John Barlow Jr","c":"michael"},{"n":"Leslie Williams","c":"michael"},{"n":"Lorin Timpson","c":"michael"},{"n":"Michael Williams","c":"michael"},{"n":"Nathan Knudson","c":"michael"},{"n":"Rebecca Horsley","c":"michael"},{"n":"Sidney Dockstader","c":"michael"},{"n":"Sophia Cawley","c":"michael"},{"n":"Adam Naylor","c":"boyds-daniel"},{"n":"Alyssa Zitting","c":"boyds-daniel"},{"n":"Ben Williams","c":"boyds-daniel"},{"n":"Daniel Dockstader Boyds","c":"boyds-daniel"},{"n":"Derrick Knudson","c":"boyds-daniel"},{"n":"Emmerson Hammon","c":"boyds-daniel"},{"n":"J Daunt Hammon","c":"boyds-daniel"},{"n":"Leroy Dutson","c":"boyds-daniel"},{"n":"Levi Knudson","c":"boyds-daniel"},{"n":"Maureen Williams","c":"boyds-daniel"},{"n":"Seth Williams","c":"boyds-daniel"},{"n":"Steven Dockstader","c":"boyds-daniel"},{"n":"Bowen Hammon","c":"ephraims-daniel"},{"n":"Brenda Naylor","c":"ephraims-daniel"},{"n":"Carl Williams","c":"ephraims-daniel"},{"n":"Daniel Dockstader Ephraims","c":"ephraims-daniel"},{"n":"Deborah Timpson","c":"ephraims-daniel"},{"n":"Heber Williams","c":"ephraims-daniel"},{"n":"Lorenzo Cawley","c":"ephraims-daniel"},{"n":"Nate Darger","c":"ephraims-daniel"},{"n":"Noah Dockstader","c":"ephraims-daniel"},{"n":"Robert Dockstader","c":"ephraims-daniel"},{"n":"Scott Naylor","c":"ephraims-daniel"},{"n":"Teancum Timpson","c":"ephraims-daniel"},{"n":"Ammon Timpson","c":"seth"},{"n":"Cuervo Timpson","c":"seth"},{"n":"Donald Timpson","c":"seth"},{"n":"Dylan Horsley","c":"seth"},{"n":"Jefferson Johnson","c":"seth"},{"n":"Joanne Sis Timpson","c":"seth"},{"n":"Nephi Darger","c":"seth"},{"n":"Porter Hammon","c":"seth"},{"n":"Royal Barlow","c":"seth"},{"n":"Sam Guy","c":"seth"},{"n":"Seth Cawley","c":"seth"},{"n":"Sharon Hammon","c":"seth"}],"entries":[],"results":"0000000000000000000000","teams":[{"s":"jeremy","label":"Jeremy's team","seed":1,"w":15,"l":5,"t":0,"pts":30,"pf":273,"pa":217,"diff":56},{"s":"caleb","label":"Caleb's team","seed":2,"w":14,"l":5,"t":1,"pts":29,"pf":262,"pa":200,"diff":62},{"s":"horatio","label":"Horatio's team","seed":3,"w":14,"l":6,"t":0,"pts":28,"pf":292,"pa":159,"diff":133},{"s":"sefton","label":"Sefton's team","seed":4,"w":14,"l":6,"t":0,"pts":28,"pf":279,"pa":195,"diff":84},{"s":"stafford","label":"Stafford's team","seed":5,"w":13,"l":7,"t":0,"pts":26,"pf":255,"pa":224,"diff":31},{"s":"claude","label":"Claude's team","seed":6,"w":11,"l":8,"t":1,"pts":23,"pf":211,"pa":196,"diff":15},{"s":"gideon","label":"Gideon's team","seed":7,"w":9,"l":11,"t":0,"pts":18,"pf":209,"pa":221,"diff":-12},{"s":"elliot","label":"Elliot's team","seed":8,"w":8,"l":12,"t":0,"pts":16,"pf":225,"pa":248,"diff":-23},{"s":"michael","label":"Michael's team","seed":9,"w":7,"l":13,"t":0,"pts":14,"pf":179,"pa":238,"diff":-59},{"s":"boyds-daniel","label":"Boyds Daniel's team","seed":10,"w":6,"l":14,"t":0,"pts":12,"pf":176,"pa":250,"diff":-74},{"s":"ephraims-daniel","label":"Ephraims Daniel's team","seed":11,"w":4,"l":16,"t":0,"pts":8,"pf":211,"pa":301,"diff":-90},{"s":"seth","label":"Seth's team","seed":12,"w":4,"l":16,"t":0,"pts":8,"pf":159,"pa":282,"diff":-123}]}</script>
         <script src="confetti.min.js"></script>
         <script>
 /* ══════════════════════════════════════════════════════════════════
@@ -914,7 +1354,11 @@ footer {
             data.final === true &&
             data.teams.length === 12 &&
             Array.isArray(data.bracket) &&
-            data.bracket.length === 22;
+            data.bracket.length === 22 &&
+            Array.isArray(data.roster) &&
+            data.roster.length > 0 &&
+            !!data.prize &&
+            Array.isArray(data.entries);
         data.teams.forEach(function (t, i) {
             if (t.seed !== i + 1 || seen[t.seed]) ok = false;
             seen[t.seed] = 1;
@@ -957,6 +1401,28 @@ footer {
        slot in the whole bracket — the eight opening-round places and the
        four quarterfinals the byes were held for — so this is a lookup,
        not a search. */
+    // the 144 rostered players, name -> club slug. The name is typed rather
+    // than picked, so the lookup is forgiving about case and stray spaces —
+    // but it is still the roster that decides, which is what keeps the desk's
+    // verification a two-second check rather than an investigation.
+    var rosterClub = {};
+    var rosterName = {};
+    function normName(s) {
+        return String(s).trim().replace(/\s+/g, " ").toLowerCase();
+    }
+    (data.roster || []).forEach(function (p) {
+        rosterClub[p.n] = p.c;
+        rosterName[normName(p.n)] = p.n;
+    });
+    // What the reader typed, resolved to the roster's own spelling when it
+    // matches. Unmatched names are NOT blocked — somebody may spell their own
+    // name differently than the league does, and the desk sorts that out.
+    function whoTyped() {
+        var raw = (el("who").value || "").trim().replace(/\s+/g, " ");
+        var hit = rosterName[normName(raw)];
+        return { raw: raw, name: hit || raw, club: hit ? rosterClub[hit] : null, known: !!hit };
+    }
+
     var entry = {};
     BR.forEach(function (br) {
         [[br[1], br[2], true], [br[2], br[1], false]].forEach(function (p) {
@@ -998,6 +1464,11 @@ footer {
 
     // ── state: one entry per bracket game, the slug the reader advanced ──
     var state = { b: {} };
+    // when the reader opens somebody else's entry, theirs is stashed here and
+    // handed back by "Back to my bracket" — looking is never losing your work.
+    var viewing = null;
+    var stash = null;
+    var forkedFrom = null;
 
     // ── small helpers ──
     function el(id) {
@@ -1160,6 +1631,17 @@ footer {
     function renderSeeds(occ) {
         var st = bracketState(occ);
         var champ = occ[22].w;
+        var whose =
+            viewing !== null
+                ? "In this bracket"
+                : forkedFrom
+                ? "In this bracket"
+                : "In your bracket";
+        var head = el("col-live");
+        if (head)
+            head.innerHTML =
+                '<span class="lg">' + whose + '</span><span class="sm">' +
+                (whose === "In your bracket" ? "Yours" : "Theirs") + "</span>";
         var html = "";
         data.teams.forEach(function (t) {
             var s = t.s;
@@ -1360,7 +1842,18 @@ footer {
         renderBracket(occ);
         renderTop(occ);
         renderVow(occ);
+        renderEntry(occ);
+        renderGallery(occ);
         el("bk-sub").innerHTML = sayBracket(occ);
+        var picked = pickedCount(occ);
+        var go = el("bk-enter");
+        go.classList.toggle("ready", picked === 22);
+        go.textContent =
+            picked === 22
+                ? "Enter your bracket →"
+                : picked === 0
+                ? "Enter your bracket →"
+                : (22 - picked) + " to go, then enter →";
         var champ = occ[22].w;
         if (champ && champ !== lastChamp) celebrate();
         lastChamp = champ;
@@ -1375,6 +1868,229 @@ footer {
         } catch (e) {}
     }
 
+    /* ══ THE CONTEST ═══════════════════════════════════════════════
+       Entries are mailed to the desk from the entrant's own address —
+       that IS the verification, and it is deliberately a person rather
+       than a machine. Nothing here transmits anything: the mail button
+       hands a prefilled message to the reader's own mail app and the
+       reader sends it. Accepted entries come back as rows in
+       MMDD-brackets.csv and reach this page through the island. */
+
+    function slugify(s) {
+        return String(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    }
+    function entryIndexBySlug(slug) {
+        var list = data.entries || [];
+        for (var i = 0; i < list.length; i++) if (slugify(list[i].n) === slug) return i;
+        return -1;
+    }
+
+    function pickedCount(occ) {
+        return BR.filter(function (br) {
+            return occ[br[0]].w;
+        }).length;
+    }
+
+    // "G1 Seth · G2 Claude · …" — compact enough to survive a mailto URL,
+    // readable enough that the desk can check it against the code by eye.
+    function pickLine(occ) {
+        return BR.map(function (br) {
+            var g = occ[br[0]];
+            return "G" + br[0] + " " + (g.w ? capName(g.w) : "—");
+        }).join(" · ");
+    }
+
+    function entryText(occ) {
+        var who = whoTyped();
+        return (
+            "Name: " + who.name + "\n" +
+            "Club: " + (who.club ? label(who.club) : "(not matched to the roster)") + "\n" +
+            "Code: " + bracketCode(occ) + "\n" +
+            "Champion: " + (occ[22].w ? label(occ[22].w) : "—") + "\n\n" +
+            pickLine(occ) + "\n\n" +
+            "Sent from the Playoff Prediction Brackets page."
+        );
+    }
+
+    function bracketCode(occ) {
+        return BR.map(function (br) {
+            var g = occ[br[0]];
+            return !g.w ? "0" : g.w === g.h ? "1" : "2";
+        }).join("");
+    }
+
+    function renderEntry(occ) {
+        var n = pickedCount(occ);
+        var who = whoTyped();
+        var named = who.raw.length > 1;
+        var done = n === 22 && named;
+        var echo = el("who-echo");
+        echo.className = "who-echo" + (who.known ? " found" : "");
+        echo.textContent = !who.raw
+            ? "Start typing and your name should come up."
+            : who.known
+            ? who.name + " · " + label(who.club)
+            : "Not on the roster as spelled — send it anyway, the desk will match it up.";
+        var st = el("enter-status");
+        st.className = "enter-status" + (done ? " ready" : "");
+        st.innerHTML =
+            n < 22
+                ? "<b>" + n + " of 22</b> games picked — " + (22 - n) +
+                  " to go before you can enter."
+                : !named
+                ? "All twenty-two games called. <b>Put your name to it</b> and it is ready to send."
+                : "All twenty-two games called. Your champion is <b>" +
+                  esc(label(occ[22].w)) + "</b>.";
+
+        var mail = el("enter-mail");
+        var copy = el("enter-copy");
+        if (done) {
+            var subject = "Bracket entry — " + who.name;
+            mail.href =
+                "mailto:" + data.prize.to +
+                "?subject=" + encodeURIComponent(subject) +
+                "&body=" + encodeURIComponent(entryText(occ));
+            mail.removeAttribute("aria-disabled");
+            mail.classList.remove("quiet");
+        } else {
+            mail.href = "#enter";
+            mail.setAttribute("aria-disabled", "true");
+        }
+        copy.disabled = !done;
+        el("slip").innerHTML = done
+            ? esc(entryText(occ)).replace(/^(Name|Club|Code|Champion):/gm, "<b>$1:</b>")
+            : "Your entry appears here once every game is called and your name " +
+              "is on it. Nothing is sent from this page — you send it yourself, " +
+              "from your own mail.";
+    }
+
+    function renderGallery(occ) {
+        var host = el("entries-body");
+        var list0 = data.entries || [];
+        var scored = list0.length > 0 && typeof list0[0].s === "number";
+        el("entries-h").textContent = scored ? "The leaderboard" : "The entries";
+        el("viewing-bar").hidden = viewing === null && !forkedFrom;
+        if (viewing !== null)
+            el("viewing-who").innerHTML =
+                "You are looking at <b>" + esc(list0[viewing].n) + "</b>’s bracket.";
+        else if (forkedFrom)
+            el("viewing-who").innerHTML =
+                "You have started from <b>" + esc(forkedFrom) + "</b>’s bracket and changed it.";
+
+        if (!list0.length) {
+            el("entries-sub").innerHTML =
+                "No entries yet. The first bracket in gets the top of this page to itself.";
+            host.innerHTML =
+                '<div class="empty-note">Nobody has entered yet. Call all ' +
+                "twenty-two games above, put your name to it, and you are the " +
+                "first name on this board.</div>";
+            return;
+        }
+        el("entries-sub").innerHTML = scored
+            ? "<b>" + list0.length + "</b> " + (list0.length === 1 ? "entry" : "entries") +
+              ", ranked by games called right through <b>" + list0[0].p +
+              "</b> of the twenty-two. Tap any one to run it through the bracket above."
+            : "<b>" + list0.length + "</b> " + (list0.length === 1 ? "bracket" : "brackets") +
+              " in so far. Tap any one to run it through the bracket above and see " +
+              "where it disagrees with yours.";
+
+        var html = "";
+        list0.forEach(function (e, i) {
+            var champ = resolveCode(e.k)[22].w;
+            html +=
+                '<div class="ecard' + (scored && i === 0 ? " lead" : "") +
+                (viewing === i ? " viewing" : "") + '">' +
+                '<div class="ecard-top"><span class="ecard-n">' + esc(e.n) + "</span>" +
+                '<span class="ecard-rank">' + (scored ? "#" + (i + 1) : "#" + (i + 1)) +
+                "</span></div>" +
+                '<div class="ecard-c">' + esc(label(e.c)) + " · " + esc(e.r.replace("T", " ")) + "</div>" +
+                '<div class="ecard-pick">Picks <b>' + esc(champ ? capName(champ) : "—") +
+                "</b> for the pennant</div>" +
+                (scored ? '<div class="ecard-score">' + e.s + " of " + e.p + " right</div>" : "") +
+                '<button type="button" class="btn quiet" data-view="' + i + '">' +
+                (viewing === i ? "Viewing" : "See this bracket") + "</button></div>";
+        });
+        host.innerHTML = '<div class="cards">' + html + "</div>";
+    }
+
+    // resolve any 22-digit code without disturbing what the reader has picked
+    function resolveCode(code) {
+        var occ = {};
+        function val(sl) {
+            if (sl.charAt(0) === "s") return bySeed[sl];
+            var g = occ[+sl.slice(1)];
+            return sl.charAt(0) === "w" ? g.w : g.l;
+        }
+        BR.forEach(function (br) {
+            var no = br[0];
+            var h = val(br[1]);
+            var a = val(br[2]);
+            var d = code.charAt(no - 1);
+            var w = null;
+            var l = null;
+            if (h && a && (d === "1" || d === "2")) {
+                w = d === "1" ? h : a;
+                l = w === h ? a : h;
+            }
+            occ[no] = { h: h, a: a, w: w, l: l };
+        });
+        return occ;
+    }
+
+    function loadEntry(i) {
+        var e = (data.entries || [])[i];
+        if (!e) return;
+        if (viewing === null && !forkedFrom) stash = bracketCode(resolveBracket());
+        forkedFrom = null;
+        viewing = i;
+        applyCode(e.k);
+        lastChamp = resolveBracket()[22].w; // somebody else's pennant, no confetti
+        render();
+        setHash("#e=" + slugify(e.n));
+        scrollTo("bracket");
+        toast("Showing " + e.n + "’s bracket — your own is kept");
+    }
+    function unloadEntry() {
+        viewing = null;
+        forkedFrom = null;
+        setHash("");
+        applyCode(stash || "0".repeat(22));
+        stash = null;
+        lastChamp = resolveBracket()[22].w;
+        render();
+        toast("Back to your bracket");
+    }
+    // Scrolling is a courtesy. It is also the one call here that a browser can
+    // plausibly not have, so it is guarded: losing the scroll must never cost
+    // the reader the hash, the toast or the bracket itself.
+    function scrollTo(id) {
+        var n = el(id);
+        if (!n || typeof n.scrollIntoView !== "function") return;
+        try {
+            n.scrollIntoView({ behavior: RM ? "auto" : "smooth", block: "start" });
+        } catch (e) {}
+    }
+    function setHash(h) {
+        try {
+            if (window.history && history.replaceState)
+                history.replaceState(null, "", h || location.pathname + location.search);
+        } catch (e) {}
+    }
+    function applyCode(code) {
+        state.b = {};
+        var occ = resolveBracket();
+        for (var i = 0; i < 22; i++) {
+            var d = code.charAt(i);
+            if (d === "0") continue;
+            var no = BR[i][0];
+            var g = occ[no];
+            if (g && g.h && g.a) {
+                state.b[no] = d === "1" ? g.h : g.a;
+                occ = resolveBracket();
+            }
+        }
+    }
+
     /* ══ state codec ═══════════════════════════════════════════════
        #b=<22 digits>, one per bracket game in order: 0 unpicked, 1 the
        home club, 2 the away club. It is what localStorage holds, and it
@@ -1384,35 +2100,19 @@ footer {
        that have since moved, so those links are not honoured — a stale
        digit would silently advance the wrong club.) */
     function encodeState() {
-        var occ = resolveBracket();
-        return (
-            "b=" +
-            BR.map(function (br) {
-                var g = occ[br[0]];
-                if (!g || !g.w) return "0";
-                return g.w === g.h ? "1" : "2";
-            }).join("")
-        );
+        return "b=" + bracketCode(resolveBracket());
     }
     function decodeState(hash) {
         var m = /b=([0-2]{22})/.exec(hash || "");
         if (!m) return false;
-        state.b = {};
-        var occ = resolveBracket();
-        m[1].split("").forEach(function (d, i) {
-            if (d === "0") return;
-            var no = BR[i][0];
-            var g = occ[no];
-            if (g && g.h && g.a) {
-                state.b[no] = d === "1" ? g.h : g.a;
-                occ = resolveBracket(); // later games see this winner
-            }
-        });
+        applyCode(m[1]);
         return true;
     }
     function save() {
+        // while somebody else's entry is on screen, the reader's own bracket is
+        // what gets kept — looking at an entry must not overwrite your work.
         try {
-            localStorage.setItem(STORE, encodeState());
+            localStorage.setItem(STORE, viewing === null ? encodeState() : "b=" + stash);
         } catch (e) {}
     }
 
@@ -1440,6 +2140,9 @@ footer {
         var id = b.id;
         if (id === "act-reset" || id === "bk-clear") {
             state.b = {};
+            viewing = null;
+            forkedFrom = null;
+            stash = null;
             lastChamp = null;
             render();
             if (id === "act-reset") toast("Cleared — the bracket is empty again");
@@ -1447,9 +2150,27 @@ footer {
         }
         if (id === "bk-chalk") return fillBracket(false);
         if (id === "bk-random") return fillBracket(true);
+        if (b.id === "enter-copy") {
+            var txt = entryText(resolveBracket());
+            if (navigator.clipboard && navigator.clipboard.writeText)
+                navigator.clipboard.writeText(txt).then(
+                    function () { toast("Entry copied — send it to the desk"); },
+                    function () { toast("Could not copy — select the entry and copy it"); }
+                );
+            else toast("Select the entry on the right and copy it");
+            return;
+        }
+        if (b.id === "viewing-back") return unloadEntry();
+        if (b.hasAttribute("data-view")) return loadEntry(+b.getAttribute("data-view"));
         if (b.classList.contains("bg-s") && b.hasAttribute("data-s")) {
             var no2 = +b.getAttribute("data-g");
             var s = b.getAttribute("data-s");
+            // editing somebody else's entry forks it: it stops being theirs,
+            // and the reader's own bracket stays recoverable.
+            if (viewing !== null) {
+                forkedFrom = (data.entries[viewing] || {}).n || null;
+                viewing = null;
+            }
             if (state.b[no2] === s) delete state.b[no2];
             else state.b[no2] = s;
             if (navigator.vibrate) navigator.vibrate(8);
@@ -1501,16 +2222,59 @@ footer {
         Array.prototype.forEach.call(document.querySelectorAll(".playdates"), function (n) {
             n.textContent = data.days;
         });
+
+        // the prize band and the entry desk are both written from the island
+        el("prize-n").textContent = data.prize.sats.toLocaleString("en-US");
+        el("prize-deadline").textContent =
+            "Entries close at " + data.prize.deadline + ".";
+        var groups = {};
+        var groupOrder = [];
+        (data.roster || []).forEach(function (p) {
+            if (!groups[p.c]) {
+                groups[p.c] = [];
+                groupOrder.push(p.c);
+            }
+            groups[p.c].push(p.n);
+        });
+        el("roster-list").innerHTML = groupOrder
+            .map(function (c) {
+                return groups[c]
+                    .map(function (n) {
+                        return '<option value="' + esc(n) + '"></option>';
+                    })
+                    .join("");
+            })
+            .join("");
+        try {
+            el("who").value = localStorage.getItem(STORE + "-who") || "";
+        } catch (e) {}
+        ["input", "change"].forEach(function (ev) {
+            el("who").addEventListener(ev, function () {
+                try {
+                    localStorage.setItem(STORE + "-who", el("who").value);
+                } catch (e) {}
+                renderEntry(resolveBracket());
+            });
+        });
+
         selfCheck();
-        var fromHash = decodeState(location.hash);
-        if (!fromHash) {
-            try {
-                decodeState(localStorage.getItem(STORE) || "");
-            } catch (e) {}
+        // an inbound link to one reader's entry wins over everything else
+        var em = /[#&]e=([a-z0-9-]+)/.exec(location.hash || "");
+        var wanted = em ? entryIndexBySlug(em[1]) : -1;
+        var fromHash = false;
+        if (wanted < 0) {
+            fromHash = decodeState(location.hash);
+            if (!fromHash) {
+                try {
+                    decodeState(localStorage.getItem(STORE) || "");
+                } catch (e) {}
+            }
         }
         lastChamp = resolveBracket()[22].w;
         render();
-        if (fromHash) toast("A shared bracket loaded — Reset starts fresh");
+        if (wanted >= 0) loadEntry(wanted);
+        else if (em) toast("That entry is not on this page");
+        else if (fromHash) toast("A shared bracket loaded — Reset starts fresh");
     })();
 })();
         </script>

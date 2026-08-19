@@ -326,6 +326,13 @@ company address, chosen deliberately over a softball.best one). It ships in the 
 the page assembles the mailto from it at runtime, so the address never sits in the markup
 for scrapers; the only copy in the file is inside the JSON island. Change it in analysis.py
 and re-splice — never hand-edit the address into the page.
+**The address must be VISIBLE, not just wired into the mail button** (owner, 2026-08-19,
+after publishing): the mail button addresses itself, but anyone taking the "Copy my entry"
+route was left holding an entry with nowhere to send it. So the entry desk carries a
+`.sendto` line ("Send it to curtis@yggr.xyz", itself a mailto), the copied text is prefixed
+`Send to: <address>` so a pasted entry stands on its own, and the copy toast names the
+address too. All three are written at runtime from `data.prize.to` — keep them that way if
+the address changes.
 
 **The satoshi sign was TRIED AND REVERTED, 2026-08-19 — do not re-add it.** The owner
 asked for the symbol plus the unit spelled "Satoshis" (supplying a Font Awesome kit,

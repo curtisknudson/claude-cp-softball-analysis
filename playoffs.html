@@ -511,6 +511,23 @@ input[type="text"]:focus {
     gap: 10px;
     flex-wrap: wrap;
 }
+/* Where to send it. The mail button addresses itself, so this is really for
+   the copy path — somebody holding an entry and no idea where it goes. */
+.sendto {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--dim);
+    margin: 12px 0 0;
+}
+.sendto a {
+    color: var(--gold);
+    font-weight: 700;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(242, 189, 76, 0.4);
+}
+.sendto a:hover {
+    border-bottom-color: var(--gold);
+}
 .btn[disabled] {
     opacity: 0.4;
     cursor: not-allowed;
@@ -1207,11 +1224,15 @@ footer {
                             <a class="btn solid" id="enter-mail" href="#">Open my entry email</a>
                             <button type="button" class="btn" id="enter-copy">Copy my entry</button>
                         </div>
+                        <p class="sendto">
+                            Send it to <a id="enter-to" href="#">the desk</a>
+                        </p>
                         <p class="cap">
-                            The button opens your own mail app with the entry
-                            already written; you just send it. If your device
-                            has no mail app set up, copy the entry instead and
-                            send it however you like — the code is the entry.
+                            The first button opens your own mail app with the
+                            entry already written and addressed; you just send
+                            it. No mail app? <b>Copy my entry</b> puts the whole
+                            thing on your clipboard — address included — and you
+                            can send it any way you like. The code is the entry.
                             Nothing on this page is transmitted anywhere by
                             itself.
                         </p>
@@ -2151,13 +2172,15 @@ footer {
         if (id === "bk-chalk") return fillBracket(false);
         if (id === "bk-random") return fillBracket(true);
         if (b.id === "enter-copy") {
-            var txt = entryText(resolveBracket());
+            // the copied entry has to stand on its own: whoever pastes it into
+            // a mail app, a text or a note needs the address in their hand.
+            var txt = "Send to: " + data.prize.to + "\n\n" + entryText(resolveBracket());
             if (navigator.clipboard && navigator.clipboard.writeText)
                 navigator.clipboard.writeText(txt).then(
-                    function () { toast("Entry copied — send it to the desk"); },
+                    function () { toast("Entry copied — send it to " + data.prize.to); },
                     function () { toast("Could not copy — select the entry and copy it"); }
                 );
-            else toast("Select the entry on the right and copy it");
+            else toast("Select the entry and copy it — send it to " + data.prize.to);
             return;
         }
         if (b.id === "viewing-back") return unloadEntry();
@@ -2225,6 +2248,11 @@ footer {
 
         // the prize band and the entry desk are both written from the island
         el("prize-n").textContent = data.prize.sats.toLocaleString("en-US");
+        // assembled here rather than sitting in the markup, so the address is
+        // not lying in the file for scrapers to walk
+        var to = el("enter-to");
+        to.textContent = data.prize.to;
+        to.href = "mailto:" + data.prize.to;
         el("prize-deadline").textContent =
             "Entries close at " + data.prize.deadline + ".";
         var groups = {};

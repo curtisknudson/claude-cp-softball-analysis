@@ -3900,25 +3900,74 @@ def emit_watch(c):
             )
 
 
-# The bracket the league posted (cpsoftball.com/playoffs.php): twelve clubs,
-# double elimination, twenty-two games over August 21-22. [game, home slot,
-# away slot, day]; s5 = the fifth seed, w4 / l4 = the winner / loser of Game 4.
-# Every slot points at a lower-numbered game, so one forward pass resolves the
-# whole thing. This is the same table playoffs.html carries in its BR constant
-# and is re-verified against the league's page each time the island is cut.
+# The bracket the league is actually playing: twelve clubs, double elimination,
+# twenty-two games over August 21-22.
+#
+# SOURCE, and this matters: transcribed 2026-08-20 from the league's own bracket
+# SHEET, supplied by the owner as a screenshot. cpsoftball.com/playoffs.php is
+# STALE — the owner confirmed the site was never updated — so the page is no
+# longer the source of truth for the bracket and must not be re-scraped over
+# this table without checking with him first.
+#
+# [game, top slot, bottom slot, day, time, field]; s5 = the fifth seed,
+# w4 / l4 = the winner / loser of Game 4. Top/bottom are the sheet's own
+# drawing order, NOT home and away: the sheet designates no home club, and
+# reading its layout as one would be wrong — the bye seeds sit BELOW their
+# opponents in G6 and G8, which would make them the visitors in their own
+# games. Every slot points at a lower-numbered game, so one forward pass
+# resolves the whole thing.
+#
+# Shape: the two roads are drawn as two streams that merge. Opening-round
+# losers fall to G9/G10 and play down through G13; quarterfinal losers fall to
+# G11/G12 and play down through G14; each stream then meets a winners-semifinal
+# loser (G17, G18), the two survivors meet at G20, and G21 adds the club that
+# lost the winners final. This is NOT the shape the old site posted, where the
+# two streams interleaved instead.
 PLAYOFF_BRACKET = [
-    (1, "s5", "s12", 21), (2, "s6", "s11", 21), (3, "s7", "s10", 21), (4, "s8", "s9", 21),
-    (5, "s1", "w4", 21), (6, "s2", "w3", 21), (7, "s3", "w2", 21), (8, "s4", "w1", 21),
-    (9, "l1", "l4", 21), (10, "l2", "l3", 21),
-    (11, "l5", "w9", 22), (12, "l6", "w10", 22),
-    (13, "w5", "w6", 22), (14, "w7", "w8", 22),
-    (15, "w13", "w14", 22),
-    (16, "l7", "w11", 22), (17, "l8", "w12", 22),
-    (18, "w16", "w17", 22),
-    (19, "l13", "w18", 22), (20, "l14", "w19", 22),
-    (21, "w20", "l15", 22),
-    (22, "w15", "w21", 22),
+    # Friday, August 21 — the whole winners' road, opening round to semifinals
+    (1, "s8", "s9", 21, "3:00 PM", "South"),
+    (2, "s5", "s12", 21, "3:00 PM", "North"),
+    (3, "s6", "s11", 21, "4:00 PM", "South"),
+    (4, "s7", "s10", 21, "4:00 PM", "North"),
+    (5, "s1", "w1", 21, "5:00 PM", "North"),
+    (6, "w2", "s4", 21, "5:00 PM", "South"),
+    (7, "s3", "w3", 21, "6:00 PM", "North"),
+    (8, "w4", "s2", 21, "6:00 PM", "South"),
+    (15, "w5", "w6", 21, "7:00 PM", "North"),
+    (16, "w7", "w8", 21, "7:00 PM", "South"),
+    # Saturday, August 22 — the elimination road, then both finals
+    (9, "l1", "l4", 22, "8:00 AM", "North"),
+    (10, "l2", "l3", 22, "8:00 AM", "South"),
+    (11, "l5", "l8", 22, "9:00 AM", "North"),
+    (12, "l6", "l7", 22, "9:00 AM", "South"),
+    (13, "w9", "w10", 22, "10:00 AM", "South"),
+    (14, "w11", "w12", 22, "10:00 AM", "North"),
+    (17, "w13", "l15", 22, "11:00 AM", "South"),
+    (18, "w14", "l16", 22, "11:00 AM", "North"),
+    (19, "w15", "w16", 22, "12:00 PM", "North"),
+    (20, "w17", "w18", 22, "12:00 PM", "South"),
+    (21, "w20", "l19", 22, "1:00 PM", "North"),
+    (22, "w19", "w21", 22, "2:00 PM", "North"),
+    # The decider. The league's sheet stops at G22, but 22 games cannot always
+    # crown a champion: the club coming off the elimination road arrives at
+    # G22 with one loss and the club off the winners' road with none, so if
+    # the elimination club wins, BOTH are on one loss and nothing is settled.
+    # Then — and only then — they play again. The old site carried the same
+    # gap with a "True Championship game will appear here if needed" note.
+    # It has no time or field because the sheet gives it none; do not invent
+    # one. IS_DECIDER below is what makes it conditional everywhere.
+    (23, "w22", "l22", 22, None, None),
 ]
+# G23 is played only when G22 leaves both clubs on one loss. Everything that
+# resolves a code must gate on this, or a bracket that ended at G22 will carry
+# a 23rd pick that never happened.
+DECIDER = 23
+BRACKET_DIGITS = 23
+# Resolution order. The table above is grouped by day so it reads like the
+# sheet; the resolver needs dependency order, and game number is exactly that
+# (every slot points at a lower-numbered game). Sorting here rather than
+# re-ordering the table keeps both properties without either being implicit.
+PLAYOFF_BRACKET.sort(key=lambda g: g[0])
 
 
 # ------------------------------------------------------------- contest desk
@@ -3939,6 +3988,24 @@ ENTRY_EMAIL = "curtis@yggr.xyz"
 PRIZE_SATS = 75000
 PRIZE_SPONSOR = "yggr"
 ENTRY_DEADLINE = "first pitch, Friday August 21"
+# The instant that sentence means, on the same local clock the `received`
+# column is written in: the earliest Friday game on the sheet. Derived from
+# PLAYOFF_BRACKET rather than typed, so the words on the page and the gate in
+# the loader cannot drift apart.
+PLAYOFF_YEAR_MONTH = (2026, 8)
+
+
+def entry_closes():
+    """The deadline as a naive local datetime — first pitch of the bracket."""
+    first_day = min(g[3] for g in PLAYOFF_BRACKET if g[4])
+    first = min(
+        datetime.datetime.strptime(g[4], "%I:%M %p").time()
+        for g in PLAYOFF_BRACKET
+        if g[3] == first_day and g[4]
+    )
+    return datetime.datetime.combine(
+        datetime.date(PLAYOFF_YEAR_MONTH[0], PLAYOFF_YEAR_MONTH[1], first_day), first
+    )
 
 
 def display_name(name):
@@ -3963,7 +4030,7 @@ def _slot_value(slot, occ, seed_slug):
 
 
 def resolve_code(code, seed_slug):
-    """Run a 22-digit bracket code through the posted topology, one forward pass.
+    """Run a 23-digit bracket code through the bracket, one forward pass.
 
     Digits are the page's own codec: 1 = the home slot's club advances, 2 = the
     away slot's, 0 = not picked. Returns {game: {h, a, w, l}} with w/l None
@@ -3972,15 +4039,35 @@ def resolve_code(code, seed_slug):
     that pays out a prize should not exist in only one language.
     """
     occ = {}
-    for no, home, away, _day in PLAYOFF_BRACKET:
+    for no, home, away, *_rest in PLAYOFF_BRACKET:
         h = _slot_value(home, occ, seed_slug)
         a = _slot_value(away, occ, seed_slug)
+        if no == DECIDER and not needs_decider(occ):
+            h = a = None
         d = code[no - 1]
         w = l = None
         if h and a and d in "12":
             w, l = (h, a) if d == "1" else (a, h)
         occ[no] = dict(h=h, a=a, w=w, l=l)
     return occ
+
+
+def needs_decider(occ):
+    """Does this bracket still owe a second championship game?
+
+    G22's HOME slot is w19 — the club off the winners' road, which has not
+    lost. If it wins, it is champion outright. If it loses, both clubs are on
+    one loss and the decider is owed.
+    """
+    g = occ.get(22) or {}
+    return bool(g.get("w")) and g["w"] != g["h"]
+
+
+def code_champion(occ):
+    """The club that actually lifts it, decider included (None if unfinished)."""
+    if not (occ.get(22) or {}).get("w"):
+        return None
+    return occ[DECIDER]["w"] if needs_decider(occ) else occ[22]["w"]
 
 
 def seed_slugs(st):
@@ -3993,7 +4080,7 @@ def load_brackets(path, st, cur):
 
     name      the player, spelled as the roster spells them ("Shem Hammon")
     club      the captain slug of the club they play for ("sefton")
-    code      22 digits, one per bracket game: 1 = home club, 2 = away club
+    code      23 digits, one per bracket game: 1 = top slot, 2 = bottom slot
     received  when the entry mail arrived, ISO 8601 — this is the clock the
               deadline is read on and the last tiebreak is settled on
 
@@ -4003,20 +4090,48 @@ def load_brackets(path, st, cur):
     prize; a silently mangled one is not an option.
     """
     roster = {display_name(p["name"]): cap_slug(p["team"]) for p in cur}
+    assert len(roster) == len(cur), "two rostered players share a display name"
     # The page resolves a TYPED name against the roster ignoring case and
     # doubled spaces, and mails the roster's own spelling. This loader matches
     # the same way and stores the canonical spelling, so the two ends of the
     # contest never disagree about whether two strings are the same person.
     canon = {" ".join(k.lower().split()): k for k in roster}
     ss = seed_slugs(st)
+    closes = entry_closes()
     entries, seen = [], {}
-    with open(path, newline="") as f:
-        for i, r in enumerate(csv.DictReader(f), start=2):
-            who = r["name"].strip()
-            where = r["club"].strip()
-            code = r["code"].strip()
-            at = r["received"].strip()
+    # utf-8-sig: a spreadsheet that saves the inbox writes a BOM, and a BOM on
+    # the header turns the "name" column into "\ufeffname" and a KeyError.
+    with open(path, newline="", encoding="utf-8-sig") as f:
+        rd = csv.DictReader(f)
+        assert rd.fieldnames == ["name", "club", "code", "received"], (
+            f"{path}: header must be name,club,code,received — got {rd.fieldnames}"
+        )
+        for i, r in enumerate(rd, start=2):
+            who = (r["name"] or "").strip()
+            where = (r["club"] or "").strip()
+            code = (r["code"] or "").strip()
+            at = (r["received"] or "").strip()
             tag = f"{path} line {i} ({who!r})"
+            # The clock: ISO 8601, LOCAL time, no zone — the same clock the
+            # deadline is read on. A zone suffix on one row and not another
+            # makes the rows incomparable, and the sort that settles ties would
+            # crash without naming the row; so it is refused here, by name.
+            try:
+                when = datetime.datetime.fromisoformat(at)
+            except ValueError:
+                raise AssertionError(
+                    f"{tag}: received must be ISO 8601, e.g. 2026-08-19T09:12 — got {at!r}"
+                ) from None
+            assert when.tzinfo is None, (
+                f"{tag}: write received on the local clock without a zone suffix — got {at!r}"
+            )
+            # Entries close at first pitch, and the page says so. An entry that
+            # arrived after it is not verified, it is late — and a prize that
+            # pays real money is not settled by a rule that bends for one row.
+            assert when < closes, (
+                f"{tag}: received {at} is after entries closed "
+                f"({ENTRY_DEADLINE}, {closes:%Y-%m-%dT%H:%M}) — late entries are not verified"
+            )
             who = canon.get(" ".join(who.lower().split()), who)
             if who not in roster:
                 near = difflib.get_close_matches(who, roster, n=3, cutoff=0.6)
@@ -4027,18 +4142,35 @@ def load_brackets(path, st, cur):
             )
             assert who not in seen, f"{tag}: already entered at line {seen[who]}"
             seen[who] = i
-            assert len(code) == 22 and all(d in "12" for d in code), (
-                f"{tag}: code must be 22 digits of 1/2 — every game called, got {code!r}"
+            assert len(code) == BRACKET_DIGITS and all(d in "012" for d in code), (
+                f"{tag}: code must be {BRACKET_DIGITS} digits of 0/1/2, got {code!r}"
+            )
+            assert all(d in "12" for d in code[: DECIDER - 1]), (
+                f"{tag}: every one of the twenty-two games must be called, got {code!r}"
             )
             occ = resolve_code(code, ss)
-            assert occ[22]["w"], f"{tag}: code does not resolve to a champion"
+            # The 23rd digit is the decider, and it must agree with G22: called
+            # when the elimination-road club wins G22 (both then on one loss),
+            # and 0 when it did not, because that game was never played.
+            if needs_decider(occ):
+                assert code[22] in "12", (
+                    f"{tag}: this bracket has the elimination-road club winning G22, so "
+                    "both clubs finish on one loss and the decider must be called too — "
+                    f"the 23rd digit is {code[22]!r}"
+                )
+            else:
+                assert code[22] == "0", (
+                    f"{tag}: this bracket is settled in G22, so there is no decider to "
+                    f"call — the 23rd digit must be 0, got {code[22]!r}"
+                )
+            assert code_champion(occ), f"{tag}: code does not resolve to a champion"
             entries.append(
                 dict(
                     name=who,
                     club=where,
                     code=code,
-                    received=datetime.datetime.fromisoformat(at),
-                    champ=occ[22]["w"],
+                    received=when,
+                    champ=code_champion(occ),
                 )
             )
     entries.sort(key=lambda e: e["received"])
@@ -4046,9 +4178,9 @@ def load_brackets(path, st, cur):
 
 
 def load_playoff_results(path, st):
-    """Load played playoff games: game,winner — any subset of 1..22, any order.
+    """Load played playoff games: game,winner — any subset of 1..23, any order.
 
-    Returns the same 22-digit codec the entries use, with 0 for games not yet
+    Returns the same 23-digit codec the entries use, with 0 for games not yet
     played. **This is the schema question CLAUDE.md left open:** playoff results
     ride their own small file keyed by BRACKET GAME NUMBER, because
     MMDD-schedule.csv is a date/field slate with no game-number column and the
@@ -4057,17 +4189,40 @@ def load_playoff_results(path, st):
     """
     ss = seed_slugs(st)
     want = {}
-    with open(path, newline="") as f:
-        for i, r in enumerate(csv.DictReader(f), start=2):
+    with open(path, newline="", encoding="utf-8-sig") as f:
+        rd = csv.DictReader(f)
+        assert rd.fieldnames == ["game", "winner"], (
+            f"{path}: header must be game,winner — got {rd.fieldnames}"
+        )
+        for i, r in enumerate(rd, start=2):
+            assert (r["game"] or "").strip().isdigit(), (
+                f"{path} line {i}: game must be a bracket game number, got {r['game']!r}"
+            )
             no = int(r["game"])
-            assert 1 <= no <= 22, f"{path} line {i}: game {no} is not in the bracket"
+            assert 1 <= no <= BRACKET_DIGITS, (
+                f"{path} line {i}: game {no} is not in the bracket"
+            )
             assert no not in want, f"{path} line {i}: game {no} listed twice"
-            want[no] = cap_slug(r["winner"].strip())
-    digits = ["0"] * 22
+            team = (r["winner"] or "").strip()
+            if team not in CAPTAINS:
+                near = difflib.get_close_matches(team, CAPTAINS, n=3, cutoff=0.5)
+                hint = f" — did you mean {' / '.join(near)}?" if near else ""
+                raise AssertionError(
+                    f"{path} line {i}: winner {team!r} is not a league team name{hint}"
+                )
+            want[no] = cap_slug(team)
+    digits = ["0"] * BRACKET_DIGITS
     occ = {}
-    for no, home, away, _day in PLAYOFF_BRACKET:
+    for no, home, away, *_rest in PLAYOFF_BRACKET:
         h = _slot_value(home, occ, ss)
         a = _slot_value(away, occ, ss)
+        # A result for the decider is only legal if G22 actually left it owed.
+        if no == DECIDER and not needs_decider(occ):
+            assert no not in want, (
+                f"{path}: G{no} has a result, but G22 was won by the club that had not "
+                "lost — the season ended there and the decider was never played"
+            )
+            h = a = None
         w = l = None
         if no in want:
             assert h and a, (
@@ -4102,7 +4257,10 @@ def score_entries(entries, res_code, st):
     """
     ss = seed_slugs(st)
     truth = resolve_code(res_code, ss)
-    played = [no for no in range(1, 23) if truth[no]["w"]]
+    # The decider is scored like any other game — but only if it was played.
+    # An entry that called it is not credited for a game that never happened,
+    # and one that (correctly) left it blank is not punished for the blank.
+    played = [no for no in range(1, BRACKET_DIGITS + 1) if truth[no]["w"]]
     for e in entries:
         occ = resolve_code(e["code"], ss)
         e["score"] = sum(1 for no in played if occ[no]["w"] == truth[no]["w"])
@@ -4139,13 +4297,18 @@ def emit_playoff_seeds(c):
     # reference points at a lower-numbered game — which is what lets the page
     # resolve the whole prophecy in a single forward pass.
     seats = []
-    for no, home, away, _day in PLAYOFF_BRACKET:
+    for no, home, away, *_rest in PLAYOFF_BRACKET:
         for slot in (home, away):
             if slot[0] == "s":
                 seats.append(int(slot[1:]))
             else:
                 assert int(slot[1:]) < no, f"G{no} refers forward to {slot}"
     assert sorted(seats) == list(range(1, len(st) + 1)), f"bracket seats {sorted(seats)}"
+    # The codec is positional — digit i is game i+1 in both languages — so the
+    # table must be exactly games 1..BRACKET_DIGITS, each once, in order.
+    assert [g[0] for g in PLAYOFF_BRACKET] == list(range(1, BRACKET_DIGITS + 1)), (
+        "bracket games are not exactly 1..%d in order" % BRACKET_DIGITS
+    )
 
     n_played = sum(1 for d in (c.get("results") or "") if d != "0")
     print(
@@ -4154,7 +4317,7 @@ def emit_playoff_seeds(c):
         f"{len(c.get('brackets') or [])} contest entries, {n_played} results in -->"
     )
     entries = c.get("brackets") or []
-    res_code = c.get("results") or "0" * 22
+    res_code = c.get("results") or "0" * BRACKET_DIGITS
     if any(d != "0" for d in res_code):
         score_entries(entries, res_code, st)
     seat = {cap_slug(s["team"]): s["rank"] for s in st}

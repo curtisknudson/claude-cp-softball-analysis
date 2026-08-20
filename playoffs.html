@@ -18,7 +18,7 @@
         <meta property="og:title" content="Playoff Prediction Brackets — CP Softball" />
         <meta
             property="og:description"
-            content="75,000 sats to whoever predicts the most accurate bracket, presented by yggr. Twelve clubs, double elimination, twenty-two games, August 21–22 — make your picks and the bracket builds itself."
+            content="75,000 sats to whoever predicts the most accurate bracket, presented by yggr. Twelve clubs, double elimination, August 21–22 — make your picks and the bracket builds itself."
         />
         <meta property="og:url" content="https://softball.best/playoffs.html" />
         <meta property="og:image" content="https://softball.best/og-playoffs.png" />
@@ -27,7 +27,7 @@
         <meta property="og:image:height" content="630" />
         <meta
             property="og:image:alt"
-            content="Playoff Prediction Brackets — 75,000 sats to the most accurate bracket, presented by yggr. The CP Softball playoff bracket, all 22 games to a champion."
+            content="Playoff Prediction Brackets — 75,000 sats to the most accurate bracket, presented by yggr. The CP Softball playoff bracket, every game to a champion."
         />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Playoff Prediction Brackets — CP Softball" />
@@ -44,7 +44,7 @@
    to do — call the bracket.
 
    The page is one causal chain, read top to bottom and left to right:
-       the twelve posted seeds  →  the twenty-two game bracket
+       the twelve posted seeds  →  the twenty-two game bracket (+ decider)
                                 →  a champion.
    Nothing is hidden behind a tab or a mode. Desktop gets the width the
    bracket actually needs; the phone gets the same page, stacked, with
@@ -533,7 +533,10 @@ input[type="text"].wanted {
 .sendto a:hover {
     border-bottom-color: var(--gold);
 }
-.btn[disabled] {
+.btn[disabled],
+.btn[aria-disabled="true"] {
+    /* the copy button is a real <button> and disables itself; the mail button
+       is an <a> and can only say so — both have to LOOK the same when off */
     opacity: 0.4;
     cursor: not-allowed;
 }
@@ -553,6 +556,122 @@ input[type="text"].wanted {
 }
 .slip b {
     color: var(--ink);
+}
+
+/* ── the room's pick: who the entries have taking it all ──
+   One series (entries backing a club), so it is EMPHASIS, not categorical:
+   the most-backed club wears gold, everybody else rides the neutral ink.
+   Bars are scaled to the leader, direct-labelled with the count, and the
+   figures stay in text tokens — the bar carries identity, never the type. */
+.tally {
+    border: 1px solid var(--edge);
+    border-radius: 12px;
+    background: var(--panel);
+    padding: 14px 16px 12px;
+    margin: 0 0 18px;
+}
+.tally-h {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 12px;
+    margin-bottom: 12px;
+}
+.tally-h h3 {
+    font-family: var(--display);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 1rem;
+    margin: 0;
+}
+.tally-say {
+    margin: 0;
+    font-size: 0.92rem;
+    color: var(--dim);
+    flex: 1 1 260px;
+}
+.tally-say b {
+    color: var(--ink);
+}
+.tally-rows {
+    display: grid;
+    gap: 6px;
+}
+.tally-row {
+    display: grid;
+    /* the trailing 1fr is an empty gutter: it keeps the plot from stretching
+       to the full width of a desktop panel, where an 11px bar a metre long
+       stops reading as a bar at all */
+    grid-template-columns: 1.6rem minmax(84px, 8.5rem) minmax(0, 26rem) 2.2rem 1fr;
+    align-items: center;
+    gap: 10px;
+}
+.tally-seed {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--dim2);
+    text-align: right;
+}
+.tally-club {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    min-width: 0;
+    font-size: 0.88rem;
+    color: var(--ink);
+}
+.tally-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.tally-track {
+    background: var(--edge);
+    border-radius: 4px;
+    height: 11px;
+}
+.tally-bar {
+    display: block; /* a width on an inline span is ignored — it must be a block */
+    height: 100%;
+    background: var(--dim2);
+    border-radius: 4px;
+    min-width: 3px;
+}
+.tally-row.top .tally-bar {
+    background: var(--gold);
+}
+.tally-n {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--ink);
+    text-align: right;
+}
+.tally-you {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--dim2);
+    border: 1px solid var(--edge);
+    border-radius: 999px;
+    padding: 0 5px;
+    flex: none;
+}
+.tally-foot {
+    margin: 11px 0 0;
+    font-size: 0.76rem;
+    color: var(--dim2);
+    line-height: 1.5;
+}
+@media (max-width: 560px) {
+    .tally-row {
+        grid-template-columns: 1.4rem minmax(70px, 6.5rem) 1fr 2rem;
+        gap: 8px;
+    }
+    .tally-club {
+        font-size: 0.82rem;
+    }
+
 }
 
 /* ── the gallery of entries ── */
@@ -845,6 +964,29 @@ input[type="text"].wanted {
 .bg.gf .bg-h .gno {
     color: var(--gold);
 }
+/* The decider is not always a game. When G22 can still settle it outright the
+   card stays on the board — so a reader can see the rule exists before it
+   bites — but reads as unplayed rather than as a game waiting to be called. */
+.bg.dormant {
+    opacity: 0.45;
+    border-style: dashed;
+}
+.bg.dormant .bg-h .gno {
+    color: var(--dim2);
+}
+/* Second header line: the league's own date and start time. It sits on its
+   own row because "AUG 21 · 3:00 PM · SOUTH" on one line overflows a 128px
+   card on a phone — the field rides up on the game-number line instead. */
+.bg-when {
+    flex: none;
+    font-family: var(--mono);
+    font-size: 0.5rem;
+    line-height: 1.3;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--dim2);
+    padding: 0 4px 3px;
+}
 /* The two slots split whatever height the header leaves, so a card can
    never crop the club sitting on its bottom line. */
 .bg-s {
@@ -1091,7 +1233,8 @@ footer {
                     <b><span class="asof">August 14</span></b>, and the league
                     has posted its bracket: twelve clubs, double elimination,
                     twenty-two games over
-                    <b><span class="playdates">August 21–22</span></b>.
+                    <b><span class="playdates">August 21–22</span></b> — and a
+                    twenty-third if the final needs a replay.
                     There is nothing left to work out — the seeding below is
                     final, and the only thing still unknown is who wins. Pick a
                     winner in any game and the clubs move themselves through:
@@ -1109,7 +1252,7 @@ footer {
                     <div class="prize-eyebrow">Presented by yggr · coffee for sats</div>
                     <p class="prize-n"><b id="prize-n">75,000</b> sats<br />to the best bracket.</p>
                     <p class="prize-sub">
-                        Fill in all twenty-two games below, then send the desk
+                        Fill in every game below, then send the desk
                         your entry. The bracket that calls the most games right
                         takes the lot — paid in bitcoin by the editor’s other
                         desk, which sells coffee and takes the same currency.
@@ -1192,15 +1335,31 @@ footer {
                     Calm, as ever.
                 </div>
                 <p class="fine">
-                    The shape is the league’s own, as posted: twelve clubs,
-                    double elimination, <span class="playdates">August 21–22</span>,
-                    twenty-two games. Byes for the top four; five plays twelve,
+                    The shape is the league’s own, off its bracket sheet: twelve
+                    clubs, double elimination, <span class="playdates">August 21–22</span>,
+                    twenty-two games — twenty-three if the final needs a replay.
+                    Byes for the top four; five plays twelve,
                     six plays eleven, seven plays ten, eight plays nine. Lose
                     once and you drop to the elimination road; lose twice and
-                    the summer is over. The club listed first in each game is
-                    the home club, which is the first time the league’s
-                    paperwork has carried the designation. Hover a game on a
-                    desktop to see where its winner and its loser go next.
+                    the summer is over. The whole winners’ road is played
+                    Friday and everything else Saturday, first pitch at eight.
+                    Each card carries its field and its start time, as the
+                    sheet gives them; the sheet names no home club, so neither
+                    do we. Hover a game on a desktop to see where its winner
+                    and its loser go next.
+                </p>
+                <p class="fine">
+                    <b>About the decider.</b> The club that comes up the
+                    elimination road reaches the grand final having already lost
+                    once; the club that comes down the winners’ road has not lost
+                    at all. So if the elimination club wins G22, both are on one
+                    loss and nothing has been settled — they play again, and the
+                    elimination club has to beat them twice to take it. That is
+                    G23, and it exists only if you call G22 that way: pick it the
+                    other way and the decider is not a game, does not count
+                    toward your total, and cannot be called. The league’s sheet
+                    stops at twenty-two and leaves this one undated, so we give
+                    it no time and no field.
                 </p>
             </section>
 
@@ -1255,6 +1414,14 @@ footer {
                     <h2 id="entries-h">The entries</h2>
                 </div>
                 <p class="sec-sub" id="entries-sub"></p>
+                <div class="tally" id="tally" hidden>
+                    <div class="tally-h">
+                        <h3>Who the room likes</h3>
+                        <p class="tally-say" id="tally-say"></p>
+                    </div>
+                    <div class="tally-rows" id="tally-rows"></div>
+                    <p class="tally-foot" id="tally-foot"></p>
+                </div>
                 <div class="viewing-bar" id="viewing-bar" hidden>
                     <span id="viewing-who"></span>
                     <button type="button" class="btn quiet" id="viewing-back">Back to my bracket</button>
@@ -1317,7 +1484,7 @@ footer {
                     the desk respects the choice, but the bracket and the
                     contest both need it. There is no ink edition of this
                     page. If you want to enter, turn script on here or mail
-                    the desk your twenty-two picks in writing; the prize is
+                    the desk your picks in writing; the prize is
                     open to every rostered player either way. The season’s
                     numbers — the standings, the batting race, the record
                     board — are printed in <a href="index.html">the paper</a>.
@@ -1325,7 +1492,7 @@ footer {
             </div>
         </noscript>
 
-        <script type="application/json" id="machine-data">{"final":true,"asof":"August 14","days":"August 21\u201322","bracket":[[1,"s5","s12",21],[2,"s6","s11",21],[3,"s7","s10",21],[4,"s8","s9",21],[5,"s1","w4",21],[6,"s2","w3",21],[7,"s3","w2",21],[8,"s4","w1",21],[9,"l1","l4",21],[10,"l2","l3",21],[11,"l5","w9",22],[12,"l6","w10",22],[13,"w5","w6",22],[14,"w7","w8",22],[15,"w13","w14",22],[16,"l7","w11",22],[17,"l8","w12",22],[18,"w16","w17",22],[19,"l13","w18",22],[20,"l14","w19",22],[21,"w20","l15",22],[22,"w15","w21",22]],"prize":{"sats":75000,"sponsor":"yggr","to":"curtis@yggr.xyz","deadline":"first pitch, Friday August 21"},"roster":[{"n":"Angeline Williams","c":"jeremy"},{"n":"Curtis Hammon","c":"jeremy"},{"n":"Daniel Dockstader Marvins","c":"jeremy"},{"n":"Dorothy Dockstader","c":"jeremy"},{"n":"Jeremy Dockstader Boyds","c":"jeremy"},{"n":"Jeremy Dockstader Marvins","c":"jeremy"},{"n":"Marvin Dockstader","c":"jeremy"},{"n":"Paul Hammon","c":"jeremy"},{"n":"Samantha Monroy","c":"jeremy"},{"n":"Taylor Timpson","c":"jeremy"},{"n":"Wesley Williams","c":"jeremy"},{"n":"William Timpson","c":"jeremy"},{"n":"Anson Johnson","c":"caleb"},{"n":"Aryck Hammon","c":"caleb"},{"n":"Caleb Barlow","c":"caleb"},{"n":"Daniel Williams","c":"caleb"},{"n":"Kaitlyn Knudson","c":"caleb"},{"n":"Kyle Hammon","c":"caleb"},{"n":"Matt Williams","c":"caleb"},{"n":"Merlek Timpson","c":"caleb"},{"n":"Nathan Hammon","c":"caleb"},{"n":"Ryan Hammon","c":"caleb"},{"n":"Sarah Timpson","c":"caleb"},{"n":"Selena Dutson","c":"caleb"},{"n":"Aaron Zitting","c":"horatio"},{"n":"Anthony Williams","c":"horatio"},{"n":"Benjiman Hammon Legrands","c":"horatio"},{"n":"Curt White","c":"horatio"},{"n":"Curtis Knudson","c":"horatio"},{"n":"David Hammon","c":"horatio"},{"n":"Heather Williams","c":"horatio"},{"n":"Horatio Williams","c":"horatio"},{"n":"Jazlin Knudson","c":"horatio"},{"n":"Lewis Hammon","c":"horatio"},{"n":"Marissa Williams","c":"horatio"},{"n":"Treyton Timpson","c":"horatio"},{"n":"Alma Timpson","c":"sefton"},{"n":"Andrew Musser","c":"sefton"},{"n":"Brayden Hammon","c":"sefton"},{"n":"Daniel Knudson","c":"sefton"},{"n":"Isabel Dockstader","c":"sefton"},{"n":"Jayla Dockstader","c":"sefton"},{"n":"Kendall Hammon","c":"sefton"},{"n":"Preston Knudson","c":"sefton"},{"n":"Riley Barlow","c":"sefton"},{"n":"Sefton Dockstader","c":"sefton"},{"n":"Seth Timpson","c":"sefton"},{"n":"Shem Hammon","c":"sefton"},{"n":"Adam Dockstader","c":"stafford"},{"n":"Bruce Hammon","c":"stafford"},{"n":"Charles Williams","c":"stafford"},{"n":"Cleeson Bauer","c":"stafford"},{"n":"Gerard Hammon","c":"stafford"},{"n":"Jerold Williams","c":"stafford"},{"n":"Monte Hammon","c":"stafford"},{"n":"Pauline Timpson","c":"stafford"},{"n":"Sabrina Naylor","c":"stafford"},{"n":"Samantha Hammon","c":"stafford"},{"n":"Stafford Hammon","c":"stafford"},{"n":"Timothy Naylor","c":"stafford"},{"n":"Avery Hammon","c":"claude"},{"n":"Brigham Hammon","c":"claude"},{"n":"Claude Timpson","c":"claude"},{"n":"Connor Williams","c":"claude"},{"n":"Jonathan Timpson Rays","c":"claude"},{"n":"Kayden Timpson","c":"claude"},{"n":"Lexi Timpson","c":"claude"},{"n":"Lindsey Timpson","c":"claude"},{"n":"Logan Hammon","c":"claude"},{"n":"Moroni Musser","c":"claude"},{"n":"Sean Hammon","c":"claude"},{"n":"Violet Barlow","c":"claude"},{"n":"Abe Dockstader","c":"gideon"},{"n":"Becky Wood","c":"gideon"},{"n":"Benjiman Barlow","c":"gideon"},{"n":"Douglas Hammon","c":"gideon"},{"n":"Evan Williams","c":"gideon"},{"n":"Gideon Hammon","c":"gideon"},{"n":"Jairus Hammon","c":"gideon"},{"n":"Jason Hammon","c":"gideon"},{"n":"Justin Timpson","c":"gideon"},{"n":"Kyle Dockstader","c":"gideon"},{"n":"Tammy Williams","c":"gideon"},{"n":"Wallace Barlow","c":"gideon"},{"n":"Austin Ivory","c":"elliot"},{"n":"Bryan Dockstader","c":"elliot"},{"n":"Elliot Hammon","c":"elliot"},{"n":"Jarom Dockstader","c":"elliot"},{"n":"Karen Hammon","c":"elliot"},{"n":"Larry Stubbs","c":"elliot"},{"n":"Lincoln Wood","c":"elliot"},{"n":"Lizzy Horsley","c":"elliot"},{"n":"Lonnie Timpson","c":"elliot"},{"n":"Max Horsley","c":"elliot"},{"n":"Michael Timpson","c":"elliot"},{"n":"Roy Hammon","c":"elliot"},{"n":"Amie Z Barlow","c":"michael"},{"n":"Benjiman Hammon Hebers","c":"michael"},{"n":"Hyrum Timpson","c":"michael"},{"n":"Jason W Timpson","c":"michael"},{"n":"John Barlow Jr","c":"michael"},{"n":"Leslie Williams","c":"michael"},{"n":"Lorin Timpson","c":"michael"},{"n":"Michael Williams","c":"michael"},{"n":"Nathan Knudson","c":"michael"},{"n":"Rebecca Horsley","c":"michael"},{"n":"Sidney Dockstader","c":"michael"},{"n":"Sophia Cawley","c":"michael"},{"n":"Adam Naylor","c":"boyds-daniel"},{"n":"Alyssa Zitting","c":"boyds-daniel"},{"n":"Ben Williams","c":"boyds-daniel"},{"n":"Daniel Dockstader Boyds","c":"boyds-daniel"},{"n":"Derrick Knudson","c":"boyds-daniel"},{"n":"Emmerson Hammon","c":"boyds-daniel"},{"n":"J Daunt Hammon","c":"boyds-daniel"},{"n":"Leroy Dutson","c":"boyds-daniel"},{"n":"Levi Knudson","c":"boyds-daniel"},{"n":"Maureen Williams","c":"boyds-daniel"},{"n":"Seth Williams","c":"boyds-daniel"},{"n":"Steven Dockstader","c":"boyds-daniel"},{"n":"Bowen Hammon","c":"ephraims-daniel"},{"n":"Brenda Naylor","c":"ephraims-daniel"},{"n":"Carl Williams","c":"ephraims-daniel"},{"n":"Daniel Dockstader Ephraims","c":"ephraims-daniel"},{"n":"Deborah Timpson","c":"ephraims-daniel"},{"n":"Heber Williams","c":"ephraims-daniel"},{"n":"Lorenzo Cawley","c":"ephraims-daniel"},{"n":"Nate Darger","c":"ephraims-daniel"},{"n":"Noah Dockstader","c":"ephraims-daniel"},{"n":"Robert Dockstader","c":"ephraims-daniel"},{"n":"Scott Naylor","c":"ephraims-daniel"},{"n":"Teancum Timpson","c":"ephraims-daniel"},{"n":"Ammon Timpson","c":"seth"},{"n":"Cuervo Timpson","c":"seth"},{"n":"Donald Timpson","c":"seth"},{"n":"Dylan Horsley","c":"seth"},{"n":"Jefferson Johnson","c":"seth"},{"n":"Joanne Sis Timpson","c":"seth"},{"n":"Nephi Darger","c":"seth"},{"n":"Porter Hammon","c":"seth"},{"n":"Royal Barlow","c":"seth"},{"n":"Sam Guy","c":"seth"},{"n":"Seth Cawley","c":"seth"},{"n":"Sharon Hammon","c":"seth"}],"entries":[],"results":"0000000000000000000000","teams":[{"s":"jeremy","label":"Jeremy's team","seed":1,"w":15,"l":5,"t":0,"pts":30,"pf":273,"pa":217,"diff":56},{"s":"caleb","label":"Caleb's team","seed":2,"w":14,"l":5,"t":1,"pts":29,"pf":262,"pa":200,"diff":62},{"s":"horatio","label":"Horatio's team","seed":3,"w":14,"l":6,"t":0,"pts":28,"pf":292,"pa":159,"diff":133},{"s":"sefton","label":"Sefton's team","seed":4,"w":14,"l":6,"t":0,"pts":28,"pf":279,"pa":195,"diff":84},{"s":"stafford","label":"Stafford's team","seed":5,"w":13,"l":7,"t":0,"pts":26,"pf":255,"pa":224,"diff":31},{"s":"claude","label":"Claude's team","seed":6,"w":11,"l":8,"t":1,"pts":23,"pf":211,"pa":196,"diff":15},{"s":"gideon","label":"Gideon's team","seed":7,"w":9,"l":11,"t":0,"pts":18,"pf":209,"pa":221,"diff":-12},{"s":"elliot","label":"Elliot's team","seed":8,"w":8,"l":12,"t":0,"pts":16,"pf":225,"pa":248,"diff":-23},{"s":"michael","label":"Michael's team","seed":9,"w":7,"l":13,"t":0,"pts":14,"pf":179,"pa":238,"diff":-59},{"s":"boyds-daniel","label":"Boyds Daniel's team","seed":10,"w":6,"l":14,"t":0,"pts":12,"pf":176,"pa":250,"diff":-74},{"s":"ephraims-daniel","label":"Ephraims Daniel's team","seed":11,"w":4,"l":16,"t":0,"pts":8,"pf":211,"pa":301,"diff":-90},{"s":"seth","label":"Seth's team","seed":12,"w":4,"l":16,"t":0,"pts":8,"pf":159,"pa":282,"diff":-123}]}</script>
+        <script type="application/json" id="machine-data">{"final":true,"asof":"August 14","days":"August 21\u201322","bracket":[[1,"s8","s9",21,"3:00 PM","South"],[2,"s5","s12",21,"3:00 PM","North"],[3,"s6","s11",21,"4:00 PM","South"],[4,"s7","s10",21,"4:00 PM","North"],[5,"s1","w1",21,"5:00 PM","North"],[6,"w2","s4",21,"5:00 PM","South"],[7,"s3","w3",21,"6:00 PM","North"],[8,"w4","s2",21,"6:00 PM","South"],[9,"l1","l4",22,"8:00 AM","North"],[10,"l2","l3",22,"8:00 AM","South"],[11,"l5","l8",22,"9:00 AM","North"],[12,"l6","l7",22,"9:00 AM","South"],[13,"w9","w10",22,"10:00 AM","South"],[14,"w11","w12",22,"10:00 AM","North"],[15,"w5","w6",21,"7:00 PM","North"],[16,"w7","w8",21,"7:00 PM","South"],[17,"w13","l15",22,"11:00 AM","South"],[18,"w14","l16",22,"11:00 AM","North"],[19,"w15","w16",22,"12:00 PM","North"],[20,"w17","w18",22,"12:00 PM","South"],[21,"w20","l19",22,"1:00 PM","North"],[22,"w19","w21",22,"2:00 PM","North"],[23,"w22","l22",22,null,null]],"prize":{"sats":75000,"sponsor":"yggr","to":"curtis@yggr.xyz","deadline":"first pitch, Friday August 21"},"roster":[{"n":"Angeline Williams","c":"jeremy"},{"n":"Curtis Hammon","c":"jeremy"},{"n":"Daniel Dockstader Marvins","c":"jeremy"},{"n":"Dorothy Dockstader","c":"jeremy"},{"n":"Jeremy Dockstader Boyds","c":"jeremy"},{"n":"Jeremy Dockstader Marvins","c":"jeremy"},{"n":"Marvin Dockstader","c":"jeremy"},{"n":"Paul Hammon","c":"jeremy"},{"n":"Samantha Monroy","c":"jeremy"},{"n":"Taylor Timpson","c":"jeremy"},{"n":"Wesley Williams","c":"jeremy"},{"n":"William Timpson","c":"jeremy"},{"n":"Anson Johnson","c":"caleb"},{"n":"Aryck Hammon","c":"caleb"},{"n":"Caleb Barlow","c":"caleb"},{"n":"Daniel Williams","c":"caleb"},{"n":"Kaitlyn Knudson","c":"caleb"},{"n":"Kyle Hammon","c":"caleb"},{"n":"Matt Williams","c":"caleb"},{"n":"Merlek Timpson","c":"caleb"},{"n":"Nathan Hammon","c":"caleb"},{"n":"Ryan Hammon","c":"caleb"},{"n":"Sarah Timpson","c":"caleb"},{"n":"Selena Dutson","c":"caleb"},{"n":"Aaron Zitting","c":"horatio"},{"n":"Anthony Williams","c":"horatio"},{"n":"Benjiman Hammon Legrands","c":"horatio"},{"n":"Curt White","c":"horatio"},{"n":"Curtis Knudson","c":"horatio"},{"n":"David Hammon","c":"horatio"},{"n":"Heather Williams","c":"horatio"},{"n":"Horatio Williams","c":"horatio"},{"n":"Jazlin Knudson","c":"horatio"},{"n":"Lewis Hammon","c":"horatio"},{"n":"Marissa Williams","c":"horatio"},{"n":"Treyton Timpson","c":"horatio"},{"n":"Alma Timpson","c":"sefton"},{"n":"Andrew Musser","c":"sefton"},{"n":"Brayden Hammon","c":"sefton"},{"n":"Daniel Knudson","c":"sefton"},{"n":"Isabel Dockstader","c":"sefton"},{"n":"Jayla Dockstader","c":"sefton"},{"n":"Kendall Hammon","c":"sefton"},{"n":"Preston Knudson","c":"sefton"},{"n":"Riley Barlow","c":"sefton"},{"n":"Sefton Dockstader","c":"sefton"},{"n":"Seth Timpson","c":"sefton"},{"n":"Shem Hammon","c":"sefton"},{"n":"Adam Dockstader","c":"stafford"},{"n":"Bruce Hammon","c":"stafford"},{"n":"Charles Williams","c":"stafford"},{"n":"Cleeson Bauer","c":"stafford"},{"n":"Gerard Hammon","c":"stafford"},{"n":"Jerold Williams","c":"stafford"},{"n":"Monte Hammon","c":"stafford"},{"n":"Pauline Timpson","c":"stafford"},{"n":"Sabrina Naylor","c":"stafford"},{"n":"Samantha Hammon","c":"stafford"},{"n":"Stafford Hammon","c":"stafford"},{"n":"Timothy Naylor","c":"stafford"},{"n":"Avery Hammon","c":"claude"},{"n":"Brigham Hammon","c":"claude"},{"n":"Claude Timpson","c":"claude"},{"n":"Connor Williams","c":"claude"},{"n":"Jonathan Timpson Rays","c":"claude"},{"n":"Kayden Timpson","c":"claude"},{"n":"Lexi Timpson","c":"claude"},{"n":"Lindsey Timpson","c":"claude"},{"n":"Logan Hammon","c":"claude"},{"n":"Moroni Musser","c":"claude"},{"n":"Sean Hammon","c":"claude"},{"n":"Violet Barlow","c":"claude"},{"n":"Abe Dockstader","c":"gideon"},{"n":"Becky Wood","c":"gideon"},{"n":"Benjiman Barlow","c":"gideon"},{"n":"Douglas Hammon","c":"gideon"},{"n":"Evan Williams","c":"gideon"},{"n":"Gideon Hammon","c":"gideon"},{"n":"Jairus Hammon","c":"gideon"},{"n":"Jason Hammon","c":"gideon"},{"n":"Justin Timpson","c":"gideon"},{"n":"Kyle Dockstader","c":"gideon"},{"n":"Tammy Williams","c":"gideon"},{"n":"Wallace Barlow","c":"gideon"},{"n":"Austin Ivory","c":"elliot"},{"n":"Bryan Dockstader","c":"elliot"},{"n":"Elliot Hammon","c":"elliot"},{"n":"Jarom Dockstader","c":"elliot"},{"n":"Karen Hammon","c":"elliot"},{"n":"Larry Stubbs","c":"elliot"},{"n":"Lincoln Wood","c":"elliot"},{"n":"Lizzy Horsley","c":"elliot"},{"n":"Lonnie Timpson","c":"elliot"},{"n":"Max Horsley","c":"elliot"},{"n":"Michael Timpson","c":"elliot"},{"n":"Roy Hammon","c":"elliot"},{"n":"Amie Z Barlow","c":"michael"},{"n":"Benjiman Hammon Hebers","c":"michael"},{"n":"Hyrum Timpson","c":"michael"},{"n":"Jason W Timpson","c":"michael"},{"n":"John Barlow Jr","c":"michael"},{"n":"Leslie Williams","c":"michael"},{"n":"Lorin Timpson","c":"michael"},{"n":"Michael Williams","c":"michael"},{"n":"Nathan Knudson","c":"michael"},{"n":"Rebecca Horsley","c":"michael"},{"n":"Sidney Dockstader","c":"michael"},{"n":"Sophia Cawley","c":"michael"},{"n":"Adam Naylor","c":"boyds-daniel"},{"n":"Alyssa Zitting","c":"boyds-daniel"},{"n":"Ben Williams","c":"boyds-daniel"},{"n":"Daniel Dockstader Boyds","c":"boyds-daniel"},{"n":"Derrick Knudson","c":"boyds-daniel"},{"n":"Emmerson Hammon","c":"boyds-daniel"},{"n":"J Daunt Hammon","c":"boyds-daniel"},{"n":"Leroy Dutson","c":"boyds-daniel"},{"n":"Levi Knudson","c":"boyds-daniel"},{"n":"Maureen Williams","c":"boyds-daniel"},{"n":"Seth Williams","c":"boyds-daniel"},{"n":"Steven Dockstader","c":"boyds-daniel"},{"n":"Bowen Hammon","c":"ephraims-daniel"},{"n":"Brenda Naylor","c":"ephraims-daniel"},{"n":"Carl Williams","c":"ephraims-daniel"},{"n":"Daniel Dockstader Ephraims","c":"ephraims-daniel"},{"n":"Deborah Timpson","c":"ephraims-daniel"},{"n":"Heber Williams","c":"ephraims-daniel"},{"n":"Lorenzo Cawley","c":"ephraims-daniel"},{"n":"Nate Darger","c":"ephraims-daniel"},{"n":"Noah Dockstader","c":"ephraims-daniel"},{"n":"Robert Dockstader","c":"ephraims-daniel"},{"n":"Scott Naylor","c":"ephraims-daniel"},{"n":"Teancum Timpson","c":"ephraims-daniel"},{"n":"Ammon Timpson","c":"seth"},{"n":"Cuervo Timpson","c":"seth"},{"n":"Donald Timpson","c":"seth"},{"n":"Dylan Horsley","c":"seth"},{"n":"Jefferson Johnson","c":"seth"},{"n":"Joanne Sis Timpson","c":"seth"},{"n":"Nephi Darger","c":"seth"},{"n":"Porter Hammon","c":"seth"},{"n":"Royal Barlow","c":"seth"},{"n":"Sam Guy","c":"seth"},{"n":"Seth Cawley","c":"seth"},{"n":"Sharon Hammon","c":"seth"}],"entries":[{"n":"Curtis Knudson","c":"horatio","k":"21122212212212211222210","r":"2026-08-20T11:43"}],"results":"00000000000000000000000","teams":[{"s":"jeremy","label":"Jeremy's team","seed":1,"w":15,"l":5,"t":0,"pts":30,"pf":273,"pa":217,"diff":56},{"s":"caleb","label":"Caleb's team","seed":2,"w":14,"l":5,"t":1,"pts":29,"pf":262,"pa":200,"diff":62},{"s":"horatio","label":"Horatio's team","seed":3,"w":14,"l":6,"t":0,"pts":28,"pf":292,"pa":159,"diff":133},{"s":"sefton","label":"Sefton's team","seed":4,"w":14,"l":6,"t":0,"pts":28,"pf":279,"pa":195,"diff":84},{"s":"stafford","label":"Stafford's team","seed":5,"w":13,"l":7,"t":0,"pts":26,"pf":255,"pa":224,"diff":31},{"s":"claude","label":"Claude's team","seed":6,"w":11,"l":8,"t":1,"pts":23,"pf":211,"pa":196,"diff":15},{"s":"gideon","label":"Gideon's team","seed":7,"w":9,"l":11,"t":0,"pts":18,"pf":209,"pa":221,"diff":-12},{"s":"elliot","label":"Elliot's team","seed":8,"w":8,"l":12,"t":0,"pts":16,"pf":225,"pa":248,"diff":-23},{"s":"michael","label":"Michael's team","seed":9,"w":7,"l":13,"t":0,"pts":14,"pf":179,"pa":238,"diff":-59},{"s":"boyds-daniel","label":"Boyds Daniel's team","seed":10,"w":6,"l":14,"t":0,"pts":12,"pf":176,"pa":250,"diff":-74},{"s":"ephraims-daniel","label":"Ephraims Daniel's team","seed":11,"w":4,"l":16,"t":0,"pts":8,"pf":211,"pa":301,"diff":-90},{"s":"seth","label":"Seth's team","seed":12,"w":4,"l":16,"t":0,"pts":8,"pf":159,"pa":282,"diff":-123}]}</script>
         <script src="confetti.min.js"></script>
         <script>
 /* ══════════════════════════════════════════════════════════════════
@@ -1339,12 +1506,13 @@ footer {
    fiction — so the whole enumerator, the question panel and the
    afternoon docket came out, and what is left is the thing the reader
    actually wants on gameday: the league's real bracket, drawn, with
-   twenty-two games to call.
+   twenty-two games to call, and a decider if the final needs one.
 
    Every club and every number displayed derives from the machine-data
    island emitted by analysis.py (captain labels and slugs only). The
-   bracket topology is the league's own, as posted at
-   cpsoftball.com/playoffs.php and re-verified against it 2026-08-18.
+   bracket topology is the league's own, transcribed 2026-08-20 from its
+   bracket SHEET (cpsoftball.com/playoffs.php went stale and is not the
+   source); it ships inside the island, so it has exactly one home.
    Libraries: canvas-confetti for the pennant, vendored locally. No
    network calls, no accounts; state lives in the URL hash and
    localStorage.
@@ -1368,7 +1536,7 @@ footer {
 
     /* The FATAL half of the self-check, run before a single value is used.
        Structural only: an island that is not twelve clubs seeded 1–12 once
-       each, with a twenty-two game bracket, cannot draw a bracket at all —
+       each, with a twenty-three game bracket, cannot draw a bracket at all —
        and a bracket drawn from a hole seats the WRONG club rather than
        failing. It says so, draws nothing, and stops. (The softer checks —
        points that disagree with the record — live in selfCheck below, and
@@ -1380,7 +1548,7 @@ footer {
             data.final === true &&
             data.teams.length === 12 &&
             Array.isArray(data.bracket) &&
-            data.bracket.length === 22 &&
+            data.bracket.length === 23 &&
             Array.isArray(data.roster) &&
             data.roster.length > 0 &&
             !!data.prize &&
@@ -1389,6 +1557,13 @@ footer {
             if (t.seed !== i + 1 || seen[t.seed]) ok = false;
             seen[t.seed] = 1;
         });
+        // The codec is positional: digit i is game i+1, in both languages. A
+        // bracket that arrives out of order or with a gap would still "work"
+        // while every stored code and every entry meant something else.
+        if (ok)
+            data.bracket.forEach(function (g, i) {
+                if (!Array.isArray(g) || g[0] !== i + 1) ok = false;
+            });
         if (ok) return true;
         if (window.console) console.warn("playoff brackets: island self-check FAILED");
         var field = document.getElementById("field");
@@ -1408,20 +1583,40 @@ footer {
     var RM =
         typeof window.matchMedia === "function" &&
         window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    // keyed to the island's own date: a re-cut island retires saved brackets
-    // rather than resolving old picks against seeds that have moved.
-    var STORE = "cp-playoff-bracket-" + data.asof.replace(/\s+/g, "-").toLowerCase();
 
-    /* ── the league's posted bracket, carried in the island so the topology
-       has ONE home (PLAYOFF_BRACKET in analysis.py, which checks it before
-       emitting): [game, home slot, away slot, day]. s5 = the fifth seed;
+    /* ── the league's bracket, carried in the island so the topology has ONE
+       home (PLAYOFF_BRACKET in analysis.py, which checks it before emitting):
+       [game, top slot, bottom slot, day, time, field]. s5 = the fifth seed;
        w4 / l4 = the winner / loser of Game 4. Every slot points at a
-       lower-numbered game, so one forward pass resolves the whole thing. ── */
+       lower-numbered game, so one forward pass resolves the whole thing.
+
+       Top/bottom is the league sheet's drawing order and NOT home and away:
+       the sheet designates no home club, and its own layout puts the bye
+       seeds on the bottom line of G6 and G8, so reading "listed first" as
+       "home" would make them visitors in their own games. ── */
     var BR = data.bracket;
     var SLOT = {};
     BR.forEach(function (g) {
-        SLOT[g[0]] = { h: g[1], a: g[2], day: g[3] };
+        SLOT[g[0]] = { h: g[1], a: g[2], day: g[3], time: g[4], field: g[5] };
     });
+
+    /* Saved brackets are keyed to the TOPOLOGY, not just the island's date.
+       On 2026-08-20 the league re-drew the bracket without the standings
+       moving, so `asof` stayed "August 14" while the game numbers changed
+       meaning underneath it. A stored 22-digit code replayed against the
+       wrong topology advances the wrong clubs and says nothing — the worst
+       failure this page can have. Fingerprinting the bracket means a re-drawn
+       bracket quietly retires old saved brackets instead. */
+    function fingerprint(o) {
+        var str = JSON.stringify(o);
+        var h = 5381;
+        for (var i = 0; i < str.length; i++) h = ((h * 33) ^ str.charCodeAt(i)) >>> 0;
+        return h.toString(36);
+    }
+    var STORE =
+        "cp-playoff-bracket-" +
+        data.asof.replace(/\s+/g, "-").toLowerCase() +
+        "-" + fingerprint(BR);
 
     /* Where each club walks in. Every seed occupies exactly one seeded
        slot in the whole bracket — the eight opening-round places and the
@@ -1451,9 +1646,9 @@ footer {
 
     var entry = {};
     BR.forEach(function (br) {
-        [[br[1], br[2], true], [br[2], br[1], false]].forEach(function (p) {
+        [[br[1], br[2]], [br[2], br[1]]].forEach(function (p) {
             if (p[0].charAt(0) !== "s") return;
-            entry[bySeed[p[0]]] = { no: br[0], opp: p[1], home: p[2] };
+            entry[bySeed[p[0]]] = { no: br[0], opp: p[1] };
         });
     });
 
@@ -1462,30 +1657,41 @@ footer {
        they converge on the grand final at the right. Positions are data,
        not DOM measurements — the wires are drawn from the same numbers. */
     var POS = {
-        4: [0, 0], 3: [0, 1], 2: [0, 2], 1: [0, 3],
+        // The winners' road: game number already runs top-to-bottom here, and
+        // G1..G4 feed G5..G8 in order, so every wire runs straight.
+        1: [0, 0], 2: [0, 1], 3: [0, 2], 4: [0, 3],
         5: [1, 0], 6: [1, 1], 7: [1, 2], 8: [1, 3],
-        13: [2, 0.5], 14: [2, 2.5],
-        15: [3, 1.5],
+        15: [2, 0.5], 16: [2, 2.5],
+        19: [3, 1.5],
         22: [6, 1.5],
+        23: [6, 2.6],
+        // The elimination road is TWO LANES that merge, and the columns are
+        // the league's own kickoff times (8, 9, 10, 11, 12, 1). The upper lane
+        // is the opening-round losers playing down (G9, G10 -> G13); the lower
+        // lane is the quarterfinal losers doing the same (G11, G12 -> G14).
+        // Each lane then collects a beaten semifinalist (G17, G18), the two
+        // lanes meet at G20, and G21 adds whoever lost the winners final.
+        // Lanes must stay two rows apart or G13 and G14 land on the same row.
         9: [0, 4.9], 10: [0, 5.9],
-        11: [1, 4.9], 12: [1, 5.9],
-        16: [2, 4.9], 17: [2, 5.9],
-        18: [3, 5.4], 19: [4, 5.4], 20: [5, 5.4], 21: [6, 5.4]
+        11: [1, 6.9], 12: [1, 7.9],
+        13: [2, 5.4], 14: [2, 7.4],
+        17: [3, 5.4], 18: [3, 7.4],
+        20: [4, 6.4],
+        21: [5, 6.4]
     };
     var W_ROUNDS = [
-        [0, "Opening round"],
-        [1, "Quarterfinals"],
-        [2, "Semifinals"],
-        [3, "Winners final"]
+        [0, "Opening round · Fri"],
+        [1, "Quarterfinals · Fri"],
+        [2, "Semifinals · Fri"],
+        [3, "Winners final · Sat"]
     ];
     var L_ROUNDS = [
-        [0, "Elimination 1"],
-        [1, "Elimination 2"],
-        [2, "Elimination 3"],
-        [3, "Elimination 4"],
-        [4, "Elimination 5"],
-        [5, "Elimination 6"],
-        [6, "Elimination final"]
+        [0, "Elimination 1 · Sat"],
+        [1, "Elimination 2 · Sat"],
+        [2, "Elimination 3 · Sat"],
+        [3, "Elimination 4 · Sat"],
+        [4, "Elimination 5 · Sat"],
+        [5, "Elimination final · Sat"]
     ];
 
     // ── state: one entry per bracket game, the slug the reader advanced ──
@@ -1510,7 +1716,15 @@ footer {
         return t.w + "-" + t.l + "-" + t.t;
     }
     function esc(s) {
-        return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        // quotes too: esc() output lands in title="" and value="" attributes
+        return String(s)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
+    }
+    function plural(n, one, many) {
+        return n + " " + (n === 1 ? one : many || one + "s");
     }
     function list(arr, join) {
         if (arr.length <= 1) return arr.join("");
@@ -1532,6 +1746,33 @@ footer {
     /* One forward pass over the posted bracket. Any pick whose premise
        has changed underneath it (an earlier game was repicked) is
        dropped: the prophecy unwinds rather than lying. */
+    /* ── the decider ──────────────────────────────────────────────
+       Twenty-two games cannot always crown a champion. The club that comes
+       up the elimination road reaches G22 with one loss; the club off the
+       winners' road has none. If the elimination club wins, BOTH are on one
+       loss and nothing has been settled — so they play again, and the
+       elimination club has to beat them twice. G23 is that game, and it
+       exists only in that case: pick G22 the other way and it is not a game
+       at all, does not count toward your total, and cannot be called. */
+    var DECIDER = 23;
+    function needsDecider(occ) {
+        // G22's TOP slot is w19 — the club that has not lost. If it wins, it
+        // is champion outright; if it loses, the decider is owed.
+        var g = occ[22];
+        return !!(g && g.w && g.w !== g.h);
+    }
+    function champion(occ) {
+        if (!occ[22] || !occ[22].w) return null;
+        return needsDecider(occ) ? occ[DECIDER].w : occ[22].w;
+    }
+    // the last game this bracket actually plays — where the pennant is lifted
+    function finalGame(occ) {
+        return needsDecider(occ) ? occ[DECIDER] : occ[22];
+    }
+    function gamesLive(occ) {
+        return needsDecider(occ) ? 23 : 22;
+    }
+
     function resolveBracket() {
         var occ = {};
         function val(sl) {
@@ -1543,6 +1784,10 @@ footer {
             var no = br[0];
             var h = val(br[1]);
             var a = val(br[2]);
+            // No decider owed => no game. Emptying the slots also unwinds any
+            // pick left on it, through the same branch that unwinds any other
+            // pick whose premise changed.
+            if (no === DECIDER && !needsDecider(occ)) h = a = null;
             var w = null;
             var l = null;
             var p = state.b[no];
@@ -1610,19 +1855,21 @@ footer {
         return (sl.charAt(0) === "w" ? "Winner" : "Loser") + " G" + sl.slice(1);
     }
 
-    // "Bye · G5 home v Winner G4" / "G1 away at Stafford"
+    // "Bye · G5 v Winner G4" / "G1 v Mike W" — no home or away: the league's
+    // sheet does not designate one, and inventing it from the drawing order
+    // would seat the bye clubs as visitors in their own games.
     function opensText(s) {
         var e = entry[s];
         var opp = e.opp.charAt(0) === "s" ? capName(bySeed[e.opp]) : phrase(e.opp);
         return (
             (seedOf[s] <= 4 ? '<span class="bye-k">Bye</span> · ' : "") +
-            "<b>G" + e.no + "</b> " + (e.home ? "home v " : "away at ") + esc(opp)
+            "<b>G" + e.no + "</b> " + SLOT[e.no].time + " v " + esc(opp)
         );
     }
 
     /* The line above the bracket: where the prophecy has got to. */
     function sayBracket(occ) {
-        var champ = occ[22].w;
+        var champ = champion(occ);
         if (champ)
             return (
                 "<b>" + esc(label(champ)) + "</b> takes it, from the " + seedOf[champ] +
@@ -1644,7 +1891,7 @@ footer {
             return st.loss[s] === 0;
         });
         return (
-            "<b>" + picked + " of 22</b> games picked. " + alive.length + " clubs still standing, " +
+            "<b>" + picked + " of " + gamesLive(occ) + "</b> games picked. " + alive.length + " clubs still standing, " +
             (unbeaten.length
                 ? unbeaten.length + " of them unbeaten (" + list(unbeaten.map(capName)) + ")"
                 : "none of them unbeaten") +
@@ -1656,7 +1903,7 @@ footer {
 
     function renderSeeds(occ) {
         var st = bracketState(occ);
-        var champ = occ[22].w;
+        var champ = champion(occ);
         var whose =
             viewing !== null
                 ? "In this bracket"
@@ -1697,13 +1944,22 @@ footer {
     function metrics() {
         var narrow = window.innerWidth < 760;
         G.CW = narrow ? 128 : 156;
-        G.CH = narrow ? 74 : 80;
+        G.CH = narrow ? 84 : 90;
         G.GX = narrow ? 20 : 30;
-        G.RU = narrow ? 88 : 96;
+        G.RU = narrow ? 98 : 106;
         G.PL = narrow ? 26 : 34;
         G.PT = 50;
-        G.W = G.PL + 6 * (G.CW + G.GX) + G.CW + G.PL;
-        G.H = G.PT + 5.9 * G.RU + G.CH + 22;
+        // Derived from POS, not hardcoded: the bracket grew a row and a lane
+        // when the league re-drew it, and a canvas that has to be edited by
+        // hand alongside POS is a canvas that will one day clip a card.
+        var cols = 0;
+        var rows = 0;
+        for (var k in POS) {
+            if (POS[k][0] > cols) cols = POS[k][0];
+            if (POS[k][1] > rows) rows = POS[k][1];
+        }
+        G.W = G.PL + cols * (G.CW + G.GX) + G.CW + G.PL;
+        G.H = G.PT + rows * G.RU + G.CH + 22;
     }
     function bx(no) {
         return G.PL + POS[no][0] * (G.CW + G.GX);
@@ -1771,11 +2027,21 @@ footer {
             var g = occ[no];
             var ready = g.h && g.a && !g.w;
             html +=
-                '<div class="bg' + (no === 22 ? " gf" : "") + (ready ? " ready" : "") +
-                (g.w ? " done" : "") + '" data-g="' + no + '" style="left:' + bx(no) +
+                '<div class="bg' + (no === 22 || no === DECIDER ? " gf" : "") +
+                (ready ? " ready" : "") + (g.w ? " done" : "") +
+                (no === DECIDER && !needsDecider(occ) ? " dormant" : "") +
+                '" data-g="' + no + '" style="left:' + bx(no) +
                 "px;top:" + by(no) + "px;width:" + G.CW + "px;height:" + G.CH + 'px">' +
-                '<div class="bg-h"><span class="gno">' + (no === 22 ? "Grand final" : "G" + no) +
-                "</span><span>Aug " + SLOT[no].day + "</span></div>" +
+                '<div class="bg-h"><span class="gno">' +
+                (no === 22 ? "Grand final" : no === DECIDER ? "Decider" : "G" + no) +
+                "</span><span>" + (SLOT[no].field || "G23") + "</span></div>" +
+                '<div class="bg-when">' +
+                (SLOT[no].time
+                    ? "Aug " + SLOT[no].day + " · " + SLOT[no].time
+                    : needsDecider(occ)
+                    ? "Both on one loss"
+                    : "Only if needed") +
+                "</div>" +
                 slot(no, g, g.h, SLOT[no].h) +
                 slot(no, g, g.a, SLOT[no].a) +
                 "</div>";
@@ -1803,7 +2069,7 @@ footer {
         }
     }
     function plaque(occ) {
-        var champ = occ[22].w;
+        var champ = champion(occ);
         var st = bracketState(occ);
         if (champ) {
             return {
@@ -1811,8 +2077,8 @@ footer {
                 html:
                     '<div class="pl-k">The pennant</div><div class="pl-name">' +
                     esc(label(champ)) + "</div>" +
-                    '<div class="pl-sub">' + seedOf[champ] + " seed · " + st.win[champ] +
-                    " wins, " + st.loss[champ] + " losses · beat " + esc(label(occ[22].l)) +
+                    '<div class="pl-sub">' + seedOf[champ] + " seed · " + plural(st.win[champ], "win") +
+                    ", " + plural(st.loss[champ], "loss", "losses") + " · beat " + esc(label(finalGame(occ).l)) +
                     " in the grand final. Prophecy, not results: the league plays it " +
                     data.days + ".</div>"
             };
@@ -1829,7 +2095,8 @@ footer {
                 '<div class="pl-k">The pennant</div><div class="pl-name" style="color:var(--dim2)">Undecided</div>' +
                 '<div class="pl-sub">' +
                 (picked
-                    ? alive.length + " clubs still alive · " + (22 - picked) + " games left to pick."
+                    ? alive.length + " clubs still alive · " + (gamesLive(occ) - picked) +
+                      (gamesLive(occ) - picked === 1 ? " game" : " games") + " left to pick."
                     : "Twenty-two games between here and it. Tap any club in the bracket to start.") +
                 "</div>"
         };
@@ -1839,9 +2106,9 @@ footer {
         var picked = BR.filter(function (br) {
             return occ[br[0]].w;
         }).length;
-        var champ = occ[22].w;
+        var champ = champion(occ);
         el("tb-state").innerHTML =
-            "<b>" + picked + "/22</b> games picked · " +
+            "<b>" + picked + "/" + gamesLive(occ) + "</b> games picked · " +
             (champ
                 ? "<b>" + esc(capName(champ)) + "</b> takes it"
                 : "pennant <b>undecided</b>") +
@@ -1869,18 +2136,20 @@ footer {
         renderTop(occ);
         renderVow(occ);
         renderEntry(occ);
+        renderTally(occ);
         renderGallery(occ);
         el("bk-sub").innerHTML = sayBracket(occ);
         var picked = pickedCount(occ);
+        var need = gamesLive(occ);
         var go = el("bk-enter");
-        go.classList.toggle("ready", picked === 22);
+        go.classList.toggle("ready", picked === need);
         go.textContent =
-            picked === 22
+            picked === need
                 ? "Enter your bracket →"
                 : picked === 0
                 ? "Enter your bracket →"
-                : (22 - picked) + " to go, then enter →";
-        var champ = occ[22].w;
+                : (need - picked) + " to go, then enter →";
+        var champ = champion(occ);
         if (champ && champ !== lastChamp) celebrate();
         lastChamp = champ;
         save();
@@ -1922,6 +2191,9 @@ footer {
     function pickLine(occ) {
         return BR.map(function (br) {
             var g = occ[br[0]];
+            // a decider that is not owed is not an unpicked game, and the desk
+            // reading the mail should not have to work that out from the code
+            if (br[0] === DECIDER && !g.h) return "G23 not needed";
             return "G" + br[0] + " " + (g.w ? capName(g.w) : "—");
         }).join(" · ");
     }
@@ -1934,7 +2206,7 @@ footer {
             (who.club ? label(who.club) : who.raw ? "(not matched to the roster)" : "—") +
             "\n" +
             "Code: " + bracketCode(occ) + "\n" +
-            "Champion: " + (occ[22].w ? label(occ[22].w) : "—") + "\n\n" +
+            "Champion: " + (champion(occ) ? label(champion(occ)) : "—") + "\n\n" +
             pickLine(occ) + "\n\n" +
             "Sent from the Playoff Prediction Brackets page."
         );
@@ -1956,7 +2228,8 @@ footer {
         // makes it sendable. The old <select> always carried a name, so nothing
         // noticed; a text field starts empty, and gating the whole panel on it
         // meant a finished bracket showed the reader nothing at all.
-        var complete = n === 22;
+        var need = gamesLive(occ);
+        var complete = n === need;
         var sendable = complete && named;
         var echo = el("who-echo");
         echo.className = "who-echo" + (who.known ? " found" : "");
@@ -1969,13 +2242,17 @@ footer {
         var st = el("enter-status");
         st.className = "enter-status" + (sendable ? " ready" : "");
         st.innerHTML =
-            n < 22
-                ? "<b>" + n + " of 22</b> games picked — " + (22 - n) +
-                  " to go before you can enter."
+            !complete
+                ? "<b>" + n + " of " + need + "</b> games picked — " + (need - n) +
+                  " to go before you can enter." +
+                  (need === 23 && n === 22
+                      ? " Your G22 leaves both clubs on one loss, so the decider has to be called too."
+                      : "")
                 : !named
-                ? "All twenty-two games called. <b>Put your name to it</b> and it is ready to send."
-                : "All twenty-two games called. Your champion is <b>" +
-                  esc(label(occ[22].w)) + "</b>.";
+                ? "All " + (need === 23 ? "twenty-three" : "twenty-two") +
+                  " games called. <b>Put your name to it</b> and it is ready to send."
+                : "All " + (need === 23 ? "twenty-three" : "twenty-two") +
+                  " games called. Your champion is <b>" + esc(label(champion(occ))) + "</b>.";
 
         var mail = el("enter-mail");
         var copy = el("enter-copy");
@@ -1994,9 +2271,109 @@ footer {
         copy.disabled = !sendable;
         el("slip").innerHTML = complete
             ? esc(entryText(occ)).replace(/^(Name|Club|Code|Champion):/gm, "<b>$1:</b>")
-            : "Your entry is written here as soon as all twenty-two games are " +
+            : "Your entry is written here as soon as every game is " +
               "called. Nothing is sent from this page — you send it yourself, " +
               "from your own mail.";
+    }
+
+    /* ── The room's pick: how the verified entries split on the pennant ──
+       One entry, one vote. Each entry's code is run through the same forward
+       pass the bracket itself uses and G22's winner is the vote, so this can
+       never disagree with the card that says who somebody picked — both read
+       the same resolution.
+
+       Form: one series, so it is EMPHASIS rather than categorical — the
+       most-backed club (or clubs, on a tie) takes gold and everyone else
+       rides neutral ink. Bars are scaled to the leader and direct-labelled
+       with the count; the figures wear text tokens, never the bar's colour.
+       Clubs nobody backed are counted in the footnote instead of drawn as a
+       row of zeroes. */
+    function renderTally(occ) {
+        var all = data.entries || [];
+        var box = el("tally");
+        if (!all.length) {
+            box.hidden = true;
+            return;
+        }
+        box.hidden = false;
+
+        var count = {};
+        var undecided = 0;
+        all.forEach(function (e) {
+            var champ = champion(resolveCode(e.k));
+            if (!champ) return undecided++;
+            count[champ] = (count[champ] || 0) + 1;
+        });
+        var rows = Object.keys(count).map(function (sl) {
+            return { s: sl, n: count[sl] };
+        });
+        // most backed first; level clubs fall back to the league's own seeding
+        rows.sort(function (a, b) {
+            return b.n - a.n || seedOf[a.s] - seedOf[b.s];
+        });
+        var max = rows.length ? rows[0].n : 0;
+        var top = rows.filter(function (r) {
+            return r.n === max;
+        });
+        // whose pennant is on screen: only flag it when it is really theirs
+        var mine = viewing === null ? champion(occ) : null;
+        var n = all.length;
+        var word = n === 1 ? "entry" : "entries";
+
+        el("tally-rows").innerHTML = rows
+            .map(function (r) {
+                return (
+                    '<div class="tally-row' + (r.n === max ? " top" : "") +
+                    '" title="' + esc(label(r.s)) + " — " + r.n + " of " + n + " " + word +
+                    '"><span class="tally-seed">' + seedOf[r.s] + "</span>" +
+                    '<span class="tally-club"><span class="tally-name">' +
+                    esc(capName(r.s)) + "</span>" +
+                    (r.s === mine ? '<span class="tally-you">you</span>' : "") +
+                    '</span><span class="tally-track"><span class="tally-bar" style="width:' +
+                    Math.round((r.n / max) * 100) + '%"></span></span>' +
+                    '<span class="tally-n">' + r.n + "</span></div>"
+                );
+            })
+            .join("");
+
+        var say;
+        if (!rows.length) {
+            say = "No entry in yet calls the final game.";
+        } else if (top.length > 1) {
+            say =
+                "The room is split — " +
+                list(
+                    top.map(function (r) {
+                        return "<b>" + esc(label(r.s)) + "</b>";
+                    })
+                ) +
+                " are level on <b>" + max + "</b> apiece.";
+        } else if (max === n) {
+            say =
+                (n === 1 ? "The only entry in has " : "Every entry so far has ") +
+                "<b>" + esc(label(top[0].s)) + "</b> taking it all.";
+        } else {
+            say =
+                "<b>" + max + " of " + n + "</b> " + word + " have <b>" +
+                esc(label(top[0].s)) + "</b> taking it all.";
+        }
+        el("tally-say").innerHTML = say;
+
+        var foot = [];
+        var backed = rows.length;
+        foot.push(
+            backed === data.teams.length
+                ? "All twelve clubs have somebody behind them."
+                : "<b>" + backed + "</b> of the twelve clubs " +
+                  (backed === 1 ? "has" : "have") + " somebody behind them; the other " +
+                  (data.teams.length - backed) + " are being picked against by the whole room."
+        );
+        if (undecided)
+            foot.push(
+                "<b>" + undecided + "</b> " + (undecided === 1 ? "entry stops" : "entries stop") +
+                " short of naming a champion."
+            );
+        el("tally-foot").innerHTML = foot.join(" ");
     }
 
     function renderGallery(occ) {
@@ -2017,21 +2394,21 @@ footer {
                 "No entries yet. The first bracket in gets the top of this page to itself.";
             host.innerHTML =
                 '<div class="empty-note">Nobody has entered yet. Call all ' +
-                "twenty-two games above, put your name to it, and you are the " +
+                "games above, put your name to it, and you are the " +
                 "first name on this board.</div>";
             return;
         }
         el("entries-sub").innerHTML = scored
             ? "<b>" + list0.length + "</b> " + (list0.length === 1 ? "entry" : "entries") +
               ", ranked by games called right through <b>" + list0[0].p +
-              "</b> of the twenty-two. Tap any one to run it through the bracket above."
+              "</b> played so far. Tap any one to run it through the bracket above."
             : "<b>" + list0.length + "</b> " + (list0.length === 1 ? "bracket" : "brackets") +
               " in so far. Tap any one to run it through the bracket above and see " +
               "where it disagrees with yours.";
 
         var html = "";
         list0.forEach(function (e, i) {
-            var champ = resolveCode(e.k)[22].w;
+            var champ = champion(resolveCode(e.k));
             html +=
                 '<div class="ecard' + (scored && i === 0 ? " lead" : "") +
                 (viewing === i ? " viewing" : "") + '">' +
@@ -2079,7 +2456,7 @@ footer {
         forkedFrom = null;
         viewing = i;
         applyCode(e.k);
-        lastChamp = resolveBracket()[22].w; // somebody else's pennant, no confetti
+        lastChamp = champion(resolveBracket()); // somebody else's pennant, no confetti
         render();
         setHash("#e=" + slugify(e.n));
         scrollTo("bracket");
@@ -2089,9 +2466,9 @@ footer {
         viewing = null;
         forkedFrom = null;
         setHash("");
-        applyCode(stash || "0".repeat(22));
+        applyCode(stash || "0".repeat(BR.length));
         stash = null;
-        lastChamp = resolveBracket()[22].w;
+        lastChamp = champion(resolveBracket());
         render();
         toast("Back to your bracket");
     }
@@ -2114,9 +2491,13 @@ footer {
     function applyCode(code) {
         state.b = {};
         var occ = resolveBracket();
-        for (var i = 0; i < 22; i++) {
+        // BR.length, not 22 — a short bound silently drops the decider from
+        // anyone's bracket you open. And the digit is checked POSITIVELY: a
+        // code that is too short hands back "" here, and "not 0" must never
+        // be allowed to mean "the bottom club advances".
+        for (var i = 0; i < BR.length; i++) {
             var d = code.charAt(i);
-            if (d === "0") continue;
+            if (d !== "1" && d !== "2") continue;
             var no = BR[i][0];
             var g = occ[no];
             if (g && g.h && g.a) {
@@ -2127,18 +2508,23 @@ footer {
     }
 
     /* ══ state codec ═══════════════════════════════════════════════
-       #b=<22 digits>, one per bracket game in order: 0 unpicked, 1 the
-       home club, 2 the away club. It is what localStorage holds, and it
-       still reads a bracket out of an inbound URL. (The old codec was
-       #f=<12 afternoon digits>.<22 bracket digits>; the afternoon half
-       has been played, and its bracket half was picked against seeds
-       that have since moved, so those links are not honoured — a stale
-       digit would silently advance the wrong club.) */
+       #b=<23 digits>, one per bracket game in order: 0 unpicked, 1 the
+       club on the game's TOP line, 2 the one on its bottom line (the
+       league's sheet names no home club, so neither do these digits).
+       It is what localStorage holds, and it still reads a bracket out of
+       an inbound URL. (The old codec was #f=<12 afternoon digits>.<22
+       bracket digits>; the afternoon half has been played, so those
+       links are not honoured.) A digit's MEANING depends on the
+       topology, and the league re-drew it on 2026-08-20 — which is why
+       STORE is fingerprinted on the bracket. An inbound #b= link cut
+       before that re-draw cannot be detected and will be read against
+       the new numbering; there is no share button, so these are rare,
+       but do not add one without versioning this codec. */
     function encodeState() {
         return "b=" + bracketCode(resolveBracket());
     }
     function decodeState(hash) {
-        var m = /b=([0-2]{22})/.exec(hash || "");
+        var m = /b=([0-2]{23})/.exec(hash || "");
         if (!m) return false;
         applyCode(m[1]);
         return true;
@@ -2152,9 +2538,15 @@ footer {
     }
 
     /* ══ events ════════════════════════════════════════════════════ */
+    /* Fill every game, the decider included. The bound is BR.length rather
+       than a literal, because the literal 22 is exactly what left half of all
+       random brackets sitting at 22/23 — unfinished and unsendable — when the
+       decider was added. resolveBracket() is re-run each step, so by the time
+       the loop reaches G23 it already knows whether G22 owed one; a decider
+       that is not owed has null slots and is skipped by the guard below. */
     function fillBracket(randomly) {
         state.b = {};
-        for (var no = 1; no <= 22; no++) {
+        for (var no = 1; no <= BR.length; no++) {
             var occ = resolveBracket();
             var g = occ[no];
             if (!g.h || !g.a) continue;
@@ -2179,6 +2571,7 @@ footer {
             forkedFrom = null;
             stash = null;
             lastChamp = null;
+            setHash(""); // an #e= left here would bring that entry back on reload
             render();
             if (id === "act-reset") toast("Cleared — the bracket is empty again");
             return;
@@ -2207,6 +2600,7 @@ footer {
             if (viewing !== null) {
                 forkedFrom = (data.entries[viewing] || {}).n || null;
                 viewing = null;
+                setHash(""); // the URL names what is on screen, and this is no longer their bracket
             }
             if (state.b[no2] === s) delete state.b[no2];
             else state.b[no2] = s;
@@ -2290,6 +2684,10 @@ footer {
         try {
             el("who").value = localStorage.getItem(STORE + "-who") || "";
         } catch (e) {}
+        // an <a> cannot be disabled, only marked; honour the mark
+        el("enter-mail").addEventListener("click", function (ev) {
+            if (this.getAttribute("aria-disabled") === "true") ev.preventDefault();
+        });
         ["input", "change"].forEach(function (ev) {
             el("who").addEventListener(ev, function () {
                 try {
@@ -2300,19 +2698,26 @@ footer {
         });
 
         selfCheck();
-        // an inbound link to one reader's entry wins over everything else
+        // The reader's OWN bracket comes back first, whatever the link says:
+        // a #b= code if the URL carries one, else whatever this browser saved.
+        // Only then is an inbound #e= entry opened on top of it — so the
+        // entry is stashed over a real bracket, not over the empty one the
+        // page starts with, and "Back to my bracket" has something to go
+        // back to. (The first cut opened the entry before restoring, and
+        // render() saved the empty bracket over the reader's work.)
         var em = /[#&]e=([a-z0-9-]+)/.exec(location.hash || "");
         var wanted = em ? entryIndexBySlug(em[1]) : -1;
-        var fromHash = false;
-        if (wanted < 0) {
-            fromHash = decodeState(location.hash);
-            if (!fromHash) {
-                try {
-                    decodeState(localStorage.getItem(STORE) || "");
-                } catch (e) {}
-            }
+        var fromHash = decodeState(location.hash);
+        if (!fromHash) {
+            try {
+                decodeState(localStorage.getItem(STORE) || "");
+            } catch (e) {}
         }
-        lastChamp = resolveBracket()[22].w;
+        // A #b= link is consumed, not kept: left in the address bar it would
+        // win over localStorage on every reload and quietly undo whatever the
+        // reader picked after arriving. The URL only ever names an entry.
+        if (fromHash || (em && wanted < 0)) setHash("");
+        lastChamp = champion(resolveBracket());
         render();
         if (wanted >= 0) loadEntry(wanted);
         else if (em) toast("That entry is not on this page");

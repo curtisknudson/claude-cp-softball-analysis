@@ -43,7 +43,7 @@ the site.
 | `MMDD-standings.csv` | Standings snapshots from https://cpsoftball.com/standings.php (`rank,team,w,l,t,gp,win_pct,pf,pa,diff`; first one: `0706-standings.csv`) |
 | `MMDD-schedule.csv` | **The season game book** (first one: `0717-schedule.csv`) — every game, completed and upcoming, from https://cpsoftball.com/schedule.php. See **Harvesting the schedule** |
 | `analysis.py` | **The single source of truth for every number on every page.** Stdlib-only Python 3; digests + per-module HTML emitters (`--html-afternoon` registry, legacy `--html-tables` kept frozen for the archives' era) |
-| `MMDD-brackets.csv` | **Contest entries** (`name,club,code,received`; first: `0821-brackets.csv`) — the desk's inbox, by hand. One row per verified entry: the player as the roster spells them, their captain slug, a 22-digit bracket code, and the ISO time the entry mail arrived. `load_brackets()` rejects a non-rostered name, a wrong club, an incomplete code, a duplicate player or a bad timestamp — hard exit, row named. **The prize is real money; a silently mangled entry is not an option** |
+| `MMDD-brackets.csv` | **Contest entries** (`name,club,code,received`; first: `0821-brackets.csv`) — the desk's inbox, by hand. One row per verified entry: the player as the roster spells them, their captain slug, a **23-digit** bracket code (22 games plus the decider — see the playoffs section), and the ISO time the entry mail arrived. `load_brackets()` rejects a non-rostered name, a wrong club, an incomplete code, a decider digit that disagrees with G22, a duplicate player, a bad or zone-suffixed timestamp, **and a LATE one** — `entry_closes()` derives the instant from the bracket's first Friday pitch (2026-08-21T15:00, local clock, same clock `received` is written on) so the sentence on the page and the gate in the loader cannot drift — hard exit, row named. Reads `utf-8-sig` (a spreadsheet's BOM used to turn `name` into a KeyError) and checks the header. **The prize is real money; a silently mangled entry is not an option** |
 | `MMDD-playoff-results.csv` | **Played playoff games** (`game,winner` — bracket game number 1–22, raw team name; any subset, any order). This is the schema question the 08-14 notes left open: results ride their own file keyed by BRACKET GAME NUMBER, because `MMDD-schedule.csv` is a date/field slate with no game-number column. `load_playoff_results()` rejects a winner that did not play in that game, a result whose participants are not yet decided, a duplicate or an out-of-range game |
 | `pyrightconfig.json` | `typeCheckingMode: "standard"` — 0 errors / 0 warnings must hold. basedpyright's default mode fires ~1,500 false `reportUnknown*` on this plain-dict script; standard is the right mode. Schema is enforced at **runtime** (loaders exit loudly) |
 | `CNAME` | GitHub Pages custom-domain file (`softball.best`) — never edit or delete |
@@ -51,9 +51,9 @@ the site.
 | `dewegeli.png` | **The site's first content photograph** (owner-supplied 2026-08-12): Karl Franz Dewegeli Jr., 190×343 — the portrait framed in the Dewegeli Divide module (`.divide-fig`). Keep it when the edition archives; never crop, filter, or re-encode it |
 | `darlene.jpg` · `marie-thomas-davis-dewegeli.png` | The rest of **the gallery** in the Divide module (`.divide-gallery`, `.dg-frame`): **Marie Thomas Davis Dewegeli**, 120×163 — Karl's wife, Elliot's **great-grandmother** (owner-supplied 2026-08-18) — and **Darlene Marie Dewegeli**, 578×760, their daughter, Elliot's **great-aunt** (she shipped 2026-08-14 mislabeled "grandmother"; corrected 2026-08-18 at the owner's instruction — she stays in the gallery, as the great-aunt watching too). Marie's scan is small, so her frame wears `.dg-sm` (215px tall, 168px on mobile) instead of the gallery's 275px; never upscale or re-encode the file itself. Same keep-on-archive rule as `dewegeli.png` |
 | `yggr-og.png` | The **house-ad card** (1200×630, downloaded from yggr.xyz/images/og.png, 2026-08-12): "yggr — coffee for sats," the owner's company. Used by every `.adv` unit; self-hosted on purpose — never hotlink it |
-| `playoffs.html` | **Playoff Prediction Brackets** — "the Seeding Machine" at debut, then "the Scenario Simulator", renamed again by the owner 2026-08-18 (2026-08-14; REBUILT the same day — see **The machine's second design** — and NARROWED 2026-08-18 once the finale was played — see **The machine's third cut**). Today it is a pure bracket-prediction page: the twelve posted seeds as a reference table, and the league's real 22-game double-elimination bracket, drawn, that you click through to a champion. Own design language (dark scorebug + gold; light scheme included). All numbers from the spliced `machine-data` island; self-checks against it. See the playoffs section below |
+| `playoffs.html` | **Playoff Prediction Brackets** — "the Seeding Machine" at debut, then "the Scenario Simulator", renamed again by the owner 2026-08-18 (2026-08-14; REBUILT the same day — see **The machine's second design** — and NARROWED 2026-08-18 once the finale was played — see **The machine's third cut**). Today it is a pure bracket-prediction page: the twelve posted seeds as a reference table, and the league's real 22-game double-elimination bracket, drawn, that you click through to a champion. Own design language (dark scorebug + gold; light scheme included). All numbers from the spliced `machine-data` island; self-checks against it. Carries **`#tally` — "Who the room likes,"** the champion tally over the verified entries (2026-08-20). See the playoffs section below |
 | `confetti.min.js` | Vendored library for playoffs.html (canvas-confetti 1.9.3 ISC — the pennant moment). Local on purpose, never CDN; app pages only, never the paper. (`anime.min.js` drove the seed table's FLIP reorder and was DELETED 2026-08-18 at the owner's instruction, once the posted seeding stopped moving.) |
-| `og-playoffs.png` | The page's share card (1200×630, Pillow at 3× in a scratchpad venv — Pillow is NOT installed system-wide — then downsampled LANCZOS; simulator palette, Avenir Next Condensed Heavy + Menlo). **Re-cut 2026-08-19** at the owner's request to advertise the contest: gold top bar, the wordmark split ink/gold exactly as the page's topbar splits it, a filled GOLD PLAQUE reading **75,000 SATS** as the hero. The plaque is a BAND, deliberately wider than its words — the trailing gold is what gives it presence — so its right edge is chosen (616px) rather than measured, and two asserts guard it: that it still clears the bracket column at 654, and that the copy has not outgrown the band. Both fired for real when the satoshi sign was briefly added, and a PRESENTED BY yggr lockup in the footer. **Footer discipline (owner called the first attempt out, 2026-08-19): it is ONE row, everything centred on a single line — url left, sponsor right — at 19% of the card.** The rejected version stacked PRESENTED BY above the lockup and left a 64px dead zone beneath, spending a quarter of the card on 62px of ink. If it is ever re-cut, measure the bands before shipping (`np.abs(img-bg).sum(2)` per row finds the dead air immediately) and give reclaimed space to the plaque and the bracket, which are the message. **The yggr helm-of-awe mark and wordmark are LIFTED from `yggr-og.png` and recoloured** (alpha taken from the source's darkness so the antialiasing survives) — never redrawn, it is somebody's brand; "sats" keeps their own Bitcoin orange `#F7931A`, sampled from that file. **The standing principle survives both cuts: the visual DEMONSTRATES the mechanic rather than describing it** — the bracket is the one the page really draws (G1 5v12 and G2 6v11 feeding G8 and G7, which is genuinely where those winners go), two games already picked, one an 11-over-6 upset, ending on a gold YOUR CALL grand final. The two runs into G22 are drawn BROKEN, deliberately: G8 and G7 do not feed the final directly, and a trailer must not diagram a bracket the league is not playing. Keep both principles if it is re-cut. Referenced by playoffs.html only |
+| `og-playoffs.png` | The page's share card (1200×630, Pillow at 3× in a scratchpad venv — Pillow is NOT installed system-wide — then downsampled LANCZOS; simulator palette, Avenir Next Condensed Heavy + Menlo). **Re-cut 2026-08-19** at the owner's request to advertise the contest: gold top bar, the wordmark split ink/gold exactly as the page's topbar splits it, a filled GOLD PLAQUE reading **75,000 SATS** as the hero. The plaque is a BAND, deliberately wider than its words — the trailing gold is what gives it presence — so its right edge is chosen (616px) rather than measured, and two asserts guard it: that it still clears the bracket column at 654, and that the copy has not outgrown the band. Both fired for real when the satoshi sign was briefly added, and a PRESENTED BY yggr lockup in the footer. **Footer discipline (owner called the first attempt out, 2026-08-19): it is ONE row, everything centred on a single line — url left, sponsor right — at 19% of the card.** The rejected version stacked PRESENTED BY above the lockup and left a 64px dead zone beneath, spending a quarter of the card on 62px of ink. If it is ever re-cut, measure the bands before shipping (`np.abs(img-bg).sum(2)` per row finds the dead air immediately) and give reclaimed space to the plaque and the bracket, which are the message. **The yggr helm-of-awe mark and wordmark are LIFTED from `yggr-og.png` and recoloured** (alpha taken from the source's darkness so the antialiasing survives) — never redrawn, it is somebody's brand; "sats" keeps their own Bitcoin orange `#F7931A`, sampled from that file. **The standing principle survives both cuts: the visual DEMONSTRATES the mechanic rather than describing it** — the bracket is the one the page really draws (**G2** 5v12 and **G3** 6v11 feeding **G6 and G7**, which is genuinely where those winners go), two games already picked, one an 11-over-6 upset, ending on a gold YOUR CALL grand final. The two runs into G22 are drawn BROKEN, deliberately: G6 and G7 do not feed the final directly, and a trailer must not diagram a bracket the league is not playing. **That last rule bit TWICE on 2026-08-20** — first when a re-posted site bracket moved G1's winner to G6, then again when the site turned out to be stale altogether and the league's own sheet renumbered the opening round, so 5v12 became G2 and 6v11 became G3. Both times the card was silently diagramming a bracket nobody was playing, and both times it was corrected IN PLACE rather than re-cut — only the changed characters, re-rendered in **Menlo Bold 25 at 3× and LANCZOS-downsampled** exactly as the card was made, then pasted over the old label. **The recipe, worth keeping, is assert-before-you-write:** re-render the ORIGINAL text with the candidate font/size/offset and require it to reproduce the shipped pixels (all three patches matched to ~0.5/channel) — that match is the proof the font is right and the patch will leave no seam — then a second assert that no pixel outside the label box changed. A brute-force sweep over offsets finds the parameters in seconds. The full generator script is long gone, so this is the only safe way to touch the card short of re-cutting it. Keep both principles if it is re-cut. Referenced by playoffs.html only |
 
 ## The data
 
@@ -146,27 +146,96 @@ in the working tree as "the Night Final" and was renamed before publishing).
   with a second independent fetch.
 - **Each edition:** append the new afternoon's finals, refresh/extend future rows, re-run the gate.
 
-## The playoffs (source: https://cpsoftball.com/playoffs.php — first fetched 2026-08-14)
+## The playoffs (source: THE LEAGUE'S BRACKET SHEET — see the source warning)
 
-- **12-club double elimination, August 21–22, 22 games as posted** (no if-necessary game in
-  the book). Seeds 1–4 draw first-round byes; the opening round pairs 5v12 (G1), 6v11 (G2),
-  7v10 (G3), 8v9 (G4); the byes host the winners (G5 = 1 v W4, G6 = 2 v W3, G7 = 3 v W2,
-  G8 = 4 v W1); losers thread G9–G21; G22 is the grand final (W15 v W21). The full topology
-  lives, identically, in the page JS `BR` table and the scratch generator used to build the
-  bracket cards — every slot reference points at a lower-numbered game, so one forward pass
-  resolves. **The bracket lists home/away designations — the first the league's paperwork has
-  carried** (the regular-season schedule is listing-order only).
-- **Seeding follows the standings** — the bracket posted before the Aug 14 finale matched the
-  0807 standings exactly, and the RE-SEEDED bracket fetched 2026-08-18 matches the 0814
-  standings rank column exactly (both verified against playoffs.php). **The final seeds:**
-  1 Jeremy · 2 Caleb · 3 Horatio · 4 Sefton · 5 Stafford · 6 Claude · 7 Gideon · 8 Elliot ·
-  9 Michael · 10 Boyds Daniel · 11 Ephraims Daniel · 12 Seth. Only 11/12 moved from the
-  pre-finale posting (Ephraims Daniel's club up, Seth's down); the topology is unchanged and
-  the site's own G1–G22 rows were re-transcribed to confirm it. **Two pairs finished level on
-  points and the league separated them itself** (3/4 at 28, 11/12 at 8) — the pages say the
-  league broke them and stop there. Do NOT print a theory of how: the tiebreaker is still
-  unpublished, and with the seeds posted there is nothing left to guess. Re-fetch before
-  harvesting playoff results.
+- **THE SOURCE CHANGED, 2026-08-20. `cpsoftball.com/playoffs.php` IS STALE AND IS NOT THE
+  SOURCE OF TRUTH.** The owner confirmed the site was never updated to the bracket the
+  league is actually playing. The live bracket was transcribed from **the league's own
+  bracket sheet, supplied by the owner as a screenshot**, and re-read glyph by glyph at 3–4×
+  zoom before anything shipped. Do NOT re-scrape playoffs.php over `PLAYOFF_BRACKET` — it
+  will silently reinstate a bracket nobody is playing. If a fresh scrape ever disagrees with
+  the table, ask Curtis which is real before touching a line.
+- **12 clubs, double elimination, August 21–22, 22 games on the sheet — plus G23, THE
+  DECIDER, which the desk adds** (owner's call, 2026-08-20). The sheet stops at 22, but 22
+  games cannot always crown a champion: the club that comes up the elimination road reaches
+  G22 having lost once and the club off the winners' road has not lost at all, so if the
+  elimination club wins G22, **both are on one loss and nothing is settled** — they play
+  again, and the elimination club has to win twice. Roughly half of all brackets need it.
+  The old site carried the same gap with a "True Championship game will appear here if
+  needed" note; we make it pickable instead, so readers can call the two-game finish.
+- **The decider is CONDITIONAL, and every layer gates on it.** `needs_decider(occ)` in
+  analysis.py and `needsDecider(occ)` in the page are the same test — G22's TOP slot is
+  `w19`, the club that has not lost, so a decider is owed exactly when G22's winner is NOT
+  the top slot. Consequences, all of which must hold together:
+  - `PLAYOFF_BRACKET` carries `(23, "w22", "l22", 22, None, None)`. **It has no time and no
+    field because the sheet gives it none — do not invent them.**
+  - **Codes are 23 digits, not 22.** `BRACKET_DIGITS` is the single constant. The 23rd digit
+    must be `1`/`2` when the decider is owed and **`0` when it is not**, and `load_brackets()`
+    rejects both mistakes by name — an entry cannot leave an owed decider blank, and cannot
+    call a game that never happened.
+  - **Champion is `code_champion(occ)` / `champion(occ)`, never `occ[22]["w"]`.** That was
+    true of eleven call sites in the page; if you add a twelfth, use the helper.
+  - The bracket total is `gamesLive(occ)` — 22 or 23 — so the counters, the "n to go"
+    button, the entry gate and the readouts all move with it. An entry is not sendable at
+    22/23.
+  - Scoring counts the decider like any other game **only if it was played**: an entry is
+    not credited for a game that never happened, nor punished for correctly leaving it 0.
+  - `MMDD-playoff-results.csv` accepts game 23, and rejects a G23 result when G22 was won by
+    the club that had not lost.
+  - On the page the card is always drawn: `.dormant` (dashed, faded, "Only if needed") until
+    G22 makes it real, then live and pickable ("Both on one loss"). Re-picking G22 the other
+    way unwinds it through the same branch that unwinds any pick whose premise changed.
+  - **EVERY loop over the bracket must be bounded by `BR.length` / `BRACKET_DIGITS`, never a
+    literal 22.** Three separate loops were missed on the first pass and each was a real bug:
+    `fillBracket()` left **half of all Random brackets at 22/23** — finished-looking,
+    unsendable, with the button giving no hint why; `applyCode()` silently dropped the
+    decider pick out of any entry or `#b=` link that had one; and the `"0".repeat(22)`
+    fallback fed `applyCode` a short string. That last one was the dangerous one: the digit
+    test was `if (d === "0") continue`, so a missing character (`""`) fell through as
+    "not 0" and would have been read as **a pick for the bottom club**. `applyCode` now
+    tests the digit POSITIVELY (`d !== "1" && d !== "2"`), which is the shape to keep — with
+    a prize attached, an absent digit must never be able to mean a pick.
+- **The sheet designates NO home club** (the old site's (H)/(A) is gone with it). `PLAYOFF_BRACKET`
+  now carries `[game, top slot, bottom slot, day, time, field]`, and **top/bottom is the
+  sheet's drawing order, NOT home and away** — reading it as home/away would be actively
+  wrong, since the sheet puts the bye seeds on the BOTTOM line of G6 and G8 and would make
+  them visitors in their own games. Owner's call, 2026-08-20: drop the claim. The page says
+  "the sheet names no home club, so neither do we"; do not reintroduce home/away without
+  the league publishing it.
+- **Every game carries a time and a field** (owner's call, 2026-08-20 — the one thing a
+  reader standing at the park needs). Cards read `G2 · NORTH` over `AUG 21 · 3:00 PM`; two
+  lines, because that string on one line overflows a 128px card on a phone.
+- **Seeds are UNCHANGED and still match `0814-standings.csv` rank-for-rank:** 1 Jeremy ·
+  2 Caleb · 3 Horatio · 4 Sefton · 5 Stafford · 6 Claude · 7 Gideon · 8 Elliot · 9 Michael
+  ("Mike W" on the sheet) · 10 Boyds Daniel ("Dan Boyds") · 11 Ephraims Daniel ("Danny") ·
+  12 Seth. **Two pairs finished level on points and the league separated them itself**
+  (3/4 at 28, 11/12 at 8) — the pages say the league broke them and stop there. Do NOT print
+  a theory of how: the tiebreaker is still unpublished.
+- **The pairings are also unchanged — only the NUMBERING and the elimination road moved.**
+  Opening round: G1 = 8v9, G2 = 5v12, G3 = 6v11, G4 = 7v10. Byes: G5 = 1 v W1, G6 = W2 v 4,
+  G7 = 3 v W3, G8 = W4 v 2. Winners semifinals **G15, G16**; winners final **G19**;
+  championship **G22**. **The whole winners' road is Friday** (3:00–7:00 PM), everything
+  else Saturday (8:00 AM–2:00 PM).
+- **The elimination road is TWO LANES that merge** — a genuinely different shape from the
+  old site's, where the two interleaved. Opening-round losers play down their own lane
+  (G9 = L1 v L4, G10 = L2 v L3 → G13); quarterfinal losers play down theirs (G11 = L5 v L8,
+  G12 = L6 v L7 → G14); each lane then collects a beaten semifinalist (G17 = W13 v L15,
+  G18 = W14 v L16); the lanes meet at G20; G21 adds whoever lost the winners final.
+  Validated by 50,000 random playouts: no club ever plays after a second loss and every
+  eliminated club finishes on exactly two.
+- **Renumbering is a BREAKING change to every stored bracket**, and this is the trap to
+  remember: the standings did not move, so the island's `asof` stayed "August 14" while the
+  digits underneath it changed meaning. `STORE` in playoffs.html is therefore fingerprinted
+  on **the bracket itself** (djb2 over `JSON.stringify(BR)`), not just the date, so a
+  re-drawn bracket retires old saved brackets instead of replaying them against the wrong
+  topology. An inbound `#b=` link cut before a re-draw cannot be detected — there is no
+  share button, so they are rare, but do not add one without versioning the codec.
+  `MMDD-playoff-results.csv` is keyed by bracket game number and so is also renumbered;
+  no results file existed yet, so nothing needed migrating.
+- The chalk code ("higher seed wins out") is now **`11111212122112122212210`** — 23 digits,
+  ending in 0 because chalk has the undefeated club winning G22 and no decider owed. It has
+  moved with the topology three times in three days; it is computed in both languages,
+  hardcoded in neither, and the jsdom suite asserts it.
 - **analysis.py playoff desk** (added 2026-08-14): `playoff_futures()` exactly enumerates
   every remaining W/T/L outcome (guard: only when ≤ 13 games are SCHEDULED — a final-slate
   instrument, NOT midseason; returns None otherwise). Seeding by points (2W+T); the league's
@@ -205,12 +274,26 @@ in the working tree as "the Night Final" and was renamed before publishing).
   WARNING is a smell (points disagreeing with the record, or a club seeded above one with
   more points) and it warns but still draws, deliberately, because the league seeds by its
   own unpublished tiebreaker and may separate clubs in a way points do not explain. The
-  jsdom suite (session scratchpad, ephemeral) asserted the twelve seeds against the league's
+  jsdom suite (session scratchpad, ephemeral — **367 checks** as of 2026-08-20, including a
+  full pass over the decider: dormant until owed, uncallable while dormant, the total moving
+  22 -> 23, the same two clubs, winning twice, the unwind leaving no stale digit, that
+  Random always finishes a bracket, and that a decider bracket round-trips through the code)
+  asserted the twelve seeds against the league's
   posted bracket, the opening-round and quarterfinal pairings card by card, cascade +
   downstream unwind, that no club plays on after a second loss, the state-codec round trip,
   an inbound `#b=` link, the vow easter egg, and both self-check severities — 51 checks.
-  (Note when re-running it: jsdom with `runScripts: "dangerously"` ALREADY executes the
-  inline script; eval-ing it again double-boots the page and produces phantom failures.)
+  **Rebuilt twice on 2026-08-20 — for the champion tally, then for the league's real
+  bracket sheet — and now 295 checks.** The shape worth keeping: it holds a
+  hand-transcribed copy of ALL 22 games off the sheet (slot, day, time AND field) and
+  asserts the island against it cell by cell, so a future silent re-draw fails a test
+  instead of shipping; it drives the real UI through a whole bracket and asserts no club is
+  ever seated after a second loss; it asserts saved brackets are keyed to the topology (a
+  swapped bracket must not reuse the key); and its last sections boot the page against
+  islands really emitted by `analysis.py --brackets` and `--brackets --playoff-results`,
+  not regex-mutated fixtures, which is the path Curtis actually uses. (Note when re-running it: jsdom with `runScripts: "dangerously"` ALREADY
+  executes the inline script; eval-ing it again double-boots the page and produces phantom
+  failures. Note also what jsdom CANNOT catch — it asserted the tally bars' `style` widths
+  perfectly while they rendered at zero, because it does not lay out; screenshot the thing.)
   localStorage keys off the island's `asof` date, so a re-cut island auto-invalidates old
   saved brackets. **After the playoffs are actually played**, the prediction premise dies
   too: either carry the results (which needs a schema decision — see the next bullet) or
@@ -312,7 +395,9 @@ a name so the two could be conflated; a text field starts empty, and gating the 
 it meant a reader who finished all twenty-two games was shown nothing at all. Unnamed, the
 slip prints `Name: — type your name above —`, the input takes a gold `.wanted` ring, and the
 buttons stay disabled. Also carried: `entries` and `results`. `resolve_code()` in Python mirrors `resolveBracket()`
-in the page; both produce the identical chalk code `1111111122111111121211`, which is how
+in the page; both produce the identical chalk code `11111212122112122212210` (see the
+playoffs section — the code has moved with the topology twice; it is COMPUTED in both
+languages and hardcoded in neither, which is the whole point), which is how
 we know the arithmetic that pays out a prize agrees in both languages. Looking at another
 reader's entry stashes your own bracket and hands it back — **looking is never losing your
 work**, and localStorage keeps YOURS while somebody else's is on screen; editing theirs
@@ -326,6 +411,20 @@ removed that 2026-08-14 and the rule stands; the URL merely tells the truth abou
 on screen, so copying the address happens to work. `scrollIntoView` is guarded: it is a
 courtesy and must never take the hash, the toast or the bracket down with it (jsdom does
 not implement it, which is how that got caught).
+
+**Boot order and URL discipline (final sweep, 2026-08-20 — four real bugs, all fixed):**
+`boot()` restores the reader's OWN bracket first (a `#b=` code if the URL carries one, else
+localStorage) and only THEN opens an inbound `#e=` entry on top of it. The first cut did it
+the other way round: it rendered — and `save()`d — the empty bracket before `loadEntry`
+stashed it, so **arriving via an `#e=` link silently wiped the reader's saved bracket** and
+"Back to my bracket" went to 0/22. Three hash rules follow from "the URL names what is on
+screen": a consumed `#b=` is cleared with `setHash("")` (left in place it beat localStorage
+on every reload and undid the reader's later picks); **Reset/Clear clear the hash** (an
+`#e=` left behind brought that entry straight back on reload); and **forking an entry
+clears the hash** too. `islandIsSound()` also asserts `bracket[i][0] === i+1` — the codec
+is positional in both languages. The mail link is an `<a>` and can only be marked
+`aria-disabled`; the CSS rule `.btn[aria-disabled="true"]` and a click guard make it match
+the real disabled copy button (it used to render solid gold at 3/22 picks).
 
 **`ENTRY_EMAIL` in analysis.py is `curtis@yggr.xyz`** (owner-supplied 2026-08-19 — his
 company address, chosen deliberately over a softball.best one). It ships in the island and
@@ -376,7 +475,7 @@ finish* and *Misses the bye in* columns; the readout paragraph; the `.field-stri
 nothing on the page is level on points any more — the league posted its seeds. The old
 `#f=<12>.<22>` codec went with them: its bracket half was picked against seeds that have
 since moved, so honouring an old link would silently advance the wrong club. The page
-reads `#b=<22 digits>` now and localStorage keys off the island's date.
+reads `#b=<23 digits>` now (22 games plus the decider) and localStorage keys off the island's date and a fingerprint of the bracket itself.
 
 **What the page is:** one chain, still no tabs and no modes — the prize band, then **the
 twelve posted seeds → the twenty-two game bracket → your entry → everyone else's.**
@@ -406,8 +505,43 @@ fires on any Horatio-vs-Claude line; and the page still says plainly, in its foo
 instruction; the brand lockup is "Playoff Prediction" + gold "Brackets"). `anime.min.js`
 was deleted the same day, unused. **The owner also closed the standing question about
 linking the paper to this page: he does not want one — do not add it, and do not raise it
-again.** `og-playoffs.png` still reads SIMULATOR and is STALE — re-cut it with the next
-substantive change to the page.
+again.** (`og-playoffs.png` was re-cut for the contest on 2026-08-19 and is current — the
+older "still reads SIMULATOR / is STALE" note here was itself stale and has been removed.
+It was corrected again 2026-08-20; see **The champion tally** below.)
+
+### The champion tally (owner request, 2026-08-20)
+
+**"When people start submitting their predictions to me and I upload them, we need
+something in the UI that shows who people are selecting to take it all."** So section 04
+(`#entries`) opens with **`#tally` — "Who the room likes"**, a bar tally of the pennant
+picks, sitting between the section sub and the entry cards.
+
+- **It reads the entries, not a new number.** Each entry's 23-digit code is run through
+  `resolveCode()` — the same forward pass the bracket itself uses — and `champion()` (NOT
+  `occ[22].w`, which misses a bracket that went to the decider) is that entry's one vote. It therefore can never disagree with the "Picks X for the
+  pennant" line on the entry's own card; both resolve the same code the same way.
+- **Form is EMPHASIS, not categorical** (dataviz skill's own call for a one-series
+  ranked bar): the most-backed club takes `--gold`, everyone else rides `--dim2`, bars
+  scale to the leader, and the counts are direct-labelled in text tokens — the bar
+  carries identity, the type never wears the series colour. This keeps the page's
+  standing three-colours-one-meaning rule intact. Gold still means "advancing."
+- Clubs nobody picked are **counted in the footnote, not drawn as a row of zeroes**.
+  Rows are sorted by count, and clubs level on votes fall back to the league's seeding.
+- **`.tally-bar` must stay `display: block`.** It is a `<span>`, and a width on an inline
+  element is ignored — the first build shipped invisible bars and only the tracks were
+  showing, which made a 3-vote club and a 1-vote club look identical. Caught by
+  screenshot, not by the DOM tests, which happily asserted the right `style` attribute on
+  an element that was not rendering it.
+- The plot column is capped (`minmax(0, 26rem)` plus a trailing `1fr` gutter): on a
+  desktop panel an uncapped `1fr` made a 11px bar a metre long, which stops reading as a
+  bar.
+- The reader's own pennant is flagged with a neutral **`you`** chip — neutral, not gold,
+  so it stays an annotation rather than a third meaning for the accent. It is suppressed
+  while the reader is looking at somebody else's entry, because that pennant is not theirs.
+- **With no entries the whole panel is `hidden`** and the page is exactly as it was. It
+  appears the moment `MMDD-brackets.csv` has a row in it and the island is re-cut — no
+  other step. It survives scoring: once results land the section re-heads itself "The
+  leaderboard" and the tally rides along unchanged.
 
 ## Captains (source: https://cpsoftball.com/teams.php — fetched 2026-07-06)
 

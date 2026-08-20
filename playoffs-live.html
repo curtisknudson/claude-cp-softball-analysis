@@ -1,0 +1,2286 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <title>Playoff Prediction Brackets — Live — CP Softball</title>
+        <meta
+            name="description"
+            content="The CP Softball playoffs, live from the field: the league's twenty-two game double-elimination bracket redrawn as each result comes in, and the 75,000-sat prediction contest scored against it, presented by yggr."
+        />
+        <link rel="canonical" href="https://softball.best/playoffs.html" />
+        <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+        <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+        <meta name="theme-color" content="#0b0c11" media="(prefers-color-scheme: dark)" />
+        <meta name="theme-color" content="#f4f3ee" media="(prefers-color-scheme: light)" />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="CP Softball" />
+        <meta property="og:title" content="Playoff Prediction Brackets — Live — CP Softball" />
+        <meta
+            property="og:description"
+            content="The CP Softball playoffs, live: the bracket as it is being played, and the 75,000-sat bracket contest scored against it. Presented by yggr."
+        />
+        <meta property="og:url" content="https://softball.best/playoffs.html" />
+        <meta property="og:image" content="https://softball.best/og-playoffs.png" />
+        <meta property="og:image:type" content="image/png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta
+            property="og:image:alt"
+            content="Playoff Prediction Brackets — 75,000 sats to the most accurate bracket, presented by yggr. The CP Softball playoff bracket, every game to a champion."
+        />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Playoff Prediction Brackets — Live — CP Softball" />
+        <meta
+            name="twitter:description"
+            content="75,000 sats to the most accurate bracket, presented by yggr. Make your picks — the bracket builds itself."
+        />
+        <meta name="twitter:image" content="https://softball.best/og-playoffs.png" />
+        <style>
+/* ══════════════════════════════════════════════════════════════════
+   PLAYOFF PREDICTION BRACKETS — CP Softball's playoff bracket page.
+   Rebuilt 2026-08-14 from first principles at the owner's direction;
+   narrowed 2026-08-18, once the finale was played, to the one thing left
+   to do — call the bracket; and cut again for GAMEDAY (Aug 21–22, built
+   2026-08-20): entries are closed, the desk files results from the field,
+   and the page shows the bracket as played with every entry scored
+   against it. Nothing on it is picked any more.
+
+   The page is one causal chain, read top to bottom and left to right:
+       the bracket as played (+ decider)  →  the leaderboard,
+   and any entry opened from the board is laid over the bracket, game by
+   game, so a reader can see exactly where it held and where it went wrong.
+   Nothing is hidden behind a tab or a mode. Desktop gets the width the
+   bracket actually needs; the phone gets the same page, stacked, with
+   the bracket scrolling sideways the way a bracket should.
+
+   Colour carries exactly two meanings and no decoration:
+       gold  = advancing / holding a first-round bye
+       rust  = eliminated, and the summer is over.
+   (Berry was the third — level on points, where the league's unpublished
+   tiebreaker took over. The league has now posted its seeds, so nothing
+   on this page is level any more and the colour has retired with the
+   arithmetic that needed it.)
+   ══════════════════════════════════════════════════════════════════ */
+:root {
+    --bg: #0b0c11;
+    --panel: #13151c;
+    --panel2: #191c24;
+    --edge: #242832;
+    --edge2: #363c4a;
+    --ink: #f2f0ea;
+    --dim: #98a0b0;
+    --dim2: #6b7382;
+    --gold: #f2bd4c;
+    --gold-ink: #16110a;
+    --gold-soft: rgba(242, 189, 76, 0.14);
+    --rust: #e8734f;
+    --berry: #ff6f93;
+    --display: "Avenir Next Condensed", "Helvetica Neue", "Arial Narrow", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: light) {
+    :root {
+        --bg: #f4f3ee;
+        --panel: #ffffff;
+        --panel2: #faf9f4;
+        --edge: #ddd9cc;
+        --edge2: #b9b4a3;
+        --ink: #17181c;
+        --dim: #5f636d;
+        --dim2: #858993;
+        --gold: #9a7009;
+        --gold-ink: #ffffff;
+        --gold-soft: rgba(154, 112, 9, 0.13);
+        --rust: #a5341a;
+        --berry: #ab2455;
+    }
+}
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+html {
+    -webkit-text-size-adjust: 100%;
+}
+[hidden] {
+    display: none !important;
+}
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--display);
+    font-size: 17px;
+    line-height: 1.5;
+}
+a {
+    color: var(--gold);
+}
+button,
+button,
+select,
+input {
+    font: inherit;
+    color: inherit;
+}
+b,
+strong {
+    font-weight: 700;
+}
+.num {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── page frame ── */
+.wrap {
+    max-width: 1420px;
+    margin: 0 auto;
+    padding: 0 22px;
+}
+.topbar {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--edge);
+}
+.topbar .wrap {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding-top: calc(9px + env(safe-area-inset-top));
+    padding-bottom: 9px;
+}
+.brand {
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    font-size: 1.12rem;
+    line-height: 1;
+    white-space: nowrap;
+}
+.brand span {
+    color: var(--gold);
+}
+.tb-state {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.04em;
+    color: var(--dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.tb-state b {
+    color: var(--ink);
+    font-weight: 700;
+}
+.tb-acts {
+    margin-left: auto;
+    display: flex;
+    gap: 7px;
+}
+.btn {
+    font-family: var(--mono);
+    font-size: 0.63rem;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    background: var(--panel);
+    border: 1px solid var(--edge2);
+    border-radius: 7px;
+    padding: 7px 11px;
+    cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+    color: var(--ink);
+}
+.btn:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+}
+.btn.solid {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: var(--gold-ink);
+    font-weight: 700;
+}
+.btn.solid:hover {
+    color: var(--gold-ink);
+    filter: brightness(1.08);
+}
+.btn.quiet {
+    background: none;
+    border-color: var(--edge);
+    color: var(--dim);
+}
+
+/* ── section chrome ── */
+section {
+    padding: 30px 0 4px;
+}
+.sec-h {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    border-top: 1px solid var(--edge);
+    padding-top: 14px;
+    margin-bottom: 4px;
+}
+.sec-n {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.18em;
+    color: var(--gold);
+}
+h2 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    margin: 0;
+    line-height: 1;
+}
+.sec-sub {
+    color: var(--dim);
+    margin: 6px 0 18px;
+    max-width: 66ch;
+    font-size: 0.98rem;
+}
+.sec-sub b {
+    color: var(--ink);
+}
+
+/* ── the opening ── */
+.lede-row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+    padding: 26px 0 4px;
+}
+h1 {
+    font-size: clamp(2.1rem, 5.2vw, 3.4rem);
+    font-weight: 700;
+    text-transform: uppercase;
+    line-height: 0.92;
+    letter-spacing: 0.005em;
+    margin: 0;
+    max-width: 15ch;
+}
+h1 em {
+    font-style: normal;
+    color: var(--gold);
+}
+.lede {
+    max-width: 46ch;
+    color: var(--dim);
+    font-size: 1.02rem;
+    margin: 0;
+}
+.lede b {
+    color: var(--ink);
+}
+
+/* the seed table */
+.chip {
+    font-family: var(--mono);
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border: 1px solid var(--gold);
+    border-radius: 4px;
+    padding: 2px 5px;
+    color: var(--gold);
+}
+.chip.out {
+    border-color: var(--edge2);
+    color: var(--dim2);
+}
+.chip.champ {
+    background: var(--gold);
+    color: var(--gold-ink);
+    font-weight: 700;
+}
+caption,
+.cap {
+    caption-side: bottom;
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    line-height: 1.65;
+    color: var(--dim2);
+    padding-top: 9px;
+}
+/* ── the prize band: yggr's 75,000 sats, the reason to scroll ── */
+.prize {
+    display: grid;
+    grid-template-columns: 190px 1fr;
+    gap: 22px;
+    align-items: center;
+    margin: 26px 0 34px;
+    padding: 20px 24px;
+    border: 1px solid var(--gold);
+    border-radius: 12px;
+    background:
+        linear-gradient(180deg, var(--gold-soft), transparent 65%),
+        var(--panel);
+}
+.prize-fig {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    border: 1px solid var(--edge);
+}
+.prize-eyebrow {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 8px;
+}
+.prize-n {
+    font-size: clamp(2.1rem, 6vw, 3.4rem);
+    font-weight: 700;
+    line-height: 0.95;
+    letter-spacing: -0.01em;
+    margin: 0 0 6px;
+}
+.prize-n b {
+    color: var(--gold);
+    font-family: var(--mono);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+.prize-sub {
+    margin: 0 0 14px;
+    color: var(--dim);
+    font-size: 1.02rem;
+    max-width: 56ch;
+}
+.prize-sub b {
+    color: var(--ink);
+}
+.prize-fine {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    color: var(--dim2);
+    text-decoration: none;
+}
+.prize-fine:hover {
+    color: var(--gold);
+}
+
+select,
+/* the bracket is finished and the name is all that is left */
+/* Where to send it. The mail button addresses itself, so this is really for
+   the copy path — somebody holding an entry and no idea where it goes. */
+.btn[disabled],
+
+/* ── the room's pick: who the entries have taking it all ──
+   One series (entries backing a club), so it is EMPHASIS, not categorical:
+   the most-backed club wears gold, everybody else rides the neutral ink.
+   Bars are scaled to the leader, direct-labelled with the count, and the
+   figures stay in text tokens — the bar carries identity, never the type. */
+.tally {
+    border: 1px solid var(--edge);
+    border-radius: 12px;
+    background: var(--panel);
+    padding: 14px 16px 12px;
+    margin: 0 0 18px;
+}
+.tally-h {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 12px;
+    margin-bottom: 12px;
+}
+.tally-h h3 {
+    font-family: var(--display);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 1rem;
+    margin: 0;
+}
+.tally-say {
+    margin: 0;
+    font-size: 0.92rem;
+    color: var(--dim);
+    flex: 1 1 260px;
+}
+.tally-say b {
+    color: var(--ink);
+}
+.tally-rows {
+    display: grid;
+    gap: 6px;
+}
+.tally-row {
+    display: grid;
+    /* the trailing 1fr is an empty gutter: it keeps the plot from stretching
+       to the full width of a desktop panel, where an 11px bar a metre long
+       stops reading as a bar at all */
+    grid-template-columns: 1.6rem minmax(84px, 8.5rem) minmax(0, 26rem) 2.2rem 1fr;
+    align-items: center;
+    gap: 10px;
+}
+.tally-seed {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--dim2);
+    text-align: right;
+}
+.tally-club {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    min-width: 0;
+    font-size: 0.88rem;
+    color: var(--ink);
+}
+.tally-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.tally-track {
+    background: var(--edge);
+    border-radius: 4px;
+    height: 11px;
+}
+.tally-bar {
+    display: block; /* a width on an inline span is ignored — it must be a block */
+    height: 100%;
+    background: var(--dim2);
+    border-radius: 4px;
+    min-width: 3px;
+}
+.tally-row.top .tally-bar {
+    background: var(--gold);
+}
+.tally-n {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--ink);
+    text-align: right;
+}
+.tally-foot {
+    margin: 11px 0 0;
+    font-size: 0.76rem;
+    color: var(--dim2);
+    line-height: 1.5;
+}
+@media (max-width: 560px) {
+    .tally-row {
+        grid-template-columns: 1.4rem minmax(70px, 6.5rem) 1fr 2rem;
+        gap: 8px;
+    }
+    .tally-club {
+        font-size: 0.82rem;
+    }
+
+}
+
+/* ── the gallery of entries ── */
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(228px, 1fr));
+    gap: 12px;
+}
+.ecard {
+    background: var(--panel);
+    border: 1px solid var(--edge);
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.ecard.lead {
+    border-color: var(--gold);
+    background: linear-gradient(180deg, var(--gold-soft), transparent 70%), var(--panel);
+}
+.ecard.viewing {
+    border-color: var(--gold);
+    box-shadow: inset 0 0 0 1px var(--gold);
+}
+.ecard-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+}
+.ecard-n {
+    font-weight: 700;
+    font-size: 1.02rem;
+    line-height: 1.15;
+}
+.ecard-rank {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    color: var(--dim2);
+}
+.ecard.lead .ecard-rank {
+    color: var(--gold);
+}
+.ecard-c {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    color: var(--dim2);
+}
+.ecard-pick {
+    font-size: 0.9rem;
+    color: var(--dim);
+    margin-top: 3px;
+}
+.ecard-pick b {
+    color: var(--ink);
+}
+.ecard-score {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--gold);
+}
+.ecard button {
+    margin-top: 8px;
+    align-self: flex-start;
+}
+.empty-note {
+    background: var(--panel);
+    border: 1px dashed var(--edge2);
+    border-radius: 10px;
+    padding: 18px 20px;
+    color: var(--dim);
+}
+.viewing-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    background: var(--gold-soft);
+    border: 1px solid var(--gold);
+    border-radius: 8px;
+    padding: 9px 13px;
+    margin-bottom: 14px;
+    font-size: 0.94rem;
+}
+.viewing-bar b {
+    color: var(--gold);
+}
+
+/* ── the house advertisement (honest eyebrow; the label is the joke) ── */
+.adv {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    gap: 18px;
+    align-items: center;
+    border-top: 1px solid var(--edge);
+    border-bottom: 1px solid var(--edge);
+    padding: 18px 0;
+    margin: 40px 0 8px;
+}
+.adv img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 6px;
+    border: 1px solid var(--edge);
+}
+.adv-k {
+    font-family: var(--mono);
+    font-size: 0.55rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--dim2);
+    margin-bottom: 7px;
+}
+.adv-h {
+    font-size: 1.24rem;
+    font-weight: 700;
+    margin: 0 0 5px;
+}
+.adv-p {
+    margin: 0;
+    color: var(--dim);
+    font-size: 0.98rem;
+    max-width: 58ch;
+}
+.adv a {
+    text-decoration: none;
+}
+.adv a:hover .adv-h {
+    color: var(--gold);
+}
+
+/* ── the bracket ── */
+.bk-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+.bk-bar .spacer {
+    flex: 1;
+}
+/* the route to the entry desk: quiet while the bracket is unfinished, gold
+   the moment it is done, and never hidden — the reader should not have to go
+   looking for the way in. */
+.legend {
+    display: flex;
+    gap: 14px;
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    color: var(--dim2);
+    flex-wrap: wrap;
+}
+.legend i {
+    font-style: normal;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+.legend .sw {
+    width: 9px;
+    height: 9px;
+    border-radius: 2px;
+    background: var(--gold);
+    display: inline-block;
+}
+.legend .sw.rust {
+    background: var(--rust);
+}
+.bk-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    border: 1px solid var(--edge);
+    border-radius: 12px;
+    background: var(--panel);
+    background-image: radial-gradient(circle at 1px 1px, var(--edge) 1px, transparent 0);
+    background-size: 26px 26px;
+}
+.bk-canvas {
+    position: relative;
+}
+.wires {
+    position: absolute;
+    left: 0;
+    top: 0;
+    overflow: visible;
+}
+.wires path {
+    fill: none;
+    stroke: var(--edge2);
+    stroke-width: 1.5;
+}
+.wires path.lit {
+    stroke: var(--gold);
+    stroke-width: 2;
+}
+.wires path.drop {
+    stroke-dasharray: 3 4;
+    opacity: 0;
+}
+.wires[data-hi] path {
+    opacity: 0.25;
+}
+.wires[data-hi] path.hi {
+    opacity: 1;
+    stroke: var(--gold);
+}
+.band {
+    position: absolute;
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink);
+    white-space: nowrap;
+}
+.band em {
+    font-style: normal;
+    color: var(--dim2);
+    letter-spacing: 0.06em;
+    text-transform: none;
+    font-size: 0.66rem;
+}
+.rnd {
+    position: absolute;
+    font-family: var(--mono);
+    font-size: 0.55rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--dim2);
+    white-space: nowrap;
+}
+.bg {
+    position: absolute;
+    background: var(--panel2);
+    border: 1px solid var(--edge);
+    border-radius: 8px;
+    padding: 3px;
+    display: flex;
+    flex-direction: column;
+    z-index: 1;
+}
+.bg.done {
+    border-color: var(--edge2);
+}
+.bg.gf {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px var(--gold-soft);
+}
+.bg-h {
+    flex: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--mono);
+    font-size: 0.5rem;
+    line-height: 1.3;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--dim2);
+    padding: 1px 4px 2px;
+}
+.bg-h .gno {
+    color: var(--dim);
+    font-weight: 700;
+}
+.bg.gf .bg-h .gno {
+    color: var(--gold);
+}
+/* The decider is not always a game. When G22 can still settle it outright the
+   card stays on the board — so a reader can see the rule exists before it
+   bites — but reads as unplayed rather than as a game waiting to be called. */
+.bg.dormant {
+    opacity: 0.45;
+    border-style: dashed;
+}
+.bg.dormant .bg-h .gno {
+    color: var(--dim2);
+}
+/* Second header line: the league's own date and start time. It sits on its
+   own row because "AUG 21 · 3:00 PM · SOUTH" on one line overflows a 128px
+   card on a phone — the field rides up on the game-number line instead. */
+.bg-when {
+    flex: none;
+    font-family: var(--mono);
+    font-size: 0.5rem;
+    line-height: 1.3;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--dim2);
+    padding: 0 4px 3px;
+}
+/* The two slots split whatever height the header leaves, so a card can
+   never crop the club sitting on its bottom line. */
+.bg-s {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    border-radius: 5px;
+    padding: 2px 5px;
+    width: 100%;
+    line-height: 1.2;
+    text-align: left;
+    cursor: pointer;
+    min-width: 0;
+}
+.bg-s + .bg-s {
+    margin-top: 1px;
+}
+.bg-s .sd {
+    flex: none;
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: var(--dim2);
+    width: 15px;
+    text-align: center;
+}
+.bg-s .nm {
+    font-size: 0.86rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.bg-s.won {
+    background: var(--gold);
+    color: var(--gold-ink);
+}
+.bg-s.won .sd {
+    color: inherit;
+    opacity: 0.65;
+}
+.bg-s.lost {
+    opacity: 0.42;
+}
+.bg-s.lost .nm {
+    text-decoration: line-through;
+}
+.bg-s.empty {
+    cursor: default;
+}
+.bg-s.empty .nm {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    font-weight: 400;
+    color: var(--dim2);
+}
+.plaque {
+    position: absolute;
+    overflow: hidden;
+    border: 1px dashed var(--edge2);
+    border-radius: 10px;
+    padding: 10px 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    z-index: 1;
+}
+.plaque.crowned {
+    border-style: solid;
+    border-color: var(--gold);
+    background: var(--gold-soft);
+}
+.pl-k {
+    font-family: var(--mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--dim2);
+}
+.plaque.crowned .pl-k {
+    color: var(--gold);
+}
+.pl-name {
+    font-size: 1.9rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    line-height: 1;
+    margin: 5px 0 3px;
+}
+.pl-sub {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    color: var(--dim);
+    line-height: 1.5;
+}
+/* ── notes, footer, toast ── */
+.vow {
+    border: 1px solid var(--berry);
+    border-radius: 9px;
+    padding: 10px 14px;
+    margin-top: 14px;
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    line-height: 1.7;
+    color: var(--dim);
+}
+.vow a {
+    color: var(--berry);
+}
+.fine {
+    font-family: var(--mono);
+    font-size: 0.64rem;
+    line-height: 1.75;
+    color: var(--dim2);
+    max-width: 92ch;
+    margin: 16px 0 0;
+}
+footer {
+    border-top: 1px solid var(--edge);
+    margin-top: 34px;
+    padding: 18px 0 40px;
+}
+.toast {
+    position: fixed;
+    left: 50%;
+    bottom: 22px;
+    transform: translateX(-50%);
+    background: var(--ink);
+    color: var(--bg);
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    border-radius: 7px;
+    padding: 10px 16px;
+    z-index: 60;
+    max-width: 90vw;
+    text-align: center;
+}
+.noscript {
+    max-width: 74ch;
+    margin: 26px 0;
+    padding: 16px 18px;
+    border: 1px dashed var(--edge2);
+    border-radius: 10px;
+    font-size: 0.98rem;
+    line-height: 1.6;
+    color: var(--dim);
+}
+
+/* ── narrow ── */
+@media (max-width: 620px) {
+    body {
+        font-size: 16px;
+    }
+    .prize {
+        grid-template-columns: 1fr;
+        gap: 14px;
+        padding: 16px 16px 18px;
+    }
+    .prize-fig {
+        max-width: 220px;
+    }
+    .adv {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    .adv img {
+        max-width: 200px;
+    }
+    .wrap {
+        padding: 0 13px;
+    }
+    .topbar .wrap {
+        flex-wrap: wrap;
+        gap: 8px 12px;
+    }
+    .tb-state {
+        order: 3;
+        width: 100%;
+    }
+}
+/* ══ LIVE ERA (gameday, Aug 21–22) ══════════════════════════════════
+   Same tokens, same three meanings. What changed: nothing on this page
+   is picked any more — the bracket draws the RESULTS the desk files from
+   the field, and an entry opened from the leaderboard is an annotation
+   laid over those results, card by card. A ✓ wears plain ink; a ✗ wears
+   rust, because a missed call is a loss. Gold still means advancing. */
+.bk-status {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    color: var(--dim);
+}
+.bk-status b {
+    color: var(--ink);
+}
+.bg.next {
+    border-color: var(--gold);
+}
+.legend .sw.next {
+    background: none;
+    border: 1px solid var(--gold);
+}
+.legend .sw.miss {
+    background: none;
+    border: 1px solid var(--rust);
+}
+.bg-s,
+.bg-s:hover,
+.bg-s.won:hover {
+    cursor: default;
+    background: none;
+    filter: none;
+}
+.bg-s.won,
+.bg-s.won:hover {
+    background: var(--gold);
+}
+/* the slot an opened entry had winning this game, when that club really is in it */
+.bg-s.pick {
+    box-shadow: inset 0 0 0 1px var(--dim2);
+}
+/* the call line replaces the date line while an entry is open */
+.bg-when.call {
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.bg-when.call.hit {
+    color: var(--ink);
+}
+.bg-when.call.miss {
+    color: var(--rust);
+}
+.bg-when.call.open {
+    color: var(--dim);
+}
+.bg.done.miss {
+    border-color: var(--rust);
+}
+.bg.done.hit {
+    border-color: var(--edge2);
+}
+
+/* the two lists under the canvas: what has been played, what is still to come */
+.played-wrap {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px 28px;
+    margin-top: 16px;
+}
+.played h3 {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--dim2);
+    margin: 0 0 6px;
+    font-weight: 700;
+}
+.played ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.played li {
+    display: flex;
+    align-items: baseline;
+    gap: 9px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--edge);
+    font-size: 0.94rem;
+    min-width: 0;
+}
+.played li:last-child {
+    border-bottom: none;
+}
+.played .gno {
+    flex: none;
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: var(--dim2);
+    width: 2.4em;
+}
+.played .who {
+    flex: 1;
+    min-width: 0;
+}
+.played .w {
+    font-weight: 700;
+}
+.played .d {
+    color: var(--dim2);
+    font-size: 0.8rem;
+    padding: 0 2px;
+}
+.played .l {
+    color: var(--dim);
+}
+.played .tbd {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    color: var(--dim2);
+}
+.played .when {
+    flex: none;
+    font-family: var(--mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--dim2);
+    white-space: nowrap;
+}
+.played .call {
+    flex: none;
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    font-weight: 700;
+}
+.played .call.hit {
+    color: var(--ink);
+}
+.played .call.miss {
+    color: var(--rust);
+}
+.played .call.open {
+    color: var(--dim2);
+    font-weight: 400;
+}
+.played .empty {
+    color: var(--dim);
+    font-size: 0.9rem;
+    padding: 6px 0;
+}
+
+/* the final band: who the sats go to */
+.final-band {
+    border: 1px solid var(--gold);
+    border-radius: 10px;
+    background: linear-gradient(180deg, var(--gold-soft), transparent 70%), var(--panel);
+    padding: 16px 20px;
+    margin-bottom: 16px;
+}
+.final-band .fb-k {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 4px;
+}
+.final-band .fb-n {
+    font-size: clamp(1.5rem, 4vw, 2.3rem);
+    font-weight: 700;
+    line-height: 1.05;
+    margin: 0 0 4px;
+}
+.final-band .fb-n b {
+    color: var(--gold);
+}
+.final-band .fb-sub {
+    margin: 0;
+    color: var(--dim);
+    font-size: 0.96rem;
+}
+.ecard-pick .chip {
+    margin-left: 6px;
+    vertical-align: 1px;
+}
+.chip.out {
+    border-color: var(--rust);
+    color: var(--rust);
+}
+.tally-out {
+    font-family: var(--mono);
+    font-size: 0.52rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-left: 7px;
+}
+.tally-row.dead .tally-bar {
+    background: var(--edge2);
+}
+@media (max-width: 760px) {
+    .played-wrap {
+        grid-template-columns: 1fr;
+    }
+    /* a phone gets two lines per game: the clubs, then the call and the time —
+       three things on one 390px line wrapped the club names one word deep */
+    .played li {
+        display: grid;
+        grid-template-columns: 2.4em 1fr auto;
+        column-gap: 9px;
+        row-gap: 2px;
+        align-items: baseline;
+    }
+    .played .gno {
+        grid-row: 1 / span 2;
+        width: auto;
+    }
+    .played .who {
+        grid-column: 2 / span 2;
+    }
+    .played .call {
+        grid-column: 2;
+        justify-self: start;
+    }
+    .played .when {
+        grid-column: 3;
+    }
+    .played li.empty {
+        display: block;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+        </style>
+    </head>
+    <body>
+        <div class="topbar">
+            <div class="wrap">
+                <div class="brand">Playoff Prediction <span>Brackets</span></div>
+                <div class="tb-state" id="tb-state">—</div>
+                <div class="tb-acts">
+                    <a class="btn quiet" href="index.html">The paper</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="wrap">
+            <div class="lede-row">
+                <h1>The bracket is being played. <em>Here is where it stands.</em></h1>
+                <p class="lede" id="lede">
+                    Twelve clubs, double elimination, twenty-two games over
+                    <b><span class="playdates">August 21–22</span></b> — and a
+                    twenty-third if the final needs a replay. The desk files each
+                    result from the field as the game ends, the bracket below
+                    redraws itself, and every entry in the contest is re-scored
+                    against it.
+                </p>
+            </div>
+
+            <!-- ══ THE PRIZE ════════════════════════════ -->
+            <div class="prize" id="prize">
+                <a href="https://yggr.xyz"><img class="prize-fig" src="yggr-og.png"
+                     width="1200" height="630" alt="yggr — coffee for sats" /></a>
+                <div>
+                    <div class="prize-eyebrow">Presented by yggr · coffee for sats</div>
+                    <p class="prize-n"><b id="prize-n">75,000</b> sats<br />to the best bracket.</p>
+                    <p class="prize-sub" id="prize-sub">
+                        Entries closed at first pitch. One point for every game
+                        an entry called right; the most points takes the lot,
+                        paid in bitcoin by the editor’s other desk, which sells
+                        coffee and takes the same currency. <b>A tie goes to
+                        whoever entered first.</b>
+                    </p>
+                    <a class="prize-fine" href="https://yggr.xyz">yggr.xyz · coffee for sats</a>
+                </div>
+            </div>
+
+            <!-- ══ 01 · THE BRACKET, LIVE ═══════════════ -->
+            <section id="bracket">
+                <div class="sec-h">
+                    <span class="sec-n">01</span>
+                    <h2>The bracket, live</h2>
+                </div>
+                <p class="sec-sub" id="bk-sub"></p>
+                <div class="bk-bar">
+                    <span class="bk-status" id="bk-status"></span>
+                    <span class="spacer"></span>
+                    <span class="legend">
+                        <i><span class="sw"></span>advances</i>
+                        <i><span class="sw next"></span>up next</i>
+                        <i><span class="sw rust"></span>eliminated</i>
+                        <i><span class="sw miss"></span>missed call</i>
+                    </span>
+                </div>
+                <div class="viewing-bar" id="viewing-bar" hidden>
+                    <span id="viewing-who"></span>
+                    <button type="button" class="btn quiet" id="viewing-back">Close — back to the results</button>
+                </div>
+                <div class="bk-scroll">
+                    <div class="bk-canvas" id="canvas"></div>
+                </div>
+                <div class="vow" id="vow" hidden>
+                    The bracket has put Horatio’s team and Claude’s team on the
+                    same line. Per a commitment recorded July 29, the ledger
+                    prints games as officiated and
+                    <a href="2026-07-24.html#the-disclaimer">the full disclaimer rests in the archive</a>.
+                    Calm, as ever.
+                </div>
+                <div class="played-wrap">
+                    <div class="played">
+                        <h3>Played so far</h3>
+                        <ol id="played"></ol>
+                    </div>
+                    <div class="played">
+                        <h3>Still to play</h3>
+                        <ol id="upnext"></ol>
+                    </div>
+                </div>
+                <p class="fine">
+                    The shape is the league’s own, off its bracket sheet: twelve
+                    clubs, double elimination, <span class="playdates">August 21–22</span>,
+                    twenty-two games — twenty-three if the final needs a replay.
+                    Byes for the top four; five plays twelve, six plays eleven,
+                    seven plays ten, eight plays nine. Lose once and you drop to
+                    the elimination road; lose twice and the summer is over. The
+                    whole winners’ road is played Friday and everything else
+                    Saturday, first pitch at eight. Each card carries its field
+                    and its start time, as the sheet gives them; the sheet names
+                    no home club, so neither do we. The desk files winners only —
+                    the league plays no ties on playoff day, and the bracket has
+                    no column for runs. Hover a game on a desktop to see where
+                    its winner and its loser go next.
+                </p>
+                <p class="fine">
+                    <b>About the decider.</b> The club that comes up the
+                    elimination road reaches the grand final having already lost
+                    once; the club that comes down the winners’ road has not lost
+                    at all. So if the elimination club wins G22, both are on one
+                    loss and nothing has been settled — they play again, and the
+                    elimination club has to beat them twice to take it. That is
+                    G23, and it exists only if G22 goes that way; otherwise it is
+                    not a game, and no entry is scored on it either way. The
+                    league’s sheet stops at twenty-two and leaves this one
+                    undated, so we give it no time and no field.
+                </p>
+            </section>
+
+            <!-- ══ 02 · THE LEADERBOARD ═════════════════ -->
+            <section id="entries">
+                <div class="sec-h">
+                    <span class="sec-n">02</span>
+                    <h2 id="entries-h">The leaderboard</h2>
+                </div>
+                <p class="sec-sub" id="entries-sub"></p>
+                <div class="final-band" id="final" hidden></div>
+                <div class="tally" id="tally" hidden>
+                    <div class="tally-h">
+                        <h3>Who the room likes</h3>
+                        <p class="tally-say" id="tally-say"></p>
+                    </div>
+                    <div class="tally-rows" id="tally-rows"></div>
+                    <p class="tally-foot" id="tally-foot"></p>
+                </div>
+                <div id="entries-body"></div>
+                <p class="cap">
+                    One point per game whose winner the entry called, over the
+                    games played so far; an entry that had a different club in a
+                    game cannot be right about it, which is how a wrong early
+                    pick costs more than one point. Where two entries are level
+                    on points the earlier one ranks ahead — that is the only
+                    tiebreak there is, and the clock is the time the entry mail
+                    arrived. Every entry here was mailed to the desk before first
+                    pitch and checked by a person — players against the league
+                    roster, guests by the address the mail came from. Opening an
+                    entry lays it over the bracket above, game by game, and puts
+                    it in the address bar, so the link you copy is the bracket
+                    you are looking at.
+                </p>
+            </section>
+
+            <!-- ══ ADVERTISEMENT ═══════════════════════ -->
+            <a class="adv" href="https://yggr.xyz">
+                <img src="yggr-og.png" width="1200" height="630" alt="yggr — coffee for sats" />
+                <div>
+                    <div class="adv-k">Advertisement</div>
+                    <p class="adv-h">People see “bitcoin” and assume they cannot buy the coffee.</p>
+                    <p class="adv-p">
+                        They can. Checkout takes a few taps, the payment rides
+                        the Lightning Network, and the whole thing is over
+                        before the next batter is announced. If you can read a
+                        box score, you can read the checkout. <b>yggr — coffee
+                        for sats.</b>
+                    </p>
+                </div>
+            </a>
+
+            <footer>
+                <p class="fine">
+                    The bracket on this page is updated from the field by the
+                    desk as each game ends — winners only, filed by hand and
+                    pushed to the site, so allow it a few minutes after the last
+                    out. The seeding is the league’s posted bracket, checked
+                    against the final table <code>analysis.py</code> computed
+                    from the season’s own game book; the scores on the
+                    leaderboard are computed from the same file the bracket is
+                    drawn from, so the two cannot disagree. Entries closed at
+                    first pitch and nothing on this page accepts one. There is
+                    no ink edition of the bracket. The season behind all of it —
+                    the standings, the batting race, the record board and the
+                    rest of the numbers — is printed in
+                    <a href="index.html">the paper</a>.
+                </p>
+            </footer>
+        </div>
+
+        <div class="toast" id="toast" hidden></div>
+
+        <noscript>
+            <div class="wrap">
+                <div class="noscript">
+                    The bracket is script, and your reader has script off —
+                    the desk respects the choice, but the live bracket and the
+                    leaderboard both need it. There is no ink edition of this
+                    page; entries closed at first pitch on Friday August 21, and
+                    the desk files each result from the field as it happens.
+                    The season’s numbers — the standings, the batting race, the
+                    record board — are printed in <a href="index.html">the paper</a>.
+                </div>
+            </div>
+        </noscript>
+
+        <script type="application/json" id="machine-data">{"final":true,"asof":"August 14","days":"August 21\u201322","bracket":[[1,"s8","s9",21,"3:00 PM","South"],[2,"s5","s12",21,"3:00 PM","North"],[3,"s6","s11",21,"4:00 PM","South"],[4,"s7","s10",21,"4:00 PM","North"],[5,"s1","w1",21,"5:00 PM","North"],[6,"w2","s4",21,"5:00 PM","South"],[7,"s3","w3",21,"6:00 PM","North"],[8,"w4","s2",21,"6:00 PM","South"],[9,"l1","l4",22,"8:00 AM","North"],[10,"l2","l3",22,"8:00 AM","South"],[11,"l5","l8",22,"9:00 AM","North"],[12,"l6","l7",22,"9:00 AM","South"],[13,"w9","w10",22,"10:00 AM","South"],[14,"w11","w12",22,"10:00 AM","North"],[15,"w5","w6",21,"7:00 PM","North"],[16,"w7","w8",21,"7:00 PM","South"],[17,"w13","l15",22,"11:00 AM","South"],[18,"w14","l16",22,"11:00 AM","North"],[19,"w15","w16",22,"12:00 PM","North"],[20,"w17","w18",22,"12:00 PM","South"],[21,"w20","l19",22,"1:00 PM","North"],[22,"w19","w21",22,"2:00 PM","North"],[23,"w22","l22",22,null,null]],"prize":{"sats":75000,"sponsor":"yggr","to":"curtis@yggr.xyz","deadline":"first pitch, Friday August 21"},"roster":[{"n":"Angeline Williams","c":"jeremy"},{"n":"Curtis Hammon","c":"jeremy"},{"n":"Daniel Dockstader Marvins","c":"jeremy"},{"n":"Dorothy Dockstader","c":"jeremy"},{"n":"Jeremy Dockstader Boyds","c":"jeremy"},{"n":"Jeremy Dockstader Marvins","c":"jeremy"},{"n":"Marvin Dockstader","c":"jeremy"},{"n":"Paul Hammon","c":"jeremy"},{"n":"Samantha Monroy","c":"jeremy"},{"n":"Taylor Timpson","c":"jeremy"},{"n":"Wesley Williams","c":"jeremy"},{"n":"William Timpson","c":"jeremy"},{"n":"Anson Johnson","c":"caleb"},{"n":"Aryck Hammon","c":"caleb"},{"n":"Caleb Barlow","c":"caleb"},{"n":"Daniel Williams","c":"caleb"},{"n":"Kaitlyn Knudson","c":"caleb"},{"n":"Kyle Hammon","c":"caleb"},{"n":"Matt Williams","c":"caleb"},{"n":"Merlek Timpson","c":"caleb"},{"n":"Nathan Hammon","c":"caleb"},{"n":"Ryan Hammon","c":"caleb"},{"n":"Sarah Timpson","c":"caleb"},{"n":"Selena Dutson","c":"caleb"},{"n":"Aaron Zitting","c":"horatio"},{"n":"Anthony Williams","c":"horatio"},{"n":"Benjiman Hammon Legrands","c":"horatio"},{"n":"Curt White","c":"horatio"},{"n":"Curtis Knudson","c":"horatio"},{"n":"David Hammon","c":"horatio"},{"n":"Heather Williams","c":"horatio"},{"n":"Horatio Williams","c":"horatio"},{"n":"Jazlin Knudson","c":"horatio"},{"n":"Lewis Hammon","c":"horatio"},{"n":"Marissa Williams","c":"horatio"},{"n":"Treyton Timpson","c":"horatio"},{"n":"Alma Timpson","c":"sefton"},{"n":"Andrew Musser","c":"sefton"},{"n":"Brayden Hammon","c":"sefton"},{"n":"Daniel Knudson","c":"sefton"},{"n":"Isabel Dockstader","c":"sefton"},{"n":"Jayla Dockstader","c":"sefton"},{"n":"Kendall Hammon","c":"sefton"},{"n":"Preston Knudson","c":"sefton"},{"n":"Riley Barlow","c":"sefton"},{"n":"Sefton Dockstader","c":"sefton"},{"n":"Seth Timpson","c":"sefton"},{"n":"Shem Hammon","c":"sefton"},{"n":"Adam Dockstader","c":"stafford"},{"n":"Bruce Hammon","c":"stafford"},{"n":"Charles Williams","c":"stafford"},{"n":"Cleeson Bauer","c":"stafford"},{"n":"Gerard Hammon","c":"stafford"},{"n":"Jerold Williams","c":"stafford"},{"n":"Monte Hammon","c":"stafford"},{"n":"Pauline Timpson","c":"stafford"},{"n":"Sabrina Naylor","c":"stafford"},{"n":"Samantha Hammon","c":"stafford"},{"n":"Stafford Hammon","c":"stafford"},{"n":"Timothy Naylor","c":"stafford"},{"n":"Avery Hammon","c":"claude"},{"n":"Brigham Hammon","c":"claude"},{"n":"Claude Timpson","c":"claude"},{"n":"Connor Williams","c":"claude"},{"n":"Jonathan Timpson Rays","c":"claude"},{"n":"Kayden Timpson","c":"claude"},{"n":"Lexi Timpson","c":"claude"},{"n":"Lindsey Timpson","c":"claude"},{"n":"Logan Hammon","c":"claude"},{"n":"Moroni Musser","c":"claude"},{"n":"Sean Hammon","c":"claude"},{"n":"Violet Barlow","c":"claude"},{"n":"Abe Dockstader","c":"gideon"},{"n":"Becky Wood","c":"gideon"},{"n":"Benjiman Barlow","c":"gideon"},{"n":"Douglas Hammon","c":"gideon"},{"n":"Evan Williams","c":"gideon"},{"n":"Gideon Hammon","c":"gideon"},{"n":"Jairus Hammon","c":"gideon"},{"n":"Jason Hammon","c":"gideon"},{"n":"Justin Timpson","c":"gideon"},{"n":"Kyle Dockstader","c":"gideon"},{"n":"Tammy Williams","c":"gideon"},{"n":"Wallace Barlow","c":"gideon"},{"n":"Austin Ivory","c":"elliot"},{"n":"Bryan Dockstader","c":"elliot"},{"n":"Elliot Hammon","c":"elliot"},{"n":"Jarom Dockstader","c":"elliot"},{"n":"Karen Hammon","c":"elliot"},{"n":"Larry Stubbs","c":"elliot"},{"n":"Lincoln Wood","c":"elliot"},{"n":"Lizzy Horsley","c":"elliot"},{"n":"Lonnie Timpson","c":"elliot"},{"n":"Max Horsley","c":"elliot"},{"n":"Michael Timpson","c":"elliot"},{"n":"Roy Hammon","c":"elliot"},{"n":"Amie Z Barlow","c":"michael"},{"n":"Benjiman Hammon Hebers","c":"michael"},{"n":"Hyrum Timpson","c":"michael"},{"n":"Jason W Timpson","c":"michael"},{"n":"John Barlow Jr","c":"michael"},{"n":"Leslie Williams","c":"michael"},{"n":"Lorin Timpson","c":"michael"},{"n":"Michael Williams","c":"michael"},{"n":"Nathan Knudson","c":"michael"},{"n":"Rebecca Horsley","c":"michael"},{"n":"Sidney Dockstader","c":"michael"},{"n":"Sophia Cawley","c":"michael"},{"n":"Adam Naylor","c":"boyds-daniel"},{"n":"Alyssa Zitting","c":"boyds-daniel"},{"n":"Ben Williams","c":"boyds-daniel"},{"n":"Daniel Dockstader Boyds","c":"boyds-daniel"},{"n":"Derrick Knudson","c":"boyds-daniel"},{"n":"Emmerson Hammon","c":"boyds-daniel"},{"n":"J Daunt Hammon","c":"boyds-daniel"},{"n":"Leroy Dutson","c":"boyds-daniel"},{"n":"Levi Knudson","c":"boyds-daniel"},{"n":"Maureen Williams","c":"boyds-daniel"},{"n":"Seth Williams","c":"boyds-daniel"},{"n":"Steven Dockstader","c":"boyds-daniel"},{"n":"Bowen Hammon","c":"ephraims-daniel"},{"n":"Brenda Naylor","c":"ephraims-daniel"},{"n":"Carl Williams","c":"ephraims-daniel"},{"n":"Daniel Dockstader Ephraims","c":"ephraims-daniel"},{"n":"Deborah Timpson","c":"ephraims-daniel"},{"n":"Heber Williams","c":"ephraims-daniel"},{"n":"Lorenzo Cawley","c":"ephraims-daniel"},{"n":"Nate Darger","c":"ephraims-daniel"},{"n":"Noah Dockstader","c":"ephraims-daniel"},{"n":"Robert Dockstader","c":"ephraims-daniel"},{"n":"Scott Naylor","c":"ephraims-daniel"},{"n":"Teancum Timpson","c":"ephraims-daniel"},{"n":"Ammon Timpson","c":"seth"},{"n":"Cuervo Timpson","c":"seth"},{"n":"Donald Timpson","c":"seth"},{"n":"Dylan Horsley","c":"seth"},{"n":"Jefferson Johnson","c":"seth"},{"n":"Joanne Sis Timpson","c":"seth"},{"n":"Nephi Darger","c":"seth"},{"n":"Porter Hammon","c":"seth"},{"n":"Royal Barlow","c":"seth"},{"n":"Sam Guy","c":"seth"},{"n":"Seth Cawley","c":"seth"},{"n":"Sharon Hammon","c":"seth"}],"entries":[{"n":"Curtis Knudson","c":"horatio","k":"21122212212212211222210","r":"2026-08-20T11:43","s":0,"p":0},{"n":"Nathan Knudson","c":"michael","k":"11111212112112212221210","r":"2026-08-20T12:01","s":0,"p":0},{"n":"Marion Knudson","c":null,"k":"11111212122112112222221","r":"2026-08-20T12:04","s":0,"p":0},{"n":"Levi Knudson","c":"boyds-daniel","k":"21222211121122222212221","r":"2026-08-20T12:08","s":0,"p":0},{"n":"William Timpson","c":"jeremy","k":"11121212212112122211110","r":"2026-08-20T12:08","s":0,"p":0},{"n":"Joshua Knudson","c":null,"k":"11211112111111112122110","r":"2026-08-20T12:11","s":0,"p":0},{"n":"Stafford Hammon","c":"stafford","k":"21111112222112112121121","r":"2026-08-20T12:13","s":0,"p":0},{"n":"Caleb Barlow","c":"caleb","k":"11112112212112211222110","r":"2026-08-20T12:16","s":0,"p":0},{"n":"Derrick Knudson","c":"boyds-daniel","k":"21121211212211222221210","r":"2026-08-20T12:21","s":0,"p":0},{"n":"Preston Knudson","c":"sefton","k":"21111212121112212222221","r":"2026-08-20T12:21","s":0,"p":0},{"n":"Elliot Hammon","c":"elliot","k":"11112212122112212222210","r":"2026-08-20T12:21","s":0,"p":0},{"n":"Sam Guy","c":"seth","k":"11111211212111212122110","r":"2026-08-20T13:08","s":0,"p":0},{"n":"Sefton Dockstader","c":"sefton","k":"21111212221112212222221","r":"2026-08-20T13:11","s":0,"p":0},{"n":"Connor Williams","c":"claude","k":"21121122221112112222110","r":"2026-08-20T13:26","s":0,"p":0}],"results":"00000000000000000000000","live":{"updated":"Thursday 2:33 PM","played":0},"teams":[{"s":"jeremy","label":"Jeremy's team","seed":1,"w":15,"l":5,"t":0,"pts":30,"pf":273,"pa":217,"diff":56},{"s":"caleb","label":"Caleb's team","seed":2,"w":14,"l":5,"t":1,"pts":29,"pf":262,"pa":200,"diff":62},{"s":"horatio","label":"Horatio's team","seed":3,"w":14,"l":6,"t":0,"pts":28,"pf":292,"pa":159,"diff":133},{"s":"sefton","label":"Sefton's team","seed":4,"w":14,"l":6,"t":0,"pts":28,"pf":279,"pa":195,"diff":84},{"s":"stafford","label":"Stafford's team","seed":5,"w":13,"l":7,"t":0,"pts":26,"pf":255,"pa":224,"diff":31},{"s":"claude","label":"Claude's team","seed":6,"w":11,"l":8,"t":1,"pts":23,"pf":211,"pa":196,"diff":15},{"s":"gideon","label":"Gideon's team","seed":7,"w":9,"l":11,"t":0,"pts":18,"pf":209,"pa":221,"diff":-12},{"s":"elliot","label":"Elliot's team","seed":8,"w":8,"l":12,"t":0,"pts":16,"pf":225,"pa":248,"diff":-23},{"s":"michael","label":"Michael's team","seed":9,"w":7,"l":13,"t":0,"pts":14,"pf":179,"pa":238,"diff":-59},{"s":"boyds-daniel","label":"Boyds Daniel's team","seed":10,"w":6,"l":14,"t":0,"pts":12,"pf":176,"pa":250,"diff":-74},{"s":"ephraims-daniel","label":"Ephraims Daniel's team","seed":11,"w":4,"l":16,"t":0,"pts":8,"pf":211,"pa":301,"diff":-90},{"s":"seth","label":"Seth's team","seed":12,"w":4,"l":16,"t":0,"pts":8,"pf":159,"pa":282,"diff":-123}]}</script>
+        <script src="confetti.min.js"></script>
+        <script>
+(function () {
+    "use strict";
+    var island = document.getElementById("machine-data");
+    if (!island) return;
+    var data = JSON.parse(island.textContent);
+    var order = data.teams.map(function (t) {
+        return t.s;
+    });
+    var byS = {};
+    var seedOf = {};
+    var bySeed = {};
+    data.teams.forEach(function (t) {
+        byS[t.s] = t;
+        seedOf[t.s] = t.seed;
+        bySeed["s" + t.seed] = t.s;
+    });
+
+    /* The FATAL half of the self-check, run before a single value is used.
+       Structural only: twelve clubs seeded 1–12 once each, a twenty-three
+       game bracket numbered in order, and — this being the live page — a
+       results string of exactly one digit per game. A page that cannot
+       trust its island draws nothing and says so; a bracket drawn from a
+       hole seats the WRONG club, which is worse than no bracket. */
+    if (!islandIsSound()) return;
+    function islandIsSound() {
+        var seen = {};
+        var ok =
+            data.final === true &&
+            data.teams.length === 12 &&
+            Array.isArray(data.bracket) &&
+            data.bracket.length === 23 &&
+            typeof data.results === "string" &&
+            /^[0-2]{23}$/.test(data.results) &&
+            !!data.prize &&
+            Array.isArray(data.entries) &&
+            // a live island scores every entry (0 of 0 before first pitch);
+            // an island without scores is the prediction era's, and this
+            // page has no business drawing it
+            data.entries.every(function (e) {
+                return typeof e.s === "number" && typeof e.p === "number" && /^[0-2]{23}$/.test(e.k);
+            });
+        data.teams.forEach(function (t, i) {
+            if (t.seed !== i + 1 || seen[t.seed]) ok = false;
+            seen[t.seed] = 1;
+        });
+        if (ok)
+            data.bracket.forEach(function (g, i) {
+                if (!Array.isArray(g) || g[0] !== i + 1) ok = false;
+            });
+        if (ok) return true;
+        if (window.console) console.warn("playoff brackets (live): island self-check FAILED");
+        var bracket = document.getElementById("bracket");
+        var entries = document.getElementById("entries");
+        var top = document.getElementById("tb-state");
+        if (bracket)
+            bracket.innerHTML =
+                '<div class="noscript">The results on this page did not pass their own ' +
+                "check, so the bracket has not been drawn — a bracket with the wrong " +
+                "club in it is worse than no bracket. The season’s numbers are printed in " +
+                '<a href="index.html">the paper</a>.</div>';
+        if (entries) entries.innerHTML = "";
+        if (top) top.textContent = "self-check failed";
+        return false;
+    }
+
+    var RM =
+        typeof window.matchMedia === "function" &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    /* ── the league's bracket, carried in the island so the topology has ONE
+       home (PLAYOFF_BRACKET in analysis.py): [game, top slot, bottom slot,
+       day, time, field]. s5 = the fifth seed; w4 / l4 = the winner / loser of
+       Game 4. Every slot points at a lower-numbered game, so one forward pass
+       resolves the whole thing. Top/bottom is the sheet's drawing order and
+       NOT home and away — the sheet designates no home club. ── */
+    var BR = data.bracket;
+    var SLOT = {};
+    BR.forEach(function (g) {
+        SLOT[g[0]] = { h: g[1], a: g[2], day: g[3], time: g[4], field: g[5] };
+    });
+
+    /* Bracket geometry: [column, row] in card units. Positions are data, not
+       DOM measurements — the wires are drawn from the same numbers. */
+    var POS = {
+        1: [0, 0], 2: [0, 1], 3: [0, 2], 4: [0, 3],
+        5: [1, 0], 6: [1, 1], 7: [1, 2], 8: [1, 3],
+        15: [2, 0.5], 16: [2, 2.5],
+        19: [3, 1.5],
+        22: [6, 1.5],
+        23: [6, 2.6],
+        9: [0, 4.9], 10: [0, 5.9],
+        11: [1, 6.9], 12: [1, 7.9],
+        13: [2, 5.4], 14: [2, 7.4],
+        17: [3, 5.4], 18: [3, 7.4],
+        20: [4, 6.4],
+        21: [5, 6.4]
+    };
+    var W_ROUNDS = [
+        [0, "Opening round · Fri"],
+        [1, "Quarterfinals · Fri"],
+        [2, "Semifinals · Fri"],
+        [3, "Winners final · Sat"]
+    ];
+    var L_ROUNDS = [
+        [0, "Elimination 1 · Sat"],
+        [1, "Elimination 2 · Sat"],
+        [2, "Elimination 3 · Sat"],
+        [3, "Elimination 4 · Sat"],
+        [4, "Elimination 5 · Sat"],
+        [5, "Elimination final · Sat"]
+    ];
+
+    // ── small helpers ──
+    function el(id) {
+        return document.getElementById(id);
+    }
+    function label(s) {
+        return byS[s].label; // "Jeremy's team" — clubs are named by captain
+    }
+    function capName(s) {
+        return byS[s].label.replace(/['’]s team$/, ""); // "Jeremy"
+    }
+    function esc(s) {
+        return String(s)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
+    }
+    function plural(n, one, many) {
+        return n + " " + (n === 1 ? one : many || one + "s");
+    }
+    function list(arr, join) {
+        if (arr.length <= 1) return arr.join("");
+        return arr.slice(0, -1).join(", ") + " " + (join || "and") + " " + arr[arr.length - 1];
+    }
+    function slugify(s) {
+        return String(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    }
+    var toastTimer = null;
+    function toast(msg) {
+        var t = el("toast");
+        t.textContent = msg;
+        t.hidden = false;
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () {
+            t.hidden = true;
+        }, 3200);
+    }
+    // "Fri 3:00 PM" for the lists; the decider has no time on the sheet
+    function whenText(no) {
+        var sl = SLOT[no];
+        if (!sl.time) return "";
+        return (sl.day === 21 ? "Fri" : "Sat") + " " + sl.time + " · " + sl.field;
+    }
+    // minutes since midnight, for putting the lists in the order the games are played
+    function whenKey(no) {
+        var sl = SLOT[no];
+        if (!sl.time) return 1e9; // the decider: last, always
+        var m = /^(\d+):(\d+) (AM|PM)$/.exec(sl.time);
+        var h = +m[1] % 12 + (m[3] === "PM" ? 12 : 0);
+        return sl.day * 10000 + h * 60 + +m[2];
+    }
+
+    /* ══ LAYER 1 — arithmetic ══════════════════════════════════════ */
+
+    /* The decider. G22's TOP slot is w19 — the club that has not lost. If it
+       wins, it is champion outright; if it loses, both clubs are on one loss
+       and G23 is owed. Everything that resolves a code gates on this. */
+    var DECIDER = 23;
+    function needsDecider(occ) {
+        var g = occ[22];
+        return !!(g && g.w && g.w !== g.h);
+    }
+    function champion(occ) {
+        if (!occ[22] || !occ[22].w) return null;
+        return needsDecider(occ) ? occ[DECIDER].w : occ[22].w;
+    }
+    function finalGame(occ) {
+        return needsDecider(occ) ? occ[DECIDER] : occ[22];
+    }
+    function gamesLive(occ) {
+        return needsDecider(occ) ? 23 : 22;
+    }
+
+    /* One forward pass over the bracket for any 23-digit code — the results
+       string and every entry's code go through the same function, which is
+       what lets a ✓ on a card mean exactly what a point on the board means.
+       Mirrors resolve_code() in analysis.py. */
+    function resolveCode(code) {
+        var occ = {};
+        function val(sl) {
+            if (sl.charAt(0) === "s") return bySeed[sl];
+            var g = occ[+sl.slice(1)];
+            return sl.charAt(0) === "w" ? g.w : g.l;
+        }
+        BR.forEach(function (br) {
+            var no = br[0];
+            var h = val(br[1]);
+            var a = val(br[2]);
+            if (no === DECIDER && !needsDecider(occ)) h = a = null;
+            var d = code.charAt(no - 1);
+            var w = null;
+            var l = null;
+            if (h && a && (d === "1" || d === "2")) {
+                w = d === "1" ? h : a;
+                l = w === h ? a : h;
+            }
+            occ[no] = { h: h, a: a, w: w, l: l };
+        });
+        return occ;
+    }
+
+    /* Wins, losses and the next unplayed game for every club, read off a
+       resolved bracket. Two losses and the summer is over. */
+    function bracketState(occ) {
+        var loss = {};
+        var win = {};
+        var next = {};
+        order.forEach(function (s) {
+            loss[s] = 0;
+            win[s] = 0;
+            next[s] = 0;
+        });
+        BR.forEach(function (br) {
+            var g = occ[br[0]];
+            if (g.w) {
+                win[g.w]++;
+                loss[g.l]++;
+            }
+        });
+        BR.forEach(function (br) {
+            var g = occ[br[0]];
+            if (g.w) return;
+            [g.h, g.a].forEach(function (s) {
+                if (s && !next[s]) next[s] = br[0];
+            });
+        });
+        return { loss: loss, win: win, next: next };
+    }
+
+    // ── the truth: what has actually been played ──
+    var TRUTH = resolveCode(data.results);
+    var TS = bracketState(TRUTH);
+    var PLAYED = BR.filter(function (br) {
+        return TRUTH[br[0]].w;
+    }).map(function (br) {
+        return br[0];
+    });
+    var CHAMP = champion(TRUTH);
+
+    /* Can this club still turn up in this slot of the real bracket? A seed
+       slot is the club or it is not; a winner/loser slot is reachable while
+       the feeding game is unplayed and the club can still reach THAT game, or
+       once it is played, if the club really did come out of it that way. This
+       is what lets a card say "✗ had Caleb's team" BEFORE the game is played,
+       the moment Caleb's team can no longer be in it. */
+    function canReach(s, slot) {
+        if (slot.charAt(0) === "s") return bySeed[slot] === s;
+        var no = +slot.slice(1);
+        var g = TRUTH[no];
+        if (g.w) return (slot.charAt(0) === "w" ? g.w : g.l) === s;
+        if (no === DECIDER && !needsDecider(TRUTH) && TRUTH[22].w) return false;
+        return canReach(s, SLOT[no].h) || canReach(s, SLOT[no].a);
+    }
+
+    // flat scoring, the owner's rule: one point per played game whose winner the entry called
+    function scoreOf(occ) {
+        var n = 0;
+        PLAYED.forEach(function (no) {
+            if (occ[no].w === TRUTH[no].w) n++;
+        });
+        return n;
+    }
+
+    /* The verdict an opened entry gets on one card. Returns null for a game
+       the entry has nothing to say about (a decider that is not a game). */
+    function callOn(no, occ) {
+        var g = TRUTH[no];
+        var pick = occ[no].w;
+        if (no === DECIDER && !g.h && !g.a && !pick) return null;
+        if (g.w) {
+            if (pick === g.w) return { k: "hit", text: "✓ called " + capName(pick), title: label(pick) + " — called it" };
+            if (!pick) return { k: "miss", text: "✗ no call", title: "This entry did not call this game" };
+            return { k: "miss", text: "✗ had " + capName(pick), title: "Had " + label(pick) + "; " + label(g.w) + " won it" };
+        }
+        if (!pick) return { k: "open", text: "no call", title: "This entry has nothing in this game" };
+        var alive = TS.loss[pick] < 2;
+        var possible = alive && (canReach(pick, SLOT[no].h) || canReach(pick, SLOT[no].a));
+        if (possible) return { k: "open", text: "picks " + capName(pick), title: "Picks " + label(pick) + " — not played yet" };
+        return {
+            k: "miss",
+            text: "✗ had " + capName(pick),
+            title: "Had " + label(pick) + (alive ? ", who can no longer reach this game" : ", already eliminated")
+        };
+    }
+
+    /* ══ LAYER 2 — state ═══════════════════════════════════════════ */
+    var viewing = null; // index into data.entries, or null for the plain results
+    var VIEW = null; // that entry's resolved bracket
+    function entryIndexBySlug(slug) {
+        var lst = data.entries || [];
+        for (var i = 0; i < lst.length; i++) if (slugify(lst[i].n) === slug) return i;
+        return -1;
+    }
+
+    /* ══ LAYER 3 — rendering ═══════════════════════════════════════ */
+
+    var G = {};
+    function metrics() {
+        var narrow = window.innerWidth < 760;
+        G.CW = narrow ? 128 : 156;
+        G.CH = narrow ? 84 : 90;
+        G.GX = narrow ? 20 : 30;
+        G.RU = narrow ? 98 : 106;
+        G.PL = narrow ? 26 : 34;
+        G.PT = 50;
+        var cols = 0;
+        var rows = 0;
+        for (var k in POS) {
+            if (POS[k][0] > cols) cols = POS[k][0];
+            if (POS[k][1] > rows) rows = POS[k][1];
+        }
+        G.W = G.PL + cols * (G.CW + G.GX) + G.CW + G.PL;
+        G.H = G.PT + rows * G.RU + G.CH + 22;
+    }
+    function bx(no) {
+        return G.PL + POS[no][0] * (G.CW + G.GX);
+    }
+    function by(no) {
+        return G.PT + POS[no][1] * G.RU;
+    }
+    function wire(from, to) {
+        var x1 = bx(from);
+        var y1 = by(from);
+        var x2 = bx(to);
+        var y2 = by(to);
+        if (x2 > x1) {
+            var ax = x1 + G.CW;
+            var ay = y1 + G.CH / 2;
+            var by2 = y2 + G.CH / 2;
+            var mx = (ax + x2) / 2;
+            return "M" + ax + " " + ay + " C" + mx + " " + ay + ", " + mx + " " + by2 + ", " + x2 + " " + by2;
+        }
+        var ch = x1 - G.PL / 2 - 4;
+        var sy = y1 + G.CH / 2;
+        var ty = y2 + G.CH / 2;
+        return "M" + x1 + " " + sy + " H" + ch + " V" + ty + " H" + x2;
+    }
+    function phrase(sl) {
+        if (sl.charAt(0) === "s") return "Seed " + sl.slice(1);
+        return (sl.charAt(0) === "w" ? "Winner" : "Loser") + " G" + sl.slice(1);
+    }
+
+    function renderBracket() {
+        metrics();
+        var canvas = el("canvas");
+        canvas.style.width = G.W + "px";
+        canvas.style.height = G.H + "px";
+        var paths = "";
+        BR.forEach(function (br) {
+            var no = br[0];
+            [br[1], br[2]].forEach(function (sl) {
+                if (sl.charAt(0) === "s") return;
+                var src = +sl.slice(1);
+                var drop = sl.charAt(0) === "l";
+                var lit = !drop && TRUTH[src].w;
+                paths +=
+                    '<path data-src="' + src + '" class="' + (drop ? "drop" : "") + (lit ? " lit" : "") +
+                    '" d="' + wire(src, no) + '"/>';
+            });
+        });
+        var html =
+            '<svg class="wires" id="wires" width="' + G.W + '" height="' + G.H +
+            '" viewBox="0 0 ' + G.W + " " + G.H + '" aria-hidden="true">' + paths + "</svg>";
+        html +=
+            '<div class="band" style="left:' + G.PL + "px;top:" + (G.PT - 46) +
+            'px">Winners’ road <em>— lose once and you drop</em></div>';
+        html +=
+            '<div class="band" style="left:' + G.PL + "px;top:" + (by(9) - 46) +
+            'px">Elimination road <em>— lose again and the summer is over</em></div>';
+        W_ROUNDS.forEach(function (r) {
+            html +=
+                '<div class="rnd" style="left:' + (G.PL + r[0] * (G.CW + G.GX)) + "px;top:" +
+                (G.PT - 22) + 'px">' + r[1] + "</div>";
+        });
+        L_ROUNDS.forEach(function (r) {
+            html +=
+                '<div class="rnd" style="left:' + (G.PL + r[0] * (G.CW + G.GX)) + "px;top:" +
+                (by(9) - 22) + 'px">' + r[1] + "</div>";
+        });
+        BR.forEach(function (br) {
+            var no = br[0];
+            var g = TRUTH[no];
+            var dormant = no === DECIDER && !needsDecider(TRUTH);
+            var next = g.h && g.a && !g.w;
+            var call = VIEW && !dormant ? callOn(no, VIEW) : null;
+            var pick = VIEW ? VIEW[no].w : null;
+            var when;
+            if (call)
+                when = '<div class="bg-when call ' + call.k + '" title="' + esc(call.title) + '">' + esc(call.text) + "</div>";
+            else
+                when =
+                    '<div class="bg-when">' +
+                    (SLOT[no].time
+                        ? "Aug " + SLOT[no].day + " · " + SLOT[no].time
+                        : needsDecider(TRUTH)
+                        ? "Both on one loss"
+                        : "Only if needed") +
+                    "</div>";
+            html +=
+                '<div class="bg' + (no === 22 || no === DECIDER ? " gf" : "") +
+                (next ? " next" : "") + (g.w ? " done" : "") +
+                (call && g.w ? " " + call.k : "") +
+                (dormant ? " dormant" : "") +
+                '" data-g="' + no + '" style="left:' + bx(no) +
+                "px;top:" + by(no) + "px;width:" + G.CW + "px;height:" + G.CH + 'px">' +
+                '<div class="bg-h"><span class="gno">' +
+                (no === 22 ? "Grand final" : no === DECIDER ? "Decider" : "G" + no) +
+                "</span><span>" + (SLOT[no].field || "G23") + "</span></div>" +
+                when +
+                slot(g, g.h, SLOT[no].h, pick) +
+                slot(g, g.a, SLOT[no].a, pick) +
+                "</div>";
+        });
+        var plq = plaque();
+        html +=
+            '<div class="plaque' + (plq.champ ? " crowned" : "") + '" style="left:' +
+            (G.PL + 4 * (G.CW + G.GX)) + "px;top:" + G.PT + "px;width:" +
+            (2 * (G.CW + G.GX) + G.CW) + "px;height:" + (1.5 * G.RU - 22) + 'px">' + plq.html + "</div>";
+        canvas.innerHTML = html;
+
+        function slot(g, s, sl, pick) {
+            if (!s)
+                return (
+                    '<span class="bg-s empty"><span class="sd">·</span>' +
+                    '<span class="nm">' + phrase(sl) + "</span></span>"
+                );
+            var cls = g.w === s ? " won" : g.w ? " lost" : "";
+            if (pick === s && !g.w) cls += " pick";
+            return (
+                '<span class="bg-s' + cls + '" data-s="' + s + '" title="' + esc(label(s)) +
+                (g.w === s ? " won it" : g.w ? " lost it" : " — not played yet") +
+                (pick === s && !g.w ? " · this entry’s pick" : "") +
+                '"><span class="sd">' + seedOf[s] + '</span><span class="nm">' + esc(capName(s)) +
+                "</span></span>"
+            );
+        }
+    }
+
+    function plaque() {
+        var e = viewing !== null ? data.entries[viewing] : null;
+        var mine = e ? champion(VIEW) : null;
+        var tail = "";
+        if (e) {
+            var alive = mine ? TS.loss[mine] < 2 : false;
+            tail =
+                '<div class="pl-sub" style="margin-top:6px"><b>' + esc(e.n) + "</b> picks <b>" +
+                (mine ? esc(label(mine)) : "—") + "</b>" +
+                (CHAMP ? (mine === CHAMP ? " — and called it." : " — " + esc(label(CHAMP)) + " took it.")
+                    : mine ? alive ? " — still alive." : " — already out." : "") +
+                "</div>";
+        }
+        if (CHAMP) {
+            return {
+                champ: CHAMP,
+                html:
+                    '<div class="pl-k">The pennant</div><div class="pl-name">' +
+                    esc(label(CHAMP)) + "</div>" +
+                    '<div class="pl-sub">' + seedOf[CHAMP] + " seed · " + plural(TS.win[CHAMP], "win") +
+                    ", " + plural(TS.loss[CHAMP], "loss", "losses") + " · beat " + esc(label(finalGame(TRUTH).l)) +
+                    (needsDecider(TRUTH) ? " in the decider" : " in the grand final") +
+                    ". Final, " + data.days + ".</div>" + tail
+            };
+        }
+        var alive2 = order.filter(function (s) {
+            return TS.loss[s] < 2;
+        });
+        var unbeaten = alive2.filter(function (s) {
+            return TS.loss[s] === 0;
+        });
+        return {
+            champ: null,
+            html:
+                '<div class="pl-k">The pennant</div><div class="pl-name" style="color:var(--dim2)">Undecided</div>' +
+                '<div class="pl-sub">' +
+                (PLAYED.length
+                    ? "<b>" + PLAYED.length + " of " + gamesLive(TRUTH) + "</b> played · " +
+                      alive2.length + " clubs still alive, " + unbeaten.length + " unbeaten."
+                    : "Nothing played yet. First pitch is 3:00 PM Friday.") +
+                "</div>" + tail
+        };
+    }
+
+    function renderLists() {
+        var chron = BR.map(function (br) {
+            return br[0];
+        }).sort(function (a, b) {
+            return whenKey(a) - whenKey(b) || a - b;
+        });
+        var done = "";
+        var todo = "";
+        chron.forEach(function (no) {
+            var g = TRUTH[no];
+            var name = no === 22 ? "Final" : no === DECIDER ? "Decider" : "G" + no;
+            var call = VIEW ? callOn(no, VIEW) : null;
+            var callHtml = call
+                ? '<span class="call ' + call.k + '" title="' + esc(call.title) + '">' + esc(call.text) + "</span>"
+                : "";
+            if (g.w) {
+                done +=
+                    '<li><span class="gno">' + name + '</span><span class="who"><span class="w">' +
+                    esc(label(g.w)) + '</span> <span class="d">d.</span> <span class="l">' + esc(label(g.l)) +
+                    "</span></span>" + callHtml + '<span class="when">' + esc(whenText(no)) + "</span></li>";
+                return;
+            }
+            if (no === DECIDER && !needsDecider(TRUTH)) return; // not a game unless G22 says so
+            var side = function (s, sl) {
+                return s ? '<span class="w">' + esc(label(s)) + "</span>" : '<span class="tbd">' + phrase(sl) + "</span>";
+            };
+            todo +=
+                '<li><span class="gno">' + name + '</span><span class="who">' + side(g.h, SLOT[no].h) +
+                ' <span class="d">v</span> ' + side(g.a, SLOT[no].a) + "</span>" + callHtml +
+                '<span class="when">' + esc(whenText(no) || "if needed") + "</span></li>";
+        });
+        el("played").innerHTML = done || '<li class="empty">No results yet — first pitch is 3:00 PM Friday.</li>';
+        el("upnext").innerHTML = todo || '<li class="empty">Nothing left. The season is over.</li>';
+    }
+
+    function renderVow() {
+        var meet = false;
+        BR.forEach(function (br) {
+            var g = TRUTH[br[0]];
+            if (
+                g.h && g.a &&
+                ((g.h === "horatio" && g.a === "claude") || (g.h === "claude" && g.a === "horatio"))
+            )
+                meet = true;
+        });
+        el("vow").hidden = !meet;
+    }
+
+    function renderTop() {
+        var upd = data.live && data.live.updated ? " · updated <b>" + esc(data.live.updated) + "</b>" : "";
+        el("tb-state").innerHTML = CHAMP
+            ? "<b>Final</b> · <b>" + esc(capName(CHAMP)) + "</b> takes it · " + PLAYED.length + "/" + gamesLive(TRUTH) + upd
+            : "<b>Live</b> · <b>" + PLAYED.length + "/" + gamesLive(TRUTH) + "</b> played" + upd;
+    }
+
+    /* Plain language is a computed output: the lede, the bracket sub-line and
+       the leaderboard sub-line are all written from the island. */
+    function renderWords() {
+        var n = (data.entries || []).length;
+        var p = PLAYED.length;
+        var total = gamesLive(TRUTH);
+        var lead = n ? data.entries[0] : null;
+        var level = lead
+            ? data.entries.filter(function (e) {
+                  return e.s === lead.s;
+              }).length
+            : 0;
+        var alive = order.filter(function (s) {
+            return TS.loss[s] < 2;
+        });
+        var unbeaten = alive.filter(function (s) {
+            return TS.loss[s] === 0;
+        });
+
+        var board;
+        if (!n) board = "No entries were verified before first pitch, so there is nothing to score.";
+        else if (!p)
+            board =
+                "<b>" + n + "</b> " + (n === 1 ? "bracket is" : "brackets are") +
+                " in play; entries closed at first pitch. Nothing has been decided yet, so " +
+                "the board below stands in the order the entries arrived.";
+        else if (CHAMP)
+            board =
+                "<b>" + esc(label(CHAMP)) + "</b> took the pennant. Over " + total + " games, <b>" +
+                esc(lead.n) + "</b> called <b>" + lead.s + "</b> right" +
+                (level > 1
+                    ? " — level with " + (level - 1) + " other" + (level > 2 ? "s" : "") +
+                      ", and ahead on the only tiebreak there is: the earlier entry."
+                    : ", more than anyone else.") +
+                " The 75,000 sats are theirs.";
+        else
+            board =
+                "<b>" + p + " of " + total + "</b> games played; " + alive.length + " clubs still alive, " +
+                (unbeaten.length ? unbeaten.length + " of them unbeaten (" + list(unbeaten.map(capName)) + ")" : "none unbeaten") +
+                ". <b>" + esc(lead.n) + "</b> leads on <b>" + lead.s + " of " + p + "</b>" +
+                (level > 1 ? ", with " + (level - 1) + " other" + (level > 2 ? "s" : "") + " level — the earlier entry ranks ahead." : ".");
+        el("lede").innerHTML =
+            "Twelve clubs, double elimination, twenty-two games over <b>" + esc(data.days) +
+            "</b> — and a twenty-third if the final needs a replay. The desk files each result from the field " +
+            "as the game ends, the bracket redraws itself, and every entry is re-scored against it. " + board;
+
+        el("bk-sub").innerHTML = CHAMP
+            ? "<b>" + esc(label(CHAMP)) + "</b> takes it, from the " + seedOf[CHAMP] + " seed. Every game below is as it was played."
+            : p
+            ? "<b>" + p + " of " + total + "</b> games in. Gold advances; a faded name has lost that game; a gold ring is a game whose two clubs are both known."
+            : "Every game as the sheet has it. The first results land after the 3:00 PM games.";
+        el("bk-status").innerHTML =
+            "<b>" + p + "</b> of <b>" + total + "</b> played" +
+            (data.live && data.live.updated ? " · updated " + esc(data.live.updated) : "");
+
+        el("prize-sub").innerHTML =
+            "Entries closed at first pitch, Friday August 21 — <b>" + n + " " + (n === 1 ? "bracket" : "brackets") +
+            "</b> in play. One point for every game an entry called right; the most points takes the lot, paid in " +
+            "bitcoin by the editor’s other desk, which sells coffee and takes the same currency. " +
+            "<b>A tie goes to whoever entered first.</b>";
+
+        el("entries-sub").innerHTML = !n
+            ? "No verified entries."
+            : !p
+            ? "<b>" + n + "</b> " + (n === 1 ? "entry" : "entries") + ", in the order they arrived. Tap any one to lay it over the bracket above."
+            : "<b>" + n + "</b> " + (n === 1 ? "entry" : "entries") + ", ranked by games called right through <b>" + p +
+              "</b> played so far; level entries rank by arrival. Tap any one to lay it over the bracket above and see, game by game, where it held and where it went wrong.";
+
+        var fb = el("final");
+        if (CHAMP && lead) {
+            fb.hidden = false;
+            fb.innerHTML =
+                '<div class="fb-k">Final · ' + esc(data.prize.sats.toLocaleString("en-US")) + " sats</div>" +
+                '<p class="fb-n">The best bracket: <b>' + esc(lead.n) + "</b></p>" +
+                '<p class="fb-sub">' + lead.s + " of " + total + " games called right" +
+                (level > 1
+                    ? " — level with " + list(data.entries.slice(1, level).map(function (e) { return "<b>" + esc(e.n) + "</b>"; })) +
+                      ", and ahead on the one tiebreak there is: the earlier entry (" + esc(lead.r.replace("T", " ")) + ")."
+                    : ".") +
+                " Presented by yggr; paid in bitcoin.</p>";
+        } else fb.hidden = true;
+    }
+
+    /* The room's pick: one entry, one vote, read off the same forward pass
+       the board uses. A club on two real losses is marked out, and loses the
+       gold if it was the room's favourite — gold means advancing. */
+    function renderTally() {
+        var all = data.entries || [];
+        var box = el("tally");
+        if (!all.length) {
+            box.hidden = true;
+            return;
+        }
+        box.hidden = false;
+        var count = {};
+        all.forEach(function (e) {
+            var champ = champion(resolveCode(e.k));
+            if (champ) count[champ] = (count[champ] || 0) + 1;
+        });
+        var rows = Object.keys(count).map(function (sl) {
+            return { s: sl, n: count[sl], out: TS.loss[sl] >= 2 };
+        });
+        rows.sort(function (a, b) {
+            return b.n - a.n || seedOf[a.s] - seedOf[b.s];
+        });
+        var max = rows.length ? rows[0].n : 0;
+        var n = all.length;
+        var word = n === 1 ? "entry" : "entries";
+        el("tally-rows").innerHTML = rows
+            .map(function (r) {
+                return (
+                    '<div class="tally-row' + (r.n === max && !r.out ? " top" : "") + (r.out ? " dead" : "") +
+                    '" title="' + esc(label(r.s)) + " — " + r.n + " of " + n + " " + word + (r.out ? " · eliminated" : "") +
+                    '"><span class="tally-seed">' + seedOf[r.s] + "</span>" +
+                    '<span class="tally-club"><span class="tally-name">' + esc(capName(r.s)) + "</span>" +
+                    (r.s === CHAMP ? '<span class="chip champ" style="margin-left:7px">Pennant</span>' : r.out ? '<span class="tally-out">out</span>' : "") +
+                    '</span><span class="tally-track"><span class="tally-bar" style="width:' +
+                    Math.round((r.n / max) * 100) + '%"></span></span>' +
+                    '<span class="tally-n">' + r.n + "</span></div>"
+                );
+            })
+            .join("");
+        var top = rows.filter(function (r) {
+            return r.n === max;
+        });
+        var say;
+        if (!rows.length) {
+            say = "No entry names a champion.";
+        } else if (CHAMP) {
+            var right = count[CHAMP] || 0;
+            say =
+                right
+                    ? "<b>" + right + " of " + n + "</b> " + word + " had <b>" + esc(label(CHAMP)) + "</b> taking it all."
+                    : "Nobody had <b>" + esc(label(CHAMP)) + "</b> taking it all.";
+        } else if (top.length > 1)
+            say = "The room is split — " + list(top.map(function (r) { return "<b>" + esc(label(r.s)) + "</b>"; })) + " are level on <b>" + max + "</b> apiece.";
+        else say = "<b>" + max + " of " + n + "</b> " + word + " have <b>" + esc(label(top[0].s)) + "</b> taking it all.";
+        el("tally-say").innerHTML = say;
+        var dead = rows.filter(function (r) {
+            return r.out;
+        });
+        var votesDead = dead.reduce(function (a, r) {
+            return a + r.n;
+        }, 0);
+        el("tally-foot").innerHTML =
+            (rows.length === data.teams.length
+                ? "All twelve clubs have somebody behind them."
+                : "<b>" + rows.length + "</b> of the twelve clubs " + (rows.length === 1 ? "has" : "have") + " somebody behind them.") +
+            (dead.length && !CHAMP
+                ? " <b>" + votesDead + "</b> " + (votesDead === 1 ? "entry's pennant pick is" : "entries' pennant picks are") +
+                  " already out (" + list(dead.map(function (r) { return esc(capName(r.s)); })) + ")."
+                : "");
+    }
+
+    function renderBoard() {
+        var host = el("entries-body");
+        var lst = data.entries || [];
+        if (!lst.length) {
+            host.innerHTML = '<div class="empty-note">No entries were verified before first pitch.</div>';
+            return;
+        }
+        var html = "";
+        lst.forEach(function (e, i) {
+            var champ = champion(resolveCode(e.k));
+            var out = champ && TS.loss[champ] >= 2;
+            html +=
+                '<div class="ecard' + (PLAYED.length && i === 0 ? " lead" : "") +
+                (viewing === i ? " viewing" : "") + '">' +
+                '<div class="ecard-top"><span class="ecard-n">' + esc(e.n) + "</span>" +
+                '<span class="ecard-rank">#' + (i + 1) + "</span></div>" +
+                '<div class="ecard-c">' + (e.c ? esc(label(e.c)) : "Guest") + " · " + esc(e.r.replace("T", " ")) + "</div>" +
+                '<div class="ecard-pick">Picks <b>' + esc(champ ? capName(champ) : "—") + "</b> for the pennant" +
+                (champ && champ === CHAMP ? '<span class="chip champ">Right</span>' : out ? '<span class="chip out">Out</span>' : "") +
+                "</div>" +
+                '<div class="ecard-score">' + e.s + " of " + e.p + " right</div>" +
+                '<button type="button" class="btn quiet" data-view="' + i + '">' +
+                (viewing === i ? "Viewing" : "See this bracket") + "</button></div>";
+        });
+        host.innerHTML = '<div class="cards">' + html + "</div>";
+    }
+
+    function renderViewing() {
+        var bar = el("viewing-bar");
+        if (viewing === null) {
+            bar.hidden = true;
+            return;
+        }
+        var e = data.entries[viewing];
+        bar.hidden = false;
+        el("viewing-who").innerHTML =
+            "Looking at <b>" + esc(e.n) + "</b>’s bracket — #" + (viewing + 1) + " · <b>" + e.s + " of " + e.p +
+            "</b> right. ✓ called it · <span style=\"color:var(--rust)\">✗</span> went wrong · “picks” still to play.";
+    }
+
+    function render() {
+        renderTop();
+        renderWords();
+        renderViewing();
+        renderBracket();
+        renderLists();
+        renderVow();
+        renderTally();
+        renderBoard();
+    }
+
+    function celebrate() {
+        if (RM || typeof confetti !== "function") return;
+        try {
+            confetti({ particleCount: 80, spread: 70, origin: { x: 0.25, y: 0.65 }, colors: ["#f2bd4c", "#f2f0ea", "#ff6f93"] });
+            confetti({ particleCount: 80, spread: 70, origin: { x: 0.75, y: 0.65 }, colors: ["#f2bd4c", "#f2f0ea", "#ff6f93"] });
+        } catch (e) {}
+    }
+
+    function scrollTo(id) {
+        var n = el(id);
+        if (!n || typeof n.scrollIntoView !== "function") return;
+        try {
+            n.scrollIntoView({ behavior: RM ? "auto" : "smooth", block: "start" });
+        } catch (e) {}
+    }
+    function setHash(h) {
+        try {
+            if (window.history && history.replaceState)
+                history.replaceState(null, "", h || location.pathname + location.search);
+        } catch (e) {}
+    }
+    function openEntry(i, quiet) {
+        var e = (data.entries || [])[i];
+        if (!e) return;
+        viewing = i;
+        VIEW = resolveCode(e.k);
+        render();
+        setHash("#e=" + slugify(e.n)); // the URL names what is on screen; the slug is the NAME, the list re-sorts
+        if (!quiet) {
+            scrollTo("bracket");
+            toast("Showing " + e.n + "’s bracket over the results");
+        }
+    }
+    function closeEntry() {
+        viewing = null;
+        VIEW = null;
+        setHash("");
+        render();
+        toast("Back to the results");
+    }
+
+    /* ══ events ════════════════════════════════════════════════════ */
+    document.addEventListener("click", function (ev) {
+        var b = ev.target.closest ? ev.target.closest("button") : null;
+        if (!b) return;
+        if (b.id === "viewing-back") return closeEntry();
+        if (b.hasAttribute("data-view")) {
+            var i = +b.getAttribute("data-view");
+            return i === viewing ? closeEntry() : openEntry(i);
+        }
+    });
+    function highlight(no) {
+        var svg = el("wires");
+        if (!svg) return;
+        if (!no) {
+            svg.removeAttribute("data-hi");
+            Array.prototype.forEach.call(svg.querySelectorAll("path.hi"), function (p) {
+                p.classList.remove("hi");
+            });
+            return;
+        }
+        svg.setAttribute("data-hi", no);
+        Array.prototype.forEach.call(svg.querySelectorAll("path"), function (p) {
+            p.classList.toggle("hi", p.getAttribute("data-src") === String(no));
+        });
+    }
+    ["mouseover", "focusin"].forEach(function (evName) {
+        el("canvas").addEventListener(evName, function (ev) {
+            var card = ev.target.closest ? ev.target.closest(".bg") : null;
+            highlight(card ? card.getAttribute("data-g") : null);
+        });
+    });
+    ["mouseleave", "focusout"].forEach(function (evName) {
+        el("canvas").addEventListener(evName, function () {
+            highlight(null);
+        });
+    });
+    var resizeTimer = null;
+    window.addEventListener("resize", function () {
+        if (resizeTimer) clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(renderBracket, 120);
+    });
+
+    /* ══ start-up ══════════════════════════════════════════════════ */
+    (function boot() {
+        Array.prototype.forEach.call(document.querySelectorAll(".playdates"), function (n) {
+            n.textContent = data.days;
+        });
+        el("prize-n").textContent = data.prize.sats.toLocaleString("en-US");
+
+        /* The soft half of the self-check: the board's points are Python's,
+           computed by score_entries() from the same results string this page
+           draws; re-derive them here and say so if the two disagree. The page
+           still prints Python's numbers — that is the file the prize is paid
+           from — but a disagreement means one of the two resolvers is wrong,
+           and the desk needs to hear it before anybody is paid. */
+        var bad = (data.entries || []).filter(function (e) {
+            return typeof e.s !== "number" || e.s !== scoreOf(resolveCode(e.k)) || e.p !== PLAYED.length;
+        });
+        var unsorted = (data.entries || []).some(function (e, i, a) {
+            return i && (a[i - 1].s < e.s || (a[i - 1].s === e.s && a[i - 1].r > e.r));
+        });
+        if (bad.length || unsorted) {
+            if (window.console) console.warn("playoff brackets (live): scores did not re-check", bad.map(function (e) { return e.n; }), unsorted);
+            toast("The leaderboard did not re-check against the bracket — the desk has been told");
+        }
+
+        var em = /[#&]e=([a-z0-9-]+)/.exec(location.hash || "");
+        var wanted = em ? entryIndexBySlug(em[1]) : -1;
+        if (em && wanted < 0) setHash("");
+        render();
+        if (wanted >= 0) openEntry(wanted, true);
+        else if (em) toast("That entry is not on this page");
+        if (CHAMP) celebrate();
+    })();
+})();
+        </script>
+        <script
+            data-goatcounter="https://cp-softball.goatcounter.com/count"
+            async
+            src="//gc.zgo.at/count.js"
+        ></script>
+    </body>
+</html>

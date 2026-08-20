@@ -4330,8 +4330,14 @@ def emit_playoff_seeds(c):
         f"{len(c.get('brackets') or [])} contest entries, {n_played} results in -->"
     )
     entries = c.get("brackets") or []
+    # Results GIVEN (even a header-only file, 0 played) is what puts the page
+    # into its live era: the entries are scored — 0 of 0 on Friday afternoon —
+    # and the island carries `live`, which is how the live page knows the
+    # contest is closed and the bracket is being played. Results ABSENT is the
+    # prediction era: no scores, no `live`, exactly as before.
+    live = c.get("results") is not None
     res_code = c.get("results") or "0" * BRACKET_DIGITS
-    if any(d != "0" for d in res_code):
+    if live:
         score_entries(entries, res_code, st)
     seat = {cap_slug(s["team"]): s["rank"] for s in st}
     data = dict(
@@ -4368,6 +4374,19 @@ def emit_playoff_seeds(c):
             for e in entries
         ],
         results=res_code,
+        # The live era only (gameday, Aug 21-22): when the desk last filed a
+        # result, on the desk's own clock, and how many games are in. Curtis
+        # sends winners only, never runs, so there is nothing else to carry.
+        **(
+            {
+                "live": dict(
+                    updated=datetime.datetime.now().strftime("%A %-I:%M %p"),
+                    played=n_played,
+                )
+            }
+            if live
+            else {}
+        ),
         teams=[
             dict(
                 s=cap_slug(s["team"]),

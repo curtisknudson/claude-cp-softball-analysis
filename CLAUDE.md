@@ -28,10 +28,17 @@ the site.
   (`2026-07-10.html`), never root-absolute — that keeps every page working at any serving root.
   The head's canonical/OG/Twitter URLs are deliberately absolute on `https://softball.best/`
   (og.png lives at the repo root); update them only if the domain changes.
-- **Claude NEVER commits or pushes — no `git commit`, no `git push`, ever. Curtis handles all
-  git operations himself** (owner's explicit rule, 2026-07-13). Leave finished work in the
-  working tree and stop. If Curtis ever asks for a suggested commit message: plain text, no
-  Claude co-author or attribution lines.
+- **Git: Claude commits or pushes ONLY on Curtis's explicit, per-request authorization**
+  (rule amended 2026-08-20; from 2026-07-13 to then it was an absolute never). The default
+  is unchanged: finish the work, verify it, leave it in the working tree, and hand off. A
+  commit/push happens only when Curtis, in the current conversation, explicitly asks for
+  that specific commit and/or push — "commit this" / "push it" for the work at hand. Never
+  infer it from the procedure, from a past session, or from a general "go ahead"; an
+  authorization covers the one action it names (a commit is not a push) and does not carry
+  forward to later work. Before acting, run `git status`/`git diff --stat`, state what will
+  be committed and where it will be pushed, and push only to `origin main` unless told
+  otherwise (a push is a public deploy — GitHub Pages serves it). Commit messages: plain
+  text, **no Claude co-author or attribution lines, ever.**
 
 ## Files
 
@@ -1262,7 +1269,8 @@ revived, same meaning, as a recurring module.)
    carry no numbers that aren't in the digest. Cover last; same-y test against the previous
    front.
 5. **Update `RECORDS_PUBLISHED`** in analysis.py to the board as this edition publishes it.
-6. **Verify** (checklist below), then STOP and hand off — **do not commit, do not push.** Tell
+6. **Verify** (checklist below), then STOP and hand off — **do not commit or push unless
+   Curtis explicitly asks for it in this conversation** (see the git rule at the top). Tell
    Curtis what changed and leave everything in the working tree.
 
 ## Verification checklist
@@ -1289,4 +1297,5 @@ revived, same meaning, as a recurring module.)
   its label rail resolves.
 - Archive honesty: the new archive shows nothing newer than its date; no forward-looking
   section; masthead says Archived Edition.
-- `git status` — nothing unintended; hand off. **Never `git commit` or `git push`.**
+- `git status` — nothing unintended; hand off. **No `git commit` or `git push` without
+  Curtis's explicit, per-request authorization** (see the git rule at the top).

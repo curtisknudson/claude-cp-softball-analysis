@@ -4078,15 +4078,17 @@ def seed_slugs(st):
 def load_brackets(path, st, cur):
     """Load contest entries: name,club,code,received.
 
-    name      the player, spelled as the roster spells them ("Shem Hammon")
-    club      the captain slug of the club they play for ("sefton")
+    name      the player, spelled as the roster spells them ("Shem Hammon") —
+              or a guest, as they signed the mail (guests are welcome)
+    club      the captain slug of the club they play for ("sefton"); BLANK for
+              a guest, and only for a guest
     code      23 digits, one per bracket game: 1 = top slot, 2 = bottom slot
     received  when the entry mail arrived, ISO 8601 — this is the clock the
               deadline is read on and the last tiebreak is settled on
 
     Every field is checked: a COMPLETE code (all twenty-two games called), a
-    real rostered player, the club that player actually plays for, and one entry
-    per player. A bad row exits hard with the row named. These entries carry a
+    rostered player under the club they actually play for — or a guest with the
+    club left blank — and one entry per name. A bad row exits hard with the row named. These entries carry a
     prize; a silently mangled one is not an option.
     """
     roster = {display_name(p["name"]): cap_slug(p["team"]) for p in cur}
@@ -4133,13 +4135,24 @@ def load_brackets(path, st, cur):
                 f"({ENTRY_DEADLINE}, {closes:%Y-%m-%dT%H:%M}) — late entries are not verified"
             )
             who = canon.get(" ".join(who.lower().split()), who)
+            # Guests are welcome (owner's call, 2026-08-20, when the first
+            # non-rostered entry arrived): a name that is not on the roster is
+            # accepted with the club column BLANK. The blank is the desk's own
+            # declaration that it checked and this is a guest — so a misspelled
+            # PLAYER, whose row would carry a club, still fails by name with a
+            # did-you-mean, and a guest can never be filed under a club.
             if who not in roster:
                 near = difflib.get_close_matches(who, roster, n=3, cutoff=0.6)
                 hint = f" — did you mean {' / '.join(near)}?" if near else ""
-                raise AssertionError(f"{tag}: not a rostered player{hint}")
-            assert roster[who] == where, (
-                f"{tag}: entered under {where!r} but plays for {roster[who]!r}"
-            )
+                assert not where, (
+                    f"{tag}: not a rostered player, but entered under {where!r}{hint}. "
+                    "A guest entry leaves the club blank."
+                )
+                where = None
+            else:
+                assert roster[who] == where, (
+                    f"{tag}: entered under {where!r} but plays for {roster[who]!r}"
+                )
             assert who not in seen, f"{tag}: already entered at line {seen[who]}"
             seen[who] = i
             assert len(code) == BRACKET_DIGITS and all(d in "012" for d in code), (
@@ -4334,7 +4347,8 @@ def emit_playoff_seeds(c):
             deadline=ENTRY_DEADLINE,
         ),
         # the 144 rostered players, club by club in seed order — the entry
-        # panel picks from this, so an entry can only name a real player
+        # panel autocompletes from this and derives a player's club from it;
+        # a name that is not here enters as a guest (c: null in `entries`)
         roster=[
             dict(n=display_name(p["name"]), c=cap_slug(p["team"]))
             for p in sorted(

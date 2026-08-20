@@ -371,6 +371,18 @@ predicts the most accurate bracket.** Decisions he made when asked:
   in the prize band and in the leaderboard caption — and `score_entries` sorts on
   `(-score, received)` and nothing else. The clock is the `received` timestamp on the mail,
   the same clock the deadline is read on.
+- **Guests may enter (owner's call, 2026-08-20, when the first non-rostered entry —
+  Marion Knudson — arrived).** The rule was "one entry per rostered player"; it is now **one
+  entry per person**. In `MMDD-brackets.csv` a guest row leaves the **club column BLANK**,
+  and that blank is the desk's explicit declaration: `load_brackets()` accepts a
+  non-rostered name ONLY with a blank club (so a misspelled player, whose row carries a
+  club, still fails by name with did-you-mean), and still refuses a rostered name with a
+  blank or wrong club. The island carries `c: null`; the entry card prints **"Guest"** where
+  a player's card prints the club; the tally counts them like anyone else. The page's copy
+  (prize band, entry desk, caption, footer, `<noscript>`, the who-echo and the slip's Club
+  line) says guests are welcome — no "rostered player" phrasing survives in visible copy,
+  and the sweep suite greps for it. `received` for entries Curtis pastes into chat is
+  stamped with the clock at receipt (not a mail header) — say so in the handoff each time.
 - **Entries are public as soon as the desk verifies them**, in arrival order; the section
   re-heads itself "The leaderboard" and re-sorts by score the moment results exist.
 - **Deadline: first pitch, Friday August 21.** The clock is the `received` timestamp on
